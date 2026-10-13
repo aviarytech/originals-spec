@@ -1,0 +1,33 @@
+{
+  "specs": [
+    {
+      "title": "Originals Protocol",
+      "spec_directory": "./spec",
+      "output_path": "./docs",
+      "markdown_paths": [
+        "00-header.md",
+        "01-purpose.md",
+        "02-model.md",
+        "03-identifiers.md",
+        "04-resources.md",
+        "05-signing.md",
+        "06-operations.md",
+        "07-export.md",
+        "08-private-use.md",
+        "09-hosted.md",
+        "10-sdk-replacement.md",
+        "11-security.md",
+        "12-conformance.md",
+        "13-decisions.md"
+      ],
+      "source": {
+        "host": "github",
+        "account": "aviarytech",
+        "repo": "originals-spec"
+      },
+      "plugins": [
+        "./plugins/originals.mjs"
+      ]
+    }
+  ]
+}

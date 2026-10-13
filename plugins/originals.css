@@ -1,0 +1,43 @@
+/* Proposed rules (P5.3) and open decisions (D2) */
+p.rule,
+p.decision {
+  border-left: 3px solid var(--wa-color-brand-fill-loud, #3b82f6);
+  padding: 0.35em 0 0.35em 0.9em;
+  margin-left: 0;
+  scroll-margin-top: 4rem;
+}
+
+p.decision {
+  border-left-color: var(--wa-color-warning-fill-loud, #d97706);
+}
+
+a.rule-id {
+  display: inline-block;
+  min-width: 3.2em;
+  margin-right: 0.35em;
+  padding: 0 0.4em;
+  border-radius: 4px;
+  background: var(--wa-color-neutral-fill-quiet, rgba(127, 127, 127, 0.15));
+  font-family: var(--wa-font-family-code, ui-monospace, monospace);
+  font-size: 0.85em;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+}
+
+p.rule:target,
+p.decision:target,
+li.source-entry:target {
+  background: var(--wa-color-brand-fill-quiet, rgba(59, 130, 246, 0.1));
+}
+
+/* Per-section source citations */
+p.sources {
+  font-size: 0.85em;
+  opacity: 0.75;
+}
+
+li.source-entry {
+  overflow-wrap: anywhere;
+  scroll-margin-top: 4rem;
+}
