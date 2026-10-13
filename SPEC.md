@@ -60,11 +60,11 @@ P2.3 Every accepted state MUST preserve the association between the Original, it
 
 The following is an explanatory model, not a normative wire format or test vector:
 
-Original identity → VH checkpoint → full application state
-Application state → name, metadata, lifecycle, named resource descriptors
-Resource descriptor → resourceID, mediaType, exact-byte digest
-VH entry → Original identity, parent entry, resulting application state, author identity reference, one proof by the author’s key
-Evidence package → VH history, author identity evidence, resource bytes
+- Original identity → VH checkpoint → full application state
+- Application state → name, metadata, lifecycle, named resource descriptors
+- Resource descriptor → resourceID, mediaType, exact-byte digest
+- VH entry → Original identity, parent entry, resulting application state, author identity reference, one proof by the author’s key
+- Evidence package → VH history, author identity evidence, resource bytes
 
 For a generic VH profile, the application manifest can be the profiled VH state. For a did:vh specialization, the VH state is constrained by the DID method’s DID-document requirements. Manifest embedding or an integrity-bound manifest reference requires a compatible, documented extension. An arbitrary asset object cannot simply replace the DID document.
 
