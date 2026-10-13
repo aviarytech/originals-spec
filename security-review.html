@@ -106,7 +106,7 @@
 <li><span class="ok-mark">✓</span>The verification report is split by dimension, and claimed time is kept separate from proven ordering (§3, §7, P7.6).</li>
 <li><span class="ok-mark">✓</span>There is no silent rebase or re-signing on conflict or retry (P4.5, P6.4, P9.6).</li>
 <li><span class="ok-mark">✓</span>VH hash chaining and SCID binding mean one key reused across Originals can’t replay entries between them.</li>
-<li><span class="ok-mark">✓</span>The legacy CEL boundary is clean (P10.1–P10.4), and archive hardening and limit failures are explicit (P7.5, P7.7).</li></ul>
+<li><span class="ok-mark">✓</span>Archive hardening and limit failures are explicit (P7.5, P7.7).</li></ul>
 <h2>Recommended priorities</h2><ol>
 <li><b>Before the local slice:</b> F-03 (pin the binding), F-02 (constrain updateKeys), F-08 (one proof).</li>
 <li><b>Decide the key-compromise model:</b> either prerotation on asset logs, or witnesses with a check against the latest DID state, plus the rotation order in F-01. This is the main open design question.</li>

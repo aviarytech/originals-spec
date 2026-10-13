@@ -4,7 +4,7 @@
 
 The active SDK paths provide local/offline operation, not an encrypted vault. Serialized metadata is plaintext, embedded bytes may be base64 encoded, and storage adapters perform raw put/get operations. Base64 is not encryption. Encryption and signing-key recovery are not implemented in the inspected active paths.
 
-This baseline should be stated plainly in product and SDK documentation. Private use means that the user can keep the evidence off public hosts; confidentiality then depends on the security of the chosen device, files and storage service. Exporting, synchronizing or publishing can disclose the manifest and its history.
+This baseline should be stated plainly in product and SDK documentation. Private use means that the user can keep the evidence off public hosts; confidentiality then depends on the security of the chosen device, files and storage service. Sharing, synchronizing or publishing evidence can disclose the manifest and its history.
 
 ### Proposed storage and privacy rules
 
@@ -12,7 +12,7 @@ P8.1 Storage adapters MUST preserve exact bytes and surface missing or failed wr
 
 P8.2 The SDK MUST NOT label plaintext metadata, base64 content or raw storage as encrypted. An encryption feature MUST identify its separate format, key handling, integrity protection and recovery behavior before making confidentiality claims.
 
-P8.3 Publishing or exporting MUST identify the evidence and content being included. A later metadata correction MUST NOT be described as removing a secret from previously distributed history. Historical names, locators and identity links may remain visible. Before the first export or publication, the SDK SHOULD warn about embedded metadata such as EXIF location and device identifiers.
+P8.3 Publishing or sharing an evidence package MUST identify the evidence and content being included. A later metadata correction MUST NOT be described as removing a secret from previously distributed history. Historical names, locators and identity links may remain visible. Before evidence is first shared or published, the SDK SHOULD warn about embedded metadata such as EXIF location and device identifiers.
 
 P8.4 Read-only loading MUST NOT imply that a signing key has been restored. The SDK MUST distinguish access to evidence, access to content-decryption keys if any, and current authority to sign updates.
 
@@ -26,6 +26,6 @@ A malicious host can withhold content, serve an old valid prefix or show differe
 
 ### Open additions
 
-Encryption at rest or in exports, multi-device signing, delegation recovery and lost-key recovery are separate decisions. A recovery design must preserve continuity through authorized VH and identity mechanisms; importing bytes or creating a new genesis is not recovery of the old authority. Do not commit to an emergency override absent a defined trust model.
+Encryption at rest or in evidence packages, multi-device signing, delegation recovery and lost-key recovery are separate decisions. A recovery design must preserve continuity through authorized VH and identity mechanisms; importing bytes or creating a new genesis is not recovery of the old authority. Do not commit to an emergency override absent a defined trust model.
 
 Sources: StorageAdapter and serialization behavior [S4, S7, S8].

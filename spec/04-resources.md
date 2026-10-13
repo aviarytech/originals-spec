@@ -27,7 +27,7 @@ Alice creates “Harbor at dawn” with resourceID photo, mediaType image/jpeg a
 
 After signing and independent verification succeed, the new checkpoint becomes current. The reader derives photo version 2 from history. If Alice also renames the Original, that name replaces the prior one in the same transition. A later metadata-only correction changes the asset checkpoint but leaves photo at version 2.
 
-A fresh reader can inspect B1 and B2 when both are exported. A host serving B2 at the B1 URL fails the digest check. A draft crop is not a committed version, even when its bytes already exist in a local store.
+A fresh reader can inspect B1 and B2 when an evidence package includes both. A host serving B2 at the B1 URL fails the digest check. A draft crop is not a committed version, even when its bytes already exist in a local store.
 :::
 
 Sources: OriginalsAsset and resources [S5, S6].
