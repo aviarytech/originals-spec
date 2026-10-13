@@ -6,7 +6,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 
 | Test | Required result |
 |---|---|
-| Fresh create, edit, export and verify | Same asset checkpoint and resource versions; no private key in reader |
+| Fresh create, edit, package and verify | Same asset checkpoint and resource versions; no private key in reader |
 | Byte changed at same URL | Digest failure; no verified resource result |
 | Wrong genesis or Original ID | Identifier binding failure |
 | Broken chain or reordered entry | History invalid; no derived accepted state beyond failure |
@@ -29,7 +29,6 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Divergent valid branches | Explicit fork/conflict, no timestamp winner |
 | Hosted mixed snapshot | Rejected before public result is marked verified |
 | Bitcoin failure, retry or reorganization | Durable boundary follows adapter policy, not pending intent |
-| Legacy bytes with new discriminator | Rejected; legacy verification remains separate |
 | Ordinary entry signed by a key removed from the author DID | Witnessed: refused by witnesses and not current. Unwitnessed: historically authorized, ordering unproven, never current |
 | Rotation entry by a removed key to a key in the latest author DID | Accepted |
 | Rotation entry to a key not in the referenced author DID version | Rejected |
@@ -60,4 +59,4 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 
 ### Release evidence
 
-Release evidence should include positive and negative fixtures, pinned profile decisions, deterministic results and an active-dependency inventory without CEL. Run fresh-process and partial-package tests. An independent verifier should reproduce the positive checkpoints before interoperability is claimed.
+Release evidence should include positive and negative fixtures, pinned profile decisions, deterministic results and a dependency inventory. Run fresh-process and partial-package tests. An independent verifier should reproduce the positive checkpoints before interoperability is claimed.

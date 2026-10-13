@@ -1,6 +1,6 @@
 ## Local operations and transitions
 
-The public SDK should retain the familiar create, edit, export and load workflow. Compatibility applies to useful semantics, not to preserving CEL types or hiding a required protocol change. A new envelope discriminator, history engine and verifier are expected.
+The public SDK should retain the familiar create, edit and load workflow. Compatibility applies to useful semantics, not to preserving existing types or hiding a required protocol change. A new envelope discriminator, history engine and verifier are expected.
 
 ### Proposed operation contract
 
@@ -8,7 +8,7 @@ Create prepares the initial manifest, resource descriptors and genesis entry. Th
 
 Edit reads an exact verified parent, checks the fixed resourceID set, computes new descriptors, has the author sign the next VH entry and verifies it. The current pointer changes only after the signed entry and new bytes are durably stored. For the caller this is one step.
 
-Export reads a selected verified checkpoint and its history. Load/import reconstructs and verifies evidence with no signing key requirement. A loaded Original is readable without becoming writable. Obtaining a signer is an explicit authority step, and eligibility to append is rechecked against the verified parent.
+Packaging collects a selected verified checkpoint and its history into an evidence package. Load/import reconstructs and verifies evidence with no signing key requirement. A loaded Original is readable without becoming writable. Obtaining a signer is an explicit authority step, and eligibility to append is rechecked against the verified parent.
 
 Deactivate is a VH entry signed by the author’s key that sets the VH deactivated parameter and produces a terminal state. Subsequent ordinary edits are rejected. Historical evidence is retained and readable where the selected upstream resolution and evidence policy permit it; this draft does not assume that every resolver already supports historical deactivated-state access.
 
@@ -18,7 +18,7 @@ P6.1 Preparation, signing and verification MUST complete before the current comm
 
 P6.2 Commit MUST be recoverable after interruption. Storage implementations MUST define how they persist the accepted history and bytes before advancing the current pointer, or provide an equivalent atomic boundary. An interrupted commit MUST NOT expose a checkpoint whose required local evidence was never committed.
 
-P6.3 Drafts MUST be explicitly marked unsigned. The SDK MUST NOT export them as accepted history, count them as [[ref: resource versions]] or publish them as signed Originals.
+P6.3 Drafts MUST be explicitly marked unsigned. The SDK MUST NOT package them as accepted history, count them as [[ref: resource versions]] or publish them as signed Originals.
 
 P6.4 A retried operation MUST preserve its intended parent and signed entry. If the parent changed, the SDK MUST report a conflict and require a new candidate. An already accepted identical candidate SHOULD return its existing checkpoint without duplicating the transition.
 

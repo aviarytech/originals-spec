@@ -1,12 +1,12 @@
 ## Purpose and status
 
-Originals preserves the identifiable, signed history of named digital resources while allowing an author to create, edit, export, verify and publish an Original. This draft replaces the active CEL-based history with Verifiable History and identity-level signing. It preserves useful SDK behavior wherever the change does not require a different model.
+Originals preserves the identifiable, signed history of named digital resources while allowing an author to create, edit, verify and publish an Original. This draft builds that history on Verifiable History and identity-level signing. It preserves useful SDK behavior wherever the change does not require a different model.
 
-The immediate implementation target is a local vertical slice: create an Original, edit a resource version, export the evidence, and verify it in a fresh reader without a private key. Hosted publication and Bitcoin integration follow that slice. This document is a design for review, not an implementation or a migration authorization.
+The immediate implementation target is a local vertical slice: create an Original, edit a resource version, package the evidence, and verify it in a fresh reader without a private key. Hosted publication and Bitcoin integration follow that slice. This document is a design for review, not an implementation or a migration authorization.
 
 ### Decision legend
 
-- **Confirmed direction:** CEL is removed entirely from the active Originals design. Stephen Curran’s VH Log and did:vh work provide the standards direction. Author signing uses identity verification rather than an application-maintained device-key allowlist.
+- **Confirmed direction:** Originals history uses Verifiable History. Stephen Curran’s VH Log and did:vh work provide the standards direction. Author signing uses identity verification rather than an application-maintained device-key allowlist.
 - **Retained SDK behavior:** an existing behavior to preserve, identified as such below. It is not a claim that the new implementation already exists.
 - **Proposed rule:** a requirement offered by this draft, numbered Pn.n and shown with a shaded label. The key words MUST, MUST NOT, SHOULD, SHOULD NOT and MAY in proposed rules are to be interpreted as described in BCP 14 [[spec: RFC2119]] [[spec: RFC8174]] when, and only when, they appear in all capitals. They do not imply agreement or a finalized upstream standard. Lowercase “must” and “should” in explanatory prose describe intent and are not conformance requirements.
 - **Unresolved:** a choice that requires review. The current working preference is a DID per Original for resolution, with its complexity hidden by the SDK. The precise did:vh profile and author key binding are not yet settled.
@@ -26,4 +26,4 @@ VH Log and did:vh are pre-drafts. Their algorithms, parameter behavior and resol
 
 These decisions block an interoperable protocol release. They do not block review of the local lifecycle, compatibility requirements or failure behavior in this draft.
 
-Sources: SDK 4 guide to the CEL 3 asset API [S1]; VH Log pre-draft [S2]; did:vh pre-draft [S3].
+Sources: SDK 4 guide [S1]; VH Log pre-draft [S2]; did:vh pre-draft [S3].

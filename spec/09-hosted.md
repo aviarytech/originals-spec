@@ -2,9 +2,9 @@
 
 ### Hosted publication
 
-The inspected SDK hosted path maintains did:webvh-related publication alongside CEL history and cel.json. The new active format retires that dual history. A host serves the selected VH profile and exact resource evidence; the public reader verifies the same checkpoint semantics as the local reader.
+The inspected SDK hosted path publishes a second, separate history alongside did:webvh. The new format has a single history. A host serves the selected VH profile and exact resource evidence; the public reader verifies the same checkpoint semantics as the local reader.
 
-The Boop adapter needs its actual publishing path replaced: ordinary publication uses local per-asset Ed25519 signing through localCelKeyStore and addResourceVersion, rather than SDK publishToWeb. Replacing only publishToWeb leaves active CEL behavior behind. The exact-snapshot public-reader requirement from Boop issue 232 [S10] remains a regression requirement.
+The Boop adapter needs its actual publishing path replaced: ordinary publication uses local per-asset Ed25519 signing rather than SDK publishToWeb. Replacing only publishToWeb leaves that signing path in place. The exact-snapshot public-reader requirement from Boop issue 232 [S10] remains a regression requirement.
 
 ### Proposed hosted rules
 
@@ -12,11 +12,11 @@ P9.1 A published snapshot MUST bind its manifest, history checkpoint and resourc
 
 P9.2 A publish retry MUST resume or repeat the same intended snapshot. Uploading bytes, publishing a locator or changing an index MUST NOT create a new asset transition unless an explicit authorized transition is part of the operation.
 
-P9.3 Host relocation and locator updates MUST preserve authenticated continuity under the chosen profile. Public delivery MUST use the new profile discriminator and MUST NOT relabel CEL evidence as VH.
+P9.3 Host relocation and locator updates MUST preserve authenticated continuity under the chosen profile. Public delivery MUST use the new profile discriminator and MUST NOT relabel evidence in another format as VH.
 
 ### Bitcoin adapter
 
-Current representations include CEL JSON with application/cel and media bytes with CEL CBOR metadata. Those encodings are replaced, not retained as the new active format. The VH-based inscription representation, MIME type, metadata schema, size limits and locator rules are unresolved. This draft defines the boundary requirements without inventing a final encoding.
+The current inscription encodings are replaced, not retained. The VH-based inscription representation, MIME type, metadata schema, size limits and locator rules are unresolved. This draft defines the boundary requirements without inventing a final encoding.
 
 P9.4 A Bitcoin publication MUST identify the exact accepted checkpoint and content commitment it represents. Only a verified change beyond the prior durable published boundary may form the next delta. A pending or failed transaction MUST NOT advance that durable boundary.
 
