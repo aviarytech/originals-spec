@@ -24,9 +24,11 @@ P6.4 A retried operation MUST preserve its intended parent and signed entry. If 
 
 P6.5 Deactivation MUST be expressed as VH deactivated: true, and the manifest lifecycle status MUST match it; a verifier MUST reject a mismatch in either direction. Deactivation MUST be terminal for new edits in the baseline profile, and a verifier MUST reject an update after an accepted deactivation. If the latest verified author DID is deactivated, the verifier MUST report the Original as non-current, and witnesses MUST refuse every further entry, including rotation entries. Any future reactivation feature requires an explicit new profile and authorization policy.
 
+P6.6 When the SDK detects two or more valid branches from the same accepted entry, it MUST show every branch to the author and MUST NOT choose one by timestamp. The author resolves the fork by appending an ordinary entry to the chosen branch whose signed state lists the first entry of each abandoned branch. A verifier MUST report those branches and their descendants as abandoned forks, never as current. If branches declare each other abandoned, the verifier MUST report an unresolved conflict. For a witnessed Original, only a branch whose later entries carry witness proofs meeting the threshold can be current (P9.8), whatever the declarations say.
+
 ### Observable results
 
-The SDK should expose the selected checkpoint, derived resource versions, verification status and actionable error category. Suggested categories are invalid evidence, incomplete evidence, unsupported profile, unauthorized key, author binding failure, stale parent, deactivated asset and unavailable bytes. Concrete API names and error codes remain a compatibility review item.
+The SDK should expose the selected checkpoint, derived resource versions, verification status and actionable error category. Suggested categories are invalid evidence, incomplete evidence, unsupported profile, unauthorized key, author binding failure, stale parent, fork, transfer pending acceptance, deactivated asset and unavailable bytes. Concrete API names and error codes remain a compatibility review item.
 
 VH entries carry whole-second versionTime values that strictly increase, so a log accepts at most one entry per second. The SDK’s mutation queue must respect that limit.
 

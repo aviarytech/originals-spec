@@ -22,11 +22,15 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Interrupted local commit | Recover prior or fully committed checkpoint; no false success |
 | Identical accepted retry | Existing result or explicit duplicate; no unintended extra version |
 | Resource added, removed or renamed | Rejected in baseline fixed-resource profile |
-| Metadata supplied versus omitted | Replacement versus unchanged, respectively |
+| Metadata supplied, omitted or null | Replacement, unchanged or removed, respectively |
+| Name set to null | Rejected |
+| Update that leaves a resource’s digest unchanged | That resource’s version does not advance |
 | Import then edit without authority | Read succeeds where evidence valid; edit authorization fails |
 | Update after deactivation | Rejected; historical evidence retained |
 | Old valid prefix served as current | Freshness unresolved or failed under policy, never assumed |
 | Divergent valid branches | Explicit fork/conflict, no timestamp winner |
+| Author entry on one branch declares the other abandoned | Declared branch and its descendants reported as abandoned, never current |
+| Each branch declares the other abandoned | Unresolved conflict |
 | Hosted mixed snapshot | Rejected before public result is marked verified |
 | Bitcoin failure, retry or reorganization | Durable boundary follows adapter policy, not pending intent |
 | Ordinary entry signed by a key removed from the author DID | Witnessed: refused by witnesses and not current. Unwitnessed: historically authorized, ordering unproven, never current |
@@ -43,7 +47,14 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Author DID versionId absent from signed state | Rejected |
 | Verification method from another DID, with a different controller, or under authentication only | Author binding failure |
 | Key expressed as JWK or a different multikey encoding | Author binding failure |
-| Later entry names a different author DID, or an older author DID version than its predecessor | Rejected |
+| Later entry names a different author DID without a transfer, or an older author DID version than its predecessor | Rejected |
+| Author DID using a method the profile does not list | Rejected |
+| Witness cannot obtain author DID state no more than 60 seconds old | Entry refused |
+| Transfer entry to a key the recipient DID lists | Accepted; reported as pending acceptance until the recipient appends |
+| Transfer to a key the recipient DID does not list, or that also changes state | Rejected |
+| Entry signed by the previous author’s key after a transfer | Rejected |
+| Witnessed transfer when the recipient’s latest DID no longer lists the recipient key | Refused by witnesses |
+| Inscription moved without a transfer entry | Author unchanged; not reported as a transfer |
 | Two proofs in the proof array | Rejected |
 | Stale author DID history served with a current asset log | Identity freshness not established; not reported as currently authorized |
 | VH-valid log that fails Originals rules, read through a generic resolver | Not reported as Originals-verified |

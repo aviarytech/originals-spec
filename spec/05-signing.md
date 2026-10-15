@@ -18,17 +18,29 @@ P5.6 A candidate MUST NOT become the current state until the VH and author-bindi
 
 P5.7 Parsers MUST reject duplicate keys, values that the pinned canonicalization cannot represent exactly, and any member of parameters, proof or Originals-defined state that is not defined by the pinned VH Log version, the pinned did:vh version or this profile. Under the did:vh option, the profile MUST list the DID Core members it allows in the state.
 
-P5.8 The author DID MUST be fixed at genesis; an entry naming a different author DID MUST be rejected in the baseline profile. Author DIDs MUST use a method with verifiable version history; the baseline profile accepts did:vh. The author DID versionId referenced by each entry MUST NOT be older than the one referenced by its predecessor.
+P5.8 The author DID MUST be fixed at genesis and MUST change only through an accepted transfer entry (P5.12); any other entry naming a different author DID MUST be rejected. Author DIDs MUST use a DID method with verifiable version history that the profile lists; the baseline profile lists did:vh and did:webvh. The author DID versionId referenced by each entry MUST NOT be older than the one referenced by its predecessor for the same author DID.
 
 P5.9 Every entry MUST set or inherit exactly one updateKey, and that key MUST be an assertionMethod key of the author DID at the version the entry references. The author SHOULD remove from their DID any key they no longer hold, because a thief can rotate an Original to any listed key. An empty updateKeys list MUST be rejected except in a deactivation entry, where VH recommends it; deactivation is the only way to end an Original.
 
-P5.10 A rotation entry’s parameters MUST contain only updateKeys, holding exactly one key that differs from the signing key. Its state MUST be identical to its predecessor’s except for the operation, which is rotate, the author verification method id and the author DID versionId. That version MUST be one in which the new key meets P5.3, and P5.8 applies. The rotation entry is signed by the asset log’s active updateKey as VH requires; that signing key need not still be listed in the author DID. Every other entry is an ordinary entry, and its signing key MUST meet P5.3 at the version it references.
+P5.10 A rotation entry’s parameters MUST contain only updateKeys, holding exactly one key that differs from the signing key. Its state MUST be identical to its predecessor’s except for the operation, which is rotate, the author verification method id and the author DID versionId. That version MUST be one in which the new key meets P5.3, and P5.8 applies. The rotation entry is signed by the asset log’s active updateKey as VH requires; that signing key need not still be listed in the author DID. Every other entry except a transfer entry is an ordinary entry, and its signing key MUST meet P5.3 at the version it references.
 
-P5.11 A signer holding an Originals key MUST parse the entry, show the author the Original, operation and resource changes before signing, and refuse input that is not a well-formed Originals entry. The author’s Originals key SHOULD be a verification method used only for Originals entries, and MUST NOT also be an updateKey of the author DID’s own log.
+P5.11 A signer holding an Originals key MUST parse the entry, show the author the Original, operation and resource changes before signing, and refuse input that is not a well-formed Originals entry. The author’s Originals key MUST be a verification method used only for Originals entries, and MUST NOT also be an updateKey of the author DID’s own log.
 
 ### Key policy
 
-The baseline profile has one author per Original. The author’s DID is the Original’s controller, and its prerotation protects the DID itself; asset logs do not activate VH prerotation. An asset log lists one current key of the author, and P5.9 keeps that key inside the author’s DID. There is no dedicated per-Original keypair by default; a compatible author key can control several logs. Naming the author DID in an entry grants no log authority by itself.
+The baseline profile has one author per Original at a time; a transfer entry hands the Original to a new author. The author’s DID is the Original’s controller, and its prerotation protects the DID itself; asset logs do not activate VH prerotation. An asset log lists one current key of the author, and P5.9 keeps that key inside the author’s DID. There is no dedicated per-Original keypair by default; a compatible author key can control several logs. Naming the author DID in an entry grants no log authority by itself.
+
+### Transfer
+
+A transfer hands an Original to a new author. It is one VH entry signed by the current author, which names the recipient’s DID and sets updateKeys to one of the recipient’s keys. After it, only the recipient can append. Possession of a Bitcoin inscription or any other token is not a transfer (P9.6).
+
+P5.12 A transfer entry’s state MUST be identical to its predecessor’s except for the operation, which is transfer, the author fields and the recipient fields. Its author DID, verification method id and versionId identify the current author, and its signing key MUST meet P5.3 for that author at that version, as for an ordinary entry. Its recipient DID, verification method id and versionId MUST identify a recipient key that meets P5.3 for the recipient DID at that version. Its parameters MUST contain updateKeys, holding exactly that recipient key, and, if witnesses are active or the recipient DID declares them, a witness parameter equal to the recipient DID’s declaration (P9.9). The recipient DID MUST differ from the current author DID.
+
+P5.13 After an accepted transfer entry, the recipient DID is the author DID for every later entry, and P5.8 applies to it from the recipient versionId in the transfer entry. A verifier MUST reject a later entry that names the previous author DID unless a further transfer names it as recipient.
+
+P5.14 Until the recipient has appended an accepted entry after the transfer, a verifier MUST report the transfer as pending acceptance and MUST NOT present the recipient as having endorsed the Original’s content.
+
+P5.15 Transferring an Original whose log has not activated witnesses gives the recipient no proof that the previous author has not signed a competing branch from the same parent. The SDK MUST warn both parties before such a transfer and SHOULD activate witnesses first.
 
 ### Collaboration deferred
 
@@ -39,6 +51,8 @@ Only the author’s key may append in the baseline profile. Editors who can chan
 To rotate, the author first updates their DID: they add the new key and, if the old key is compromised, remove it in the same update. The SDK sends the DID update to the witnesses of every affected Original, then appends a rotation entry to each asset log the old key controls. The rotation entry is signed by the old key, references the new DID version and sets updateKeys to the new key (P5.10).
 
 For a witnessed Original, witnesses refuse an ordinary entry whose signing key the author’s latest DID no longer lists, and refuse a rotation entry whose new key that DID does not list (P9.8). Once the author’s DID update reaches the witnesses, a thief holding the removed key cannot edit, deactivate or fork the Original, and can perform only the rotation the author wants. The thief also cannot change the witnesses, because the witness list is declared in the author’s DID, which the asset key does not control (P9.9).
+
+A transfer moves this protection to the recipient: the previous author’s key stops being an updateKey, and the witness list follows the recipient’s DID.
 
 These limits remain:
 
