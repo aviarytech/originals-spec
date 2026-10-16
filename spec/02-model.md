@@ -37,6 +37,8 @@ In the baseline profile these two authorities are held by one key. The author si
 
 Storage and publication authority is permission to store bytes or publish a checkpoint. A host, storage adapter, wallet, inscription holder or sat owner does not gain asset-editing authority merely by performing that role. One actor may hold several roles, but verifiers evaluate each role separately.
 
+Ownership is not an authority. Once an Original is anchored on Bitcoin, its owner is whoever holds the anchoring sat (P9.11). Only the author signs changes, for the Original’s whole life, but on Bitcoin a change also has to be inscribed on the sat, so after a sale neither the author nor the owner can change the Original alone (P9.12).
+
 ### Proposed rules
 
 P2.1 An accepted [[ref: Original]] MUST have one unambiguous history identity and an exact verified current [[ref: checkpoint]]. An implementation MUST NOT merge divergent valid histories by choosing the latest claimed timestamp.
@@ -57,6 +59,6 @@ This is not a normative wire format or test vector.
 - VH entry → Original identity, parent entry, resulting application state, author identity reference, one proof by the author’s key
 - Evidence package → VH history, author identity evidence, resource bytes
 
-For a generic VH profile, the application manifest can be the profiled VH state. For a did:vh specialization, the VH state is constrained by the DID method’s DID-document requirements. Manifest embedding or an integrity-bound manifest reference requires a compatible, documented extension. An arbitrary asset object cannot simply replace the DID document.
+Because Originals is a specialisation of VH Log (D1), the VH state is the asset manifest itself, not a DID document.
 
-Sources: VH Log and did:vh state models [S2, S3]; current envelope and resource behavior [S4, S5].
+Sources: VH Log state model [S2]; current envelope and resource behavior [S4, S5].

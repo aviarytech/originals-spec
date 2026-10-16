@@ -16,19 +16,19 @@ P5.5 VH validation MUST apply the pinned upstream algorithms for entry integrity
 
 P5.6 A candidate MUST NOT become the current state until the VH and author-binding checks succeed. Missing identity history MUST remain an explicit failure or incomplete-verification result; it MUST NOT downgrade to trusting the key alone.
 
-P5.7 Parsers MUST reject duplicate keys, values that the pinned canonicalization cannot represent exactly, and any member of parameters, proof or Originals-defined state that is not defined by the pinned VH Log version, the pinned did:vh version or this profile. Under the did:vh option, the profile MUST list the DID Core members it allows in the state.
+P5.7 Parsers MUST reject duplicate keys, values that the pinned canonicalization cannot represent exactly, and any member of parameters, proof or Originals-defined state that is not defined by the pinned VH Log version or this specialisation.
 
-P5.8 The author DID MUST be fixed at genesis; an entry naming a different author DID MUST be rejected in the baseline profile. Author DIDs MUST use a method with verifiable version history; the baseline profile accepts did:vh. The author DID versionId referenced by each entry MUST NOT be older than the one referenced by its predecessor.
+P5.8 The author DID MUST be fixed at genesis; an entry naming a different author DID MUST be rejected. Authorship never transfers; selling an Original transfers ownership of its anchoring sat only (P9.11). Author DIDs MUST use a DID method with verifiable version history that the profile lists; the baseline profile lists did:vh and did:webvh. The author DID versionId referenced by each entry MUST NOT be older than the one referenced by its predecessor.
 
 P5.9 Every entry MUST set or inherit exactly one updateKey, and that key MUST be an assertionMethod key of the author DID at the version the entry references. The author SHOULD remove from their DID any key they no longer hold, because a thief can rotate an Original to any listed key. An empty updateKeys list MUST be rejected except in a deactivation entry, where VH recommends it; deactivation is the only way to end an Original.
 
 P5.10 A rotation entry’s parameters MUST contain only updateKeys, holding exactly one key that differs from the signing key. Its state MUST be identical to its predecessor’s except for the operation, which is rotate, the author verification method id and the author DID versionId. That version MUST be one in which the new key meets P5.3, and P5.8 applies. The rotation entry is signed by the asset log’s active updateKey as VH requires; that signing key need not still be listed in the author DID. Every other entry is an ordinary entry, and its signing key MUST meet P5.3 at the version it references.
 
-P5.11 A signer holding an Originals key MUST parse the entry, show the author the Original, operation and resource changes before signing, and refuse input that is not a well-formed Originals entry. The author’s Originals key SHOULD be a verification method used only for Originals entries, and MUST NOT also be an updateKey of the author DID’s own log.
+P5.11 A signer holding an Originals key MUST parse the entry, show the author the Original, operation and resource changes before signing, and refuse input that is not a well-formed Originals entry. The author’s Originals key MUST be a verification method used only for Originals entries, and MUST NOT also be an updateKey of the author DID’s own log.
 
 ### Key policy
 
-The baseline profile has one author per Original. The author’s DID is the Original’s controller, and its prerotation protects the DID itself; asset logs do not activate VH prerotation. An asset log lists one current key of the author, and P5.9 keeps that key inside the author’s DID. There is no dedicated per-Original keypair by default; a compatible author key can control several logs. Naming the author DID in an entry grants no log authority by itself.
+The baseline profile has one author per Original, for the Original’s whole life. The author’s DID is the Original’s controller, and its prerotation protects the DID itself; asset logs do not activate VH prerotation. An asset log lists one current key of the author, and P5.9 keeps that key inside the author’s DID. There is no dedicated per-Original keypair by default; a compatible author key can control several logs. Naming the author DID in an entry grants no log authority by itself.
 
 ### Collaboration deferred
 

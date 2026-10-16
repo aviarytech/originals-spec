@@ -20,11 +20,11 @@ P7.5 Import MUST NOT confer signing authority, trust unknown keys, or replace an
 
 P7.6 Evidence from a truncated prefix MUST NOT be represented as the latest state without the selected freshness policy. A valid historical prefix and a fresh current result are separate claims. For an unwitnessed Original, and for entries before the entry that activated witnesses, reports MUST label time and ordering as claimed only.
 
-P7.7 A verifier MUST enforce profile-defined limits on history length, entry size, identity-history length and the number of resources and versions. Exceeding a limit MUST produce a distinct verification failure, not a partial success. This is intentionally stricter than VH, which reports the last valid prefix.
+P7.7 A verifier MUST enforce profile-defined limits on history length, entry size, identity-history length and the number of resources and versions. When a history exceeds a limit, the verifier reports the last valid prefix as VH requires, and MUST label the result limit-exceeded and MUST NOT report it as complete or current.
 
 P7.8 The verification report MUST state the latest author DID versionId used and whether its freshness was independently established. An Original MUST NOT be reported as currently authorized unless its identity evidence meets the selected freshness policy. Verifiers SHOULD retain the highest verified versionId seen for each author DID and each Original, and compare copies of both logs as VH describes.
 
-P7.9 A verifier MUST NOT report an unwitnessed entry as current if its signing key is absent from the latest verified author DID state, unless it is a rotation entry whose new key that state lists.
+P7.9 A verifier MUST NOT report an unwitnessed or anchored entry as current if its signing key is absent from the latest verified author DID state, unless it is a rotation entry whose new key that state lists.
 
 ### Proposed verification report
 
