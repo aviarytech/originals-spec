@@ -40,6 +40,8 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Newer inscription on the sat that does not extend the head | Ignored; state follows the authenticated chain |
 | Same evidence inscribed on a different sat | No ownership conferred |
 | Anchoring an Original never published on the web layer | Rejected |
+| Migrate entry that leaves the witness parameter set, or is not approved by the witnesses | Rejected |
+| Entry inscribed on the anchoring sat without witness proofs | Accepted; no witnesses after anchoring |
 | Publication at the same or a lower block height than the previous accepted one | Not accepted |
 | Bitcoin failure, retry or reorganization | Durable boundary follows adapter policy, not pending intent |
 | Ordinary entry signed by a key removed from the author DID | Witnessed: refused by witnesses and not current. Unwitnessed: historically authorized, ordering unproven, never current |
@@ -64,11 +66,11 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | VH-valid log that fails Originals rules, read through a generic resolver | Not reported as Originals-verified |
 | Lifecycle status deactivated without VH deactivated: true, or the reverse | Rejected |
 | Older prefix imported over a newer local history | Local current state not rolled back |
-| Log file larger than the profile cap | Distinct limit-exceeded failure |
+| Log file larger than the profile cap | Fetch refused; reported as unavailable |
 | Entry with duplicate JSON keys or an unsigned state field | Parse failure; no verified state |
 | Resource digest with an unlisted algorithm | Unsupported-profile failure |
 | Locator resolving or redirecting to a private address | Fetch refused; reported as unavailable |
-| History or identity history beyond profile limits | Distinct limit-exceeded failure |
+| History or identity history beyond profile limits | Last valid prefix reported, labelled limit-exceeded; never complete or current |
 | Archive with a symbolic link, `..` path or duplicate entry | Rejected before extraction |
 | SVG resource containing script, or a name containing markup | Not executed on the platform origin or in a client |
 
