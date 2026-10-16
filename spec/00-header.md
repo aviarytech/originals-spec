@@ -10,9 +10,9 @@ Originals Protocol
 
 Depends On:
 ~ [VH-Log](https://swcurran.github.io/VH-Log/next/), the Verifiable History Log mechanism ([source](https://github.com/swcurran/VH-Log))
-~ [did:vh](https://swcurran.github.io/didvh/next/), the VH-Log specialisation each Original’s identifier uses ([source](https://github.com/swcurran/didvh))
 
 Related Specifications:
+~ [did:vh](https://swcurran.github.io/didvh/next/), a sibling VH-Log specialisation and an accepted author DID method ([source](https://github.com/swcurran/didvh))
 ~ [did:webvh](https://github.com/decentralized-identity/didwebvh), a sibling VH-Log specialisation and an accepted author DID method
 ~ [Experimental did:webvh on VH-Log](https://github.com/decentralized-identity/didwebvh/pull/302)
 

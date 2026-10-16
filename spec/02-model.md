@@ -59,6 +59,6 @@ This is not a normative wire format or test vector.
 - VH entry → Original identity, parent entry, resulting application state, author identity reference, one proof by the author’s key
 - Evidence package → VH history, author identity evidence, resource bytes
 
-Because each Original is a did:vh (D1), the VH state is constrained by the DID method’s DID-document requirements. Manifest embedding or an integrity-bound manifest reference requires a compatible, documented extension. An arbitrary asset object cannot simply replace the DID document.
+Because Originals is a specialisation of VH Log (D1), the VH state is the asset manifest itself, not a DID document.
 
-Sources: VH Log and did:vh state models [S2, S3]; current envelope and resource behavior [S4, S5].
+Sources: VH Log state model [S2]; current envelope and resource behavior [S4, S5].

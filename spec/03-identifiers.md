@@ -1,18 +1,16 @@
 ## Identifiers and resolution
 
-Each Original has its own DID, used for resolution across private use, web publication and later layers, with identifier mechanics hidden by the SDK (D1). This draft assumes Bitcoin is the later layer, as in the existing SDK.
+Each Original has its own identifier, used for resolution across private use, web publication and later layers, with identifier mechanics hidden by the SDK (D1). This draft assumes Bitcoin is the later layer, as in the existing SDK.
 
-Author identity remains distinct from asset identity. An asset DID does not authorize an author to edit it. The same Original, identifier and authenticated history should continue across layers.
+Author identity remains distinct from asset identity. An asset identifier does not authorize an author to edit it. The same Original, identifier and authenticated history should continue across layers.
 
-### Decided: did:vh specialization
+### Decided: a VH Log specialisation
 
-Each Original has an asset did:vh identifier and one conforming DID-document history. The Originals profile specifies how an asset [[ref: manifest]] is represented or referenced without violating the method’s state constraints. A resolver returns the asset DID document and the evidence needed to obtain the exact manifest checkpoint.
+Originals is a specialisation of VH Log. Each Original has its own identifier, derived from the SCID of its genesis entry, and one log whose state is the asset [[ref: manifest]]. A resolver returns that log, and the evidence needed to obtain an exact checkpoint.
 
-This choice reuses DID resolution concepts, method validation and version selection. It needs profile work for manifest binding, discovery, resolution metadata and the relationship between the asset controller and author identities. An asset DID is not assumed to be a human or organizational author DID.
+Because the identifier is not a did:vh, this draft has to define its own resolution contract: identifier syntax, how the log is located, relocation, exact-checkpoint requests, result metadata, offline behavior and errors. A self-certifying identifier does not supply these automatically. Whether the identifier is itself a DID, under a method name of its own, is open (D1).
 
-The SDK today identifies an Original by a `did:cel` identifier derived from its genesis, which never changes, and records `did:webvh` and `did:btco` identifiers as aliases when the Original moves up a layer [S14, S12]. This draft keeps that shape with did:vh as the stable identifier: the did:btco alias names the anchoring sat (P9.10).
-
-A generic VH history identifier with an Originals discovery profile was considered and not chosen. It would have needed its own resolution contract: identifier syntax, locator discovery, relocation, exact-checkpoint requests, result metadata, offline behavior and errors.
+The SDK today identifies an Original by a `did:cel` identifier derived from its genesis, which never changes, and records `did:webvh` and `did:btco` identifiers as aliases when the Original moves up a layer [S14, S12]. This draft keeps that shape with a VH Log identifier as the stable one: the did:btco alias names the anchoring sat (P9.10).
 
 ### Proposed rules
 
@@ -24,7 +22,7 @@ P3.3 A resolver MUST distinguish verified state, missing evidence, unsupported p
 
 P3.4 Publication URLs and redirects MUST NOT independently transfer author or log-control authority. Any continuity claim after relocation MUST be supported by the selected profile’s authenticated evidence.
 
-P3.5 A successful generic VH or did:vh resolution MUST NOT be reported as Originals verification. Originals state MUST be derived only by a verifier that applies this profile, because generic resolvers ignore the profile’s additional rules.
+P3.5 A successful generic VH Log resolution MUST NOT be reported as Originals verification. Originals state MUST be derived only by a verifier that applies this profile, because generic resolvers ignore the profile’s additional rules.
 
 ### Identity history and time
 
@@ -38,4 +36,4 @@ Author DIDs may use any DID method with verifiable version history that the prof
 How exact identity versions are packaged, witness selection and independence, and the freshness bound verifiers apply (D3).
 :::
 
-Sources: did:vh and VH Log pre-drafts [S2, S3]; SDK identity and layers [S12, S14].
+Sources: VH Log and did:vh pre-drafts [S2, S3]; SDK identity and layers [S12, S14].
