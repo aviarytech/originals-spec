@@ -32,9 +32,12 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Author entry on one branch declares the other abandoned | Declared branch and its descendants reported as abandoned, never current |
 | Each branch declares the other abandoned | Unresolved conflict |
 | Hosted mixed snapshot | Rejected before public result is marked verified |
-| Ownership sat moved to a new holder | Owner reported as the new holder; author and edit authority unchanged |
-| Owner who is not the author signs an entry | Rejected |
-| Entry that changes or removes the ownership sat | Rejected |
+| Anchoring sat moved to a new holder | Owner reported as the new holder; author unchanged |
+| After anchoring, author-signed entry not inscribed on the sat | Not current |
+| Inscription on the anchoring sat not signed by the author, including by the owner | Rejected; state unchanged |
+| Author-signed entry inscribed by the owner | Accepted |
+| Entry that names a different sat or migrates after anchoring | Rejected |
+| Newer inscription on the sat that does not extend the head | Ignored; state follows the authenticated chain |
 | Same evidence inscribed on a different sat | No ownership conferred |
 | Bitcoin failure, retry or reorganization | Durable boundary follows adapter policy, not pending intent |
 | Ordinary entry signed by a key removed from the author DID | Witnessed: refused by witnesses and not current. Unwitnessed: historically authorized, ordering unproven, never current |

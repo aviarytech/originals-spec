@@ -18,7 +18,7 @@ P5.6 A candidate MUST NOT become the current state until the VH and author-bindi
 
 P5.7 Parsers MUST reject duplicate keys, values that the pinned canonicalization cannot represent exactly, and any member of parameters, proof or Originals-defined state that is not defined by the pinned VH Log version, the pinned did:vh version or this profile. Under the did:vh option, the profile MUST list the DID Core members it allows in the state.
 
-P5.8 The author DID MUST be fixed at genesis; an entry naming a different author DID MUST be rejected. Authorship never transfers; selling an Original transfers ownership only (P9.12). Author DIDs MUST use a DID method with verifiable version history that the profile lists; the baseline profile lists did:vh and did:webvh. The author DID versionId referenced by each entry MUST NOT be older than the one referenced by its predecessor.
+P5.8 The author DID MUST be fixed at genesis; an entry naming a different author DID MUST be rejected. Authorship never transfers; selling an Original transfers ownership of its anchoring sat only (P9.11). Author DIDs MUST use a DID method with verifiable version history that the profile lists; the baseline profile lists did:vh and did:webvh. The author DID versionId referenced by each entry MUST NOT be older than the one referenced by its predecessor.
 
 P5.9 Every entry MUST set or inherit exactly one updateKey, and that key MUST be an assertionMethod key of the author DID at the version the entry references. The author SHOULD remove from their DID any key they no longer hold, because a thief can rotate an Original to any listed key. An empty updateKeys list MUST be rejected except in a deactivation entry, where VH recommends it; deactivation is the only way to end an Original.
 

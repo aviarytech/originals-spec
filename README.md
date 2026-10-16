@@ -4,7 +4,7 @@
 
 This is the first review draft of the Originals Protocol. It is a protocol and SDK design for review, not a finalized standard or an implementation.
 
-The draft contains 13 sections, a 59-test conformance matrix, and a decision register (D1–D7) recording the choices taken and those still open. Originals history is built on Verifiable History while useful SDK semantics are retained. Each change has one signature: the author signs the VH entry with a key bound to the author’s DID. Hosted Originals use VH witnesses, declared in the author’s DID, that check the author’s latest DID state, so a removed key cannot add entries.
+The draft contains 13 sections, a 62-test conformance matrix, and a decision register (D1–D7) recording the choices taken and those still open. Originals history is built on Verifiable History while useful SDK semantics are retained. Each change has one signature: the author signs the VH entry with a key bound to the author’s DID. Hosted Originals use VH witnesses, declared in the author’s DID, that check the author’s latest DID state, so a removed key cannot add entries.
 
 ## Editing
 

@@ -16,7 +16,7 @@ D5 **Operational edge cases.** Decided: an update that leaves a digest unchanged
 
 D6 **Transport profiles.** Open: hosted discovery and relocation, Boop adapter changes, and the new Bitcoin representation, boundary, confirmations and reorganization policy. No final MIME type is selected here.
 
-D7 **Later capabilities.** Decided: authorship never transfers. Ownership is holding the sat the author bound the Original to, and transferring an Original means moving that sat; ownership gives no edit authority (P9.10–P9.12). Open: whether owners need any protection from the author, who can still edit or deactivate an Original after selling it; whether to add resource-set changes, encryption or recovery, and how an Original moves between layers under VH. Migration from earlier formats remains out of scope and will be designed separately.
+D7 **Later capabilities.** Decided: authorship never transfers. An Original anchors once, terminally, to one sat; its holder is the owner, and transferring an Original means moving the sat. On Bitcoin a change needs the author’s signature and an inscription on the sat, so a sale freezes the Original unless author and owner cooperate (P9.10–P9.13). Open: whether to add resource-set changes, encryption or recovery, and how VH evidence is carried across the local, web and Bitcoin layers. Migration from earlier formats remains out of scope and will be designed separately.
 
 ### Sources
 - [S1] Originals SDK 4 guide (V3.md). <https://github.com/onionoriginals/sdk/blob/00fc683d0aa7f746904a14fa1f88336f09711ff5/packages/sdk/V3.md>

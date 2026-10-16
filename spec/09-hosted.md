@@ -38,15 +38,19 @@ Once an Original’s log has activated witnesses, a verifier MUST NOT report any
 
 P9.9 The witness list and threshold for an author’s Originals MUST be declared in the author’s DID document. An asset log’s witness parameter MUST equal the declaration in the author DID version that the entry references and witnesses MUST refuse an entry that changes the witness parameter unless it equals the declaration in the author DID’s latest state. Once witnesses are active, an entry that sets the witness parameter to an empty object MUST be rejected. Changing an Original’s witnesses therefore requires the author DID’s own update keys, not the asset key.
 
-### Ownership
+### Anchoring and ownership
 
-An Original has one author for its whole life, and only the author can change it. Ownership is separate: once an Original is on Bitcoin, its owner is whoever holds the sat it is bound to. Selling or giving an Original means moving that sat, and needs nothing from the author.
+Retained SDK behavior: an Original moves up through layers, from local to web to Bitcoin, one way only. Bitcoin is the last layer. Once an Original is anchored to a sat, its did:btco alias names that sat, and every later change is a reinscription on it.
 
-P9.10 The author binds an Original to one sat, its ownership sat, with an ordinary entry whose signed state names that sat. The ownership sat MUST be set at most once; a later entry that changes or removes it MUST be rejected. Every Bitcoin publication of an Original with an ownership sat MUST be inscribed on that sat.
+An Original has one author for its whole life, and only the author signs changes. Ownership is separate: the owner is whoever holds the anchoring sat. On Bitcoin a change needs both: the author’s signature, and an inscription on the sat, which only its holder can make. After a sale the Original is frozen unless the author and the new owner cooperate. Selling or giving an Original means moving the sat, and needs nothing from the author.
 
-P9.11 The owner of an Original is the current holder of its ownership sat, as determined by the Bitcoin adapter under its confirmation policy (P9.5), once that sat carries an inscription of an accepted checkpoint at or after the binding entry. Before then, and for an Original with no ownership sat, the Original has no owner. Inscriptions of the same evidence on any other sat MUST NOT confer ownership. A verifier MUST report ownership separately from authorship and MUST state the confirmation depth it relied on.
+P9.10 The author anchors an Original on Bitcoin with an ordinary entry whose signed state names one sat, inscribed on that sat. Anchoring MUST happen at most once and is terminal: a later entry that names a different sat, removes the sat or migrates to another layer MUST be rejected.
 
-P9.12 Ownership MUST NOT confer author or VH update authority: the owner cannot add entries, rotate keys, change witnesses or deactivate the Original. Transferring an Original MUST mean transferring its ownership sat; the SDK MUST NOT require an author-signed entry to transfer ownership, and no author entry can change the owner.
+P9.11 The owner of an anchored Original is the current holder of its anchoring sat, as determined by the Bitcoin adapter under its confirmation policy (P9.5). An Original that is not anchored has no owner. Inscriptions of the same evidence on any other sat MUST NOT confer ownership. A verifier MUST report ownership separately from authorship and MUST state the confirmation depth it relied on.
+
+P9.12 After anchoring, an entry MUST NOT be reported as current unless it is signed by the author under P5.3 and inscribed on the anchoring sat, extending the accepted head. This applies to every operation, including rotation and deactivation. An entry the author signs but that is not inscribed on the sat, and an inscription on the sat that the author did not sign, MUST NOT change the Original’s state. Holding the sat MUST NOT confer author or VH update authority, and transferring an Original MUST mean transferring the sat.
+
+P9.13 A resolver MUST derive an anchored Original’s state by following, in inscription order on the anchoring sat, the publications that extend the accepted head, not by taking the newest inscription. Inscriptions that do not extend the head MUST be ignored and SHOULD be reported. For an anchored Original, inscription order on the sat takes the place of witness approval (P9.8).
 
 ::: warning Not authorized
 No Bitcoin spending, activation, inscription or migration is authorized by this document. Hosted and Bitcoin implementation follow the local interoperability slice, with dedicated adapter tests.
