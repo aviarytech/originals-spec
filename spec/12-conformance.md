@@ -32,6 +32,10 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Author entry on one branch declares the other abandoned | Declared branch and its descendants reported as abandoned, never current |
 | Each branch declares the other abandoned | Unresolved conflict |
 | Hosted mixed snapshot | Rejected before public result is marked verified |
+| Ownership sat moved to a new holder | Owner reported as the new holder; author and edit authority unchanged |
+| Owner who is not the author signs an entry | Rejected |
+| Entry that changes or removes the ownership sat | Rejected |
+| Same evidence inscribed on a different sat | No ownership conferred |
 | Bitcoin failure, retry or reorganization | Durable boundary follows adapter policy, not pending intent |
 | Ordinary entry signed by a key removed from the author DID | Witnessed: refused by witnesses and not current. Unwitnessed: historically authorized, ordering unproven, never current |
 | Rotation entry by a removed key to a key in the latest author DID | Accepted |
@@ -47,14 +51,9 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Author DID versionId absent from signed state | Rejected |
 | Verification method from another DID, with a different controller, or under authentication only | Author binding failure |
 | Key expressed as JWK or a different multikey encoding | Author binding failure |
-| Later entry names a different author DID without a transfer, or an older author DID version than its predecessor | Rejected |
+| Later entry names a different author DID, or an older author DID version than its predecessor | Rejected |
 | Author DID using a method the profile does not list | Rejected |
 | Witness cannot obtain author DID state no more than 60 seconds old | Entry refused |
-| Transfer entry to a key the recipient DID lists | Accepted; reported as pending acceptance until the recipient appends |
-| Transfer to a key the recipient DID does not list, or that also changes state | Rejected |
-| Entry signed by the previous author’s key after a transfer | Rejected |
-| Witnessed transfer when the recipient’s latest DID no longer lists the recipient key | Refused by witnesses |
-| Inscription moved without a transfer entry | Author unchanged; not reported as a transfer |
 | Two proofs in the proof array | Rejected |
 | Stale author DID history served with a current asset log | Identity freshness not established; not reported as currently authorized |
 | VH-valid log that fails Originals rules, read through a generic resolver | Not reported as Originals-verified |

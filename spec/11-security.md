@@ -11,10 +11,10 @@ This section collects the threats discussed throughout the draft.
 | Malicious archive or package | Exhaust verifier resources; attempt path traversal; roll back to an older prefix | Pass verification over its limits, or replace newer local history (P7.5, P7.7) |
 | Malicious host application, or other software holding the key | Ask the signer to sign an unintended change | Obtain a signature from a conforming signer for a change it did not show the author, because the key is used only for Originals (P5.11) |
 | Malicious content author | Publish signed active content | Run script on the platform origin or in a client (P9.7) |
-| Wallet or sat holder | Hold or transfer the inscription | Gain edit or update authority (P9.6) |
-| Author who sold the inscription without a transfer entry | Keep editing or deactivate the Original; change its witnesses through their DID; show different branches to different readers of an unwitnessed Original | Hide a fork from a reader that checks witness proofs, unless a threshold of witnesses misbehaves (P9.8) |
-| Previous author after a witnessed transfer | Read the Original | Append, deactivate or change its witnesses, unless a threshold of witnesses misbehaves (P5.12, P9.8) |
-| Previous author after an unwitnessed transfer | Sign a competing branch from an entry before the transfer | Have it reported as current without an unresolved conflict (P5.15, P6.6) |
+| Owner, the holder of the ownership sat | Sell or give away the Original by moving the sat | Edit, rotate, change witnesses or deactivate (P9.12) |
+| Thief of the owner’s wallet | Take ownership by moving the sat | Gain any authority over the Original’s content (P9.12) |
+| Copier who inscribes the same evidence on another sat | Hold an inscription of it | Become the owner (P9.11) |
+| Author after selling the Original | Keep editing or deactivate the Original, by design; change its witnesses through their DID; show different branches to different readers of an unwitnessed Original | Hide a fork from a reader that checks witness proofs, unless a threshold of witnesses misbehaves (P9.8); change the owner or rebind the ownership sat (P9.10) |
 | Faulty, censoring or colluding witness | Delay or refuse approvals; below the threshold, nothing else | Block or approve entries alone (P9.8). A threshold of colluding witnesses can approve a fork or a stolen key’s entries |
 | Bitcoin reorganization | Undo an observed publication | Advance the durable published boundary (P9.4, P9.5) |
 

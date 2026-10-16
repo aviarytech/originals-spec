@@ -28,7 +28,7 @@ P6.6 When the SDK detects two or more valid branches from the same accepted entr
 
 ### Observable results
 
-The SDK should expose the selected checkpoint, derived resource versions, verification status and actionable error category. Suggested categories are invalid evidence, incomplete evidence, unsupported profile, unauthorized key, author binding failure, stale parent, fork, transfer pending acceptance, deactivated asset and unavailable bytes. Concrete API names and error codes remain a compatibility review item.
+The SDK should expose the selected checkpoint, derived resource versions, verification status and actionable error category. Suggested categories are invalid evidence, incomplete evidence, unsupported profile, unauthorized key, author binding failure, stale parent, fork, deactivated asset and unavailable bytes. Concrete API names and error codes remain a compatibility review item.
 
 VH entries carry whole-second versionTime values that strictly increase, so a log accepts at most one entry per second. The SDK’s mutation queue must respect that limit.
 

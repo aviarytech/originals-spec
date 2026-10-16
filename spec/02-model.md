@@ -37,6 +37,8 @@ In the baseline profile these two authorities are held by one key. The author si
 
 Storage and publication authority is permission to store bytes or publish a checkpoint. A host, storage adapter, wallet, inscription holder or sat owner does not gain asset-editing authority merely by performing that role. One actor may hold several roles, but verifiers evaluate each role separately.
 
+Ownership is not an authority. Once an Original is on Bitcoin, its owner is whoever holds the sat the author bound it to (P9.11). Ownership moves with the sat and never lets the owner change the Original; only the author can, for the Original’s whole life (P9.12).
+
 ### Proposed rules
 
 P2.1 An accepted [[ref: Original]] MUST have one unambiguous history identity and an exact verified current [[ref: checkpoint]]. An implementation MUST NOT merge divergent valid histories by choosing the latest claimed timestamp.

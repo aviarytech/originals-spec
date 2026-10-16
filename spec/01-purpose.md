@@ -21,7 +21,7 @@ VH Log and did:vh are pre-drafts. Their algorithms, parameter behavior and resol
 ### Review priorities
 
 1. Specify the asset did:vh resolution profile and manifest representation.
-2. Confirm the key binding, rotation and transfer entries and DID-declared witness policy in sections 5 and 9.
+2. Confirm the key binding, rotation entries, DID-declared witness policy and sat ownership in sections 5 and 9.
 3. Choose witness selection and the freshness bound verifiers apply to author DID state.
 4. Pin the signed entry state and portable evidence format.
 
