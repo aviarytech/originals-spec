@@ -28,13 +28,20 @@ D7 **Later capabilities.** Decided: authorship never transfers. An Original anch
 - [S6] SDK OriginalsAsset.ts, under packages/sdk/src/v3 at the SDK revision in [S1]. <https://github.com/onionoriginals/sdk/blob/00fc683d0aa7f746904a14fa1f88336f09711ff5/packages/sdk/src/v3/OriginalsAsset.ts>
 - [S7] SDK OriginalsSDK.ts, under packages/sdk/src/v3 at the SDK revision in [S1]. <https://github.com/onionoriginals/sdk/blob/00fc683d0aa7f746904a14fa1f88336f09711ff5/packages/sdk/src/v3/OriginalsSDK.ts>
 - [S8] SDK storage/StorageAdapter.ts. <https://github.com/onionoriginals/sdk/blob/00fc683d0aa7f746904a14fa1f88336f09711ff5/packages/sdk/src/storage/StorageAdapter.ts>
-- [S9] SDK repository publication and Bitcoin paths. <https://github.com/onionoriginals/sdk/tree/00fc683d0aa7f746904a14fa1f88336f09711ff5/packages/sdk/src>
+- [S9] SDK repository packages, including publication and Bitcoin paths. <https://github.com/onionoriginals/sdk/tree/00fc683d0aa7f746904a14fa1f88336f09711ff5/packages>
 - [S10] Boop issue 232, what a stranger sees when verifying a published note. <https://github.com/aviarytech/boop/issues/232>
 - [S11] Boop issue 286, author-present signing sessions and device keys. <https://github.com/aviarytech/boop/issues/286>
+- [S12] SDK cel history.ts, state transitions, resource versions and layers. <https://github.com/onionoriginals/sdk/blob/00fc683d0aa7f746904a14fa1f88336f09711ff5/packages/cel/src/v3/history.ts>
+- [S13] SDK cel profile.ts, value and schema rules. <https://github.com/onionoriginals/sdk/blob/00fc683d0aa7f746904a14fa1f88336f09711ff5/packages/cel/src/v3/profile.ts>
+- [S14] SDK cel identity.ts, asset identifier derivation. <https://github.com/onionoriginals/sdk/blob/00fc683d0aa7f746904a14fa1f88336f09711ff5/packages/cel/src/v3/identity.ts>
+- [S15] SDK cel publications.ts, Bitcoin resolution and ownership snapshots. <https://github.com/onionoriginals/sdk/blob/00fc683d0aa7f746904a14fa1f88336f09711ff5/packages/cel/src/v3/publications.ts>
+- [S16] SDK OriginalsSDK3.ts, the full SDK with hosting and Bitcoin. <https://github.com/onionoriginals/sdk/blob/00fc683d0aa7f746904a14fa1f88336f09711ff5/packages/sdk/src/core/OriginalsSDK3.ts>
+- [S17] SDK authority notes, originals-cel-v3-authority.md. Its identifier section predates the move to did:cel. <https://github.com/onionoriginals/sdk/blob/00fc683d0aa7f746904a14fa1f88336f09711ff5/specs/originals-cel-v3-authority.md>
+- [S18] SDK inscription notes, btco-inscription-shape.md. Its identifier section predates the move to did:cel. <https://github.com/onionoriginals/sdk/blob/00fc683d0aa7f746904a14fa1f88336f09711ff5/specs/btco-inscription-shape.md>
 
 
 ::: note
-Baseline note: 00fc683d0aa7f746904a14fa1f88336f09711ff5 is the latest inspected SDK main revision; source reads were not atomic. Boop observations and issue references [S10, S11] are integration review inputs, pending an exact repository/revision pin. Upstream documents are pre-drafts, not finalized standards. This draft deliberately leaves the named decisions open.
+Baseline note: 00fc683d0aa7f746904a14fa1f88336f09711ff5 is the SDK main revision, rechecked on 15 October 2026. Boop observations and issue references [S10, S11] are integration review inputs, pending an exact repository/revision pin. Upstream documents are pre-drafts, not finalized standards. This draft deliberately leaves the named decisions open.
 :::
 
 ### Normative references

@@ -10,6 +10,8 @@ Each Original has an asset did:vh identifier and one conforming DID-document his
 
 This choice reuses DID resolution concepts, method validation and version selection. It needs profile work for manifest binding, discovery, resolution metadata and the relationship between the asset controller and author identities. An asset DID is not assumed to be a human or organizational author DID.
 
+The SDK today identifies an Original by a `did:cel` identifier derived from its genesis, which never changes, and records `did:webvh` and `did:btco` identifiers as aliases when the Original moves up a layer [S14, S12]. This draft keeps that shape with did:vh as the stable identifier: the did:btco alias names the anchoring sat (P9.10).
+
 A generic VH history identifier with an Originals discovery profile was considered and not chosen. It would have needed its own resolution contract: identifier syntax, locator discovery, relocation, exact-checkpoint requests, result metadata, offline behavior and errors.
 
 ### Proposed rules
@@ -36,4 +38,4 @@ Author DIDs may use any DID method with verifiable version history that the prof
 How exact identity versions are packaged, witness selection and independence, and the freshness bound verifiers apply (D3).
 :::
 
-Sources: did:vh and VH Log pre-drafts [S2, S3].
+Sources: did:vh and VH Log pre-drafts [S2, S3]; SDK identity and layers [S12, S14].

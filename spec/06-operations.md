@@ -2,6 +2,8 @@
 
 The public SDK should retain the familiar create, edit and load workflow. Compatibility applies to useful semantics, not to preserving existing types or hiding a required protocol change. A new envelope discriminator, history engine and verifier are expected.
 
+The SDK today queues concurrent edits and signs each against whatever head is current, so two edits made at once both apply. This draft deliberately does not: an edit names its parent and fails as a conflict if the parent has moved (P4.5, P6.4). The SDK also commits in memory and leaves persistence to the caller, which P6.2 replaces with a durable commit contract.
+
 ### Proposed operation contract
 
 Create prepares the initial manifest, resource descriptors and genesis entry. The author signs it, the SDK verifies it and commits one valid initial checkpoint. It returns either a verified Original or an explicit unsigned [[ref: draft]]; these outcomes are different types or clearly distinguishable states.
@@ -30,6 +32,6 @@ P6.6 When the SDK detects two or more valid branches from the same accepted entr
 
 The SDK should expose the selected checkpoint, derived resource versions, verification status and actionable error category. Suggested categories are invalid evidence, incomplete evidence, unsupported profile, unauthorized key, author binding failure, stale parent, fork, deactivated asset and unavailable bytes. Concrete API names and error codes remain a compatibility review item.
 
-VH entries carry whole-second versionTime values that strictly increase, so a log accepts at most one entry per second. The SDK’s mutation queue must respect that limit.
+VH entries carry whole-second versionTime values that strictly increase, so a log accepts at most one entry per second. The SDK’s mutation queue must respect that limit; the current SDK uses millisecond timestamps.
 
-Sources: OriginalsAsset, OriginalsSDK and envelope [S4, S6, S7].
+Sources: OriginalsAsset, OriginalsSDK and envelope [S4, S6, S7]; SDK transitions [S12].

@@ -39,6 +39,8 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Entry that names a different sat or migrates after anchoring | Rejected |
 | Newer inscription on the sat that does not extend the head | Ignored; state follows the authenticated chain |
 | Same evidence inscribed on a different sat | No ownership conferred |
+| Anchoring an Original never published on the web layer | Rejected |
+| Publication at the same or a lower block height than the previous accepted one | Not accepted |
 | Bitcoin failure, retry or reorganization | Durable boundary follows adapter policy, not pending intent |
 | Ordinary entry signed by a key removed from the author DID | Witnessed: refused by witnesses and not current. Unwitnessed: historically authorized, ordering unproven, never current |
 | Rotation entry by a removed key to a key in the latest author DID | Accepted |

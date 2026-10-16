@@ -2,7 +2,7 @@
 
 ### Hosted publication
 
-The inspected SDK hosted path publishes a second, separate history alongside did:webvh. The new format has a single history. A host serves the selected VH profile and exact resource evidence; the public reader verifies the same checkpoint semantics as the local reader.
+The SDK hosted path publishes two histories: a did:webvh method log (`did.jsonl`) signed separately with Ed25519, and the asset’s own log (`cel.json`). The new format has a single history. A host serves the selected VH profile and exact resource evidence; the public reader verifies the same checkpoint semantics as the local reader.
 
 The Boop adapter needs its actual publishing path replaced: ordinary publication uses local per-asset Ed25519 signing rather than SDK publishToWeb. Replacing only publishToWeb leaves that signing path in place. The exact-snapshot public-reader requirement from Boop issue 232 [S10] remains a regression requirement.
 
@@ -44,16 +44,16 @@ Retained SDK behavior: an Original moves up through layers, from local to web to
 
 An Original has one author for its whole life, and only the author signs changes. Ownership is separate: the owner is whoever holds the anchoring sat. On Bitcoin a change needs both: the author’s signature, and an inscription on the sat, which only its holder can make. After a sale the Original is frozen unless the author and the new owner cooperate. Selling or giving an Original means moving the sat, and needs nothing from the author.
 
-P9.10 The author anchors an Original on Bitcoin with an ordinary entry whose signed state names one sat, inscribed on that sat. Anchoring MUST happen at most once and is terminal: a later entry that names a different sat, removes the sat or migrates to another layer MUST be rejected.
+P9.10 An Original MUST be published on the web layer before it is anchored, so that witnesses order its history up to the anchor. The author anchors it with a migrate entry, an ordinary entry under P5.10 whose signed state names one sat, inscribed on that sat. Anchoring MUST happen at most once and is terminal: a later entry that names a different sat, removes the sat or migrates to another layer MUST be rejected.
 
-P9.11 The owner of an anchored Original is the current holder of its anchoring sat, as determined by the Bitcoin adapter under its confirmation policy (P9.5). An Original that is not anchored has no owner. Inscriptions of the same evidence on any other sat MUST NOT confer ownership. A verifier MUST report ownership separately from authorship and MUST state the confirmation depth it relied on.
+P9.11 The owner of an anchored Original is the current holder of its anchoring sat, as determined by the Bitcoin adapter under its confirmation policy (P9.5). An Original that is not anchored has no owner. Inscriptions of the same evidence on any other sat MUST NOT confer ownership. A verifier MUST report ownership separately from authorship, and MUST state the confirmation depth it relied on and whether more than one independent Bitcoin index agreed on the sat’s location.
 
 P9.12 After anchoring, an entry MUST NOT be reported as current unless it is signed by the author under P5.3 and inscribed on the anchoring sat, extending the accepted head. This applies to every operation, including rotation and deactivation. An entry the author signs but that is not inscribed on the sat, and an inscription on the sat that the author did not sign, MUST NOT change the Original’s state. Holding the sat MUST NOT confer author or VH update authority, and transferring an Original MUST mean transferring the sat.
 
-P9.13 A resolver MUST derive an anchored Original’s state by following, in inscription order on the anchoring sat, the publications that extend the accepted head, not by taking the newest inscription. Inscriptions that do not extend the head MUST be ignored and SHOULD be reported. For an anchored Original, inscription order on the sat takes the place of witness approval (P9.8).
+P9.13 A resolver MUST derive an anchored Original’s state by following, in inscription order on the anchoring sat, the publications that extend the accepted head, not by taking the newest inscription. Each accepted publication MUST be at a strictly greater block height than the one before it; among publications that extend the same head, the earliest in inscription order wins. Inscriptions that do not extend the head MUST be ignored and SHOULD be reported. For an anchored Original, inscription order on the sat takes the place of witness approval (P9.8).
 
 ::: warning Not authorized
 No Bitcoin spending, activation, inscription or migration is authorized by this document. Hosted and Bitcoin implementation follow the local interoperability slice, with dedicated adapter tests.
 :::
 
-Sources: current SDK publication and Bitcoin paths [S7, S9]; Boop integration observations require repository-pinned confirmation before implementation.
+Sources: current SDK publication and Bitcoin paths [S7, S9, S15, S16]; SDK authority and inscription notes [S17, S18]; Boop integration observations require repository-pinned confirmation before implementation.

@@ -16,7 +16,7 @@ The immediate implementation target is a local vertical slice: create an Origina
 
 The working basis is one separate VH history per Original, with one author whose key signs each change. The draft covers resource state, author and controller authority, local operations, portable evidence, and boundaries with storage and publication. It does not invent a new DID method, finalize a wire format or proof suite, promise encryption or key recovery, or treat Bitcoin possession as edit authority.
 
-VH Log and did:vh are pre-drafts. Their algorithms, parameter behavior and resolution semantics remain dependencies to pin and test. The SDK compatibility observations refer to the inspected SDK 4 paths under `packages/sdk/src/v3`, not a promise that every historical or application-specific path behaves identically.
+VH Log and did:vh are pre-drafts. Their algorithms, parameter behavior and resolution semantics remain dependencies to pin and test. The SDK compatibility observations refer to the SDK at main revision 00fc683: the local entry under `packages/sdk/src/v3`, the history engine under `packages/cel/src/v3`, and the full SDK in `packages/sdk/src/core/OriginalsSDK3.ts` that adds hosting and Bitcoin. The SDK is the working reference, not the authority: where this draft departs from it, section 10 says so.
 
 ### Review priorities
 
@@ -27,4 +27,4 @@ VH Log and did:vh are pre-drafts. Their algorithms, parameter behavior and resol
 
 These decisions block an interoperable protocol release. They do not block review of the local lifecycle, compatibility requirements or failure behavior in this draft.
 
-Sources: SDK 4 guide [S1]; VH Log pre-draft [S2]; did:vh pre-draft [S3].
+Sources: SDK 4 guide [S1]; SDK history engine and full SDK [S12, S16]; VH Log pre-draft [S2]; did:vh pre-draft [S3].

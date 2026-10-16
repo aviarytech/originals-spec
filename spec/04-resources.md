@@ -4,7 +4,9 @@
 
 Resources have stable logical resourceIDs, mediaType values and exact-byte digests. The current v3 model fixes the resourceID set at genesis; adding or removing a resource is a scope expansion. An update binds the prior digest, and resource versions are derived from verified history rather than accepted from a caller’s counter.
 
-For the existing update behavior, a supplied name or metadata value replaces that field. An omitted field remains unchanged. The new profile preserves this distinction without turning omission into deletion or introducing an implicit metadata merge. An explicit null removes metadata; the name cannot be removed (P4.6).
+For the existing update behavior, a supplied name or metadata value replaces that field. An omitted field remains unchanged. The new profile preserves this distinction without turning omission into deletion or introducing an implicit metadata merge.
+
+Two changes from the SDK: it rejects null, so metadata can only be cleared by replacing it with an empty object, while this profile lets an explicit null remove metadata (P4.6); and it advances a resource’s version even when the new digest equals the old one, which P4.4 does not.
 
 ### Proposed rules
 
@@ -30,4 +32,4 @@ After signing and independent verification succeed, the new checkpoint becomes c
 A fresh reader can inspect B1 and B2 when an evidence package includes both. A host serving B2 at the B1 URL fails the digest check. A draft crop is not a committed version, even when its bytes already exist in a local store.
 :::
 
-Sources: OriginalsAsset and resources [S5, S6].
+Sources: OriginalsAsset and resources [S5, S6]; SDK transitions and value rules [S12, S13].
