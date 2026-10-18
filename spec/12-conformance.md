@@ -13,7 +13,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Valid key of an identity other than the Original’s author DID | Rejected; identity alone grants no edit right |
 | Valid VH entry, key not a method of the named author DID | Author binding failure; VH validity cannot rescue it |
 | Wrong DID method binding or relationship | Identity authorization failure |
-| Old identity version with claimed old time | Witnessed: witness ordering applies. Unwitnessed: ordering unproven; no timestamp-only acceptance |
+| Old identity version with claimed old time | Witnessed: witness ordering applies. Unwitnessed: ordering unproven; no timestamp-only acceptance. Anchored: checked against the author DID state at the inscription time (P9.15) |
 | Missing identity history | Incomplete identity evidence; no blanket verified result |
 | Missing historical resource bytes | Explicit partial availability; supplied bytes still checked |
 | Caller changes version counter | Counter ignored or rejected; history-derived version retained |
@@ -44,12 +44,18 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Entry inscribed on the anchoring sat without witness proofs | Accepted; no witnesses after anchoring |
 | Publication at the same or a lower block height than the previous accepted one | Not accepted |
 | Bitcoin failure, retry or reorganization | Durable boundary follows adapter policy, not pending intent |
-| Entry signed by a key removed from the author DID | Witnessed: refused by witnesses and not current. Unwitnessed: historically authorized, ordering unproven, never current |
+| Entry signed by a key removed from the author DID | Witnessed: refused by witnesses and not current. Unwitnessed: historically authorized, ordering unproven, never current. Anchored: rejected if its inscription time is at or after the removal’s versionTime |
+| Accepted anchored entry whose key the author DID later removes | Remains current |
+| Author DID deactivated after an Original is anchored | Accepted state remains current; entries inscribed later rejected |
+| Anchored entry naming an author DID version newer than its inscription time | Checked against the named version |
+| Block whose timestamp is earlier than an ancestor’s | Inscription time is the greatest ancestor timestamp |
+| Author DID history missing through an inscription time | Incomplete identity evidence; not reported as current |
+| Author DID version published with a versionTime before an already accepted inscription it would reject | Retroactive revocation conflict reported; result not silently changed |
 | Entry changes the witness parameter to a list the author DID does not declare | Rejected |
 | Entry sets the witness parameter to an empty object after witnesses are active | Rejected |
 | Entry after witness activation without enough witness proofs, whatever the deployment | Not current |
 | Entries before witness activation, signed by a key later removed | Ordering unproven; not made current by activation |
-| Any entry after the author DID is deactivated | Refused by witnesses; Original reported as non-current |
+| Any entry after the author DID is deactivated | Not anchored: refused by witnesses; Original reported as non-current. Anchored: accepted state remains current; entries inscribed later rejected (P9.15) |
 | Entry that sets updateKeys or nextKeyHashes | Rejected |
 | Entry signed by a key the author DID added, with no asset log entry for the change | Accepted |
 | Author key not in the author DID’s Originals declaration | Author binding failure |

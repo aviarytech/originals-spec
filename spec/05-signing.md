@@ -22,7 +22,7 @@ P5.8 The author DID MUST be fixed at genesis; an entry naming a different author
 
 P5.9 The asset log’s authorized keys MUST come from the author DID [S25]: an entry is authorized by any key that meets P5.3 at the author DID version the entry names. An entry that sets updateKeys or nextKeyHashes MUST be rejected. The author SHOULD remove from their DID, and from its Originals declaration, any key they no longer hold. Deactivation is the only way to end an Original.
 
-P5.10 Key rotation MUST happen only in the author DID. The asset log has no rotation entries: once the author DID adds a key, entries naming that DID version can be signed with it, and once it removes a key, witnesses and Bitcoin readers refuse that key for new entries (P9.8, P7.9).
+P5.10 Key rotation MUST happen only in the author DID. The asset log has no rotation entries: once the author DID adds a key, entries naming that DID version can be signed with it, and once it removes a key, witnesses and Bitcoin readers refuse that key for new entries (P9.8, P9.15).
 
 P5.11 A signer holding an Originals key MUST parse the entry, show the author the Original, operation and resource changes before signing, and refuse input that is not a well-formed Originals entry. The author’s Originals key MUST be a verification method used only for Originals entries, and MUST NOT also be an updateKey of the author DID’s own log. P5.3 enforces this by requiring the key to be in the author DID’s Originals declaration.
 
@@ -41,6 +41,8 @@ Only the author’s key may append in the baseline profile. Editors who can chan
 To rotate, the author updates their DID: they add the new key to it and to its Originals declaration and, if the old key is compromised, remove it in the same update. Nothing is appended to the asset logs. The SDK sends the DID update to the witnesses of every witnessed Original the author has.
 
 For a witnessed Original, witnesses refuse an entry whose signing key the author’s latest DID no longer lists (P9.8). Once the author’s DID update reaches the witnesses, a thief holding the removed key cannot edit, deactivate or fork the Original. The thief also cannot change the witnesses, because the witness list is declared in the author’s DID (P9.9).
+
+For an anchored Original, Bitcoin readers check each inscribed entry against the author’s DID as it stood at the entry’s inscription time (P9.15). Removing a key refuses it for entries inscribed after the removal; entries already inscribed stay current, so rotating keys after selling an Original does not invalidate it.
 
 These limits remain:
 
