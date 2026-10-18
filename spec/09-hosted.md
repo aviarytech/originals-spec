@@ -53,6 +53,8 @@ P9.13 A resolver MUST derive an anchored Original’s state by following, in ins
 
 P9.14 An inscription MAY carry an entry in a compact encoding, such as a delta against the previous entry, defined by the extension under VH-Log’s rule for alternative encodings [S24]. It MUST decode deterministically to the full JSON entry, and entry hashes and proofs MUST be computed over the decoded full entry. An inscription that does not decode, or decodes differently for different readers, MUST be rejected.
 
+P9.15 A verifier MUST check each entry inscribed on the anchoring sat, from the anchoring entry on, against the author DID’s state when it was inscribed, not its latest state. That state is the later of the author DID version the entry names and the latest author DID version whose versionTime is no later than the timestamp of the block containing the inscription. The signing key MUST meet P5.3 at the named version and be listed in that state and its Originals declaration, and an entry inscribed when that state is deactivated MUST be rejected. A later key removal or author DID deactivation therefore refuses entries inscribed in later blocks, but MUST NOT make an accepted entry non-current. A verifier that cannot establish the author DID’s history through that block MUST report incomplete identity evidence (P5.6), not success. versionTime is claimed by the author DID’s controller, so the report MUST state whether the author DID’s own witnesses or watchers support it (P9.8).
+
 ::: warning Not authorized
 No Bitcoin spending, activation, inscription or migration is authorized by this document. Hosted and Bitcoin implementation follow the local interoperability slice, with dedicated adapter tests.
 :::

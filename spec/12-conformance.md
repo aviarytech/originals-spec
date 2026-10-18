@@ -44,7 +44,11 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Entry inscribed on the anchoring sat without witness proofs | Accepted; no witnesses after anchoring |
 | Publication at the same or a lower block height than the previous accepted one | Not accepted |
 | Bitcoin failure, retry or reorganization | Durable boundary follows adapter policy, not pending intent |
-| Entry signed by a key removed from the author DID | Witnessed: refused by witnesses and not current. Unwitnessed: historically authorized, ordering unproven, never current |
+| Entry signed by a key removed from the author DID | Witnessed: refused by witnesses and not current. Unwitnessed: historically authorized, ordering unproven, never current. Anchored: rejected if inscribed in a block whose timestamp is at or after the removal’s versionTime |
+| Accepted anchored entry whose key the author DID later removes | Remains current |
+| Author DID deactivated after an Original is anchored | Accepted state remains current; entries inscribed later rejected |
+| Anchored entry naming an author DID version newer than its block’s timestamp | Checked against the named version |
+| Author DID history missing up to an inscription’s block | Incomplete identity evidence; not reported as current |
 | Entry changes the witness parameter to a list the author DID does not declare | Rejected |
 | Entry sets the witness parameter to an empty object after witnesses are active | Rejected |
 | Entry after witness activation without enough witness proofs, whatever the deployment | Not current |
