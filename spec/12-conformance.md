@@ -42,6 +42,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Anchoring an Original whose log never activated witnesses | Accepted; ordering before the anchor claimed only; uniqueness not established; ownership provisional |
 | Migrate entry, after witnesses are active, that leaves the witness parameter set or is not approved by the witnesses | Rejected |
 | Migrate entry that activates witnesses on a log that never had them | Rejected |
+| Entry after anchoring that adds a did:webvh alias when the anchoring entry’s state listed none | Rejected |
 | Two valid anchoring entries for one Original on different sats | The first in chain order is the anchor; the other and its descendants are a conflicting anchor, not current, conferring no ownership |
 | Unwitnessed anchor of a branch forked before witnesses were activated on another known branch | Conflicting anchor; not current |
 | Later anchoring entry that declares an earlier anchored branch abandoned | Declaration ignored; the first anchor stands |
