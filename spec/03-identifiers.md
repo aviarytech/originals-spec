@@ -15,7 +15,7 @@ The Original gains aliases, listed in its asset state and in the derived `alsoKn
 
 The derived DID document of the did:vh carries a `#files` service built from the resource descriptors, so the did:vh can locate the Original’s files itself.
 
-The SDK today identifies an Original by `did:cel` and keeps a CEL 3 log [S14, S12]. Those logs cannot be converted: their SCIDs and signatures differ. The VH-Log format applies to new Originals only.
+The SDK today identifies an Original by `did:cel` and keeps a CEL 3 log [S14, S12]. No Originals were issued in that format, so it is replaced without conversion or migration.
 
 ### Proposed rules
 
