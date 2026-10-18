@@ -10,7 +10,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Byte changed at same URL | Digest failure; no verified resource result |
 | Wrong genesis or Original ID | Identifier binding failure |
 | Broken chain or reordered entry | History invalid; no derived accepted state beyond failure |
-| Recognized author key not in this Original’s updateKeys | Rejected; identity alone grants no edit right |
+| Valid key of an identity other than the Original’s author DID | Rejected; identity alone grants no edit right |
 | Valid VH entry, key not a method of the named author DID | Author binding failure; VH validity cannot rescue it |
 | Wrong DID method binding or relationship | Identity authorization failure |
 | Old identity version with claimed old time | Witnessed: witness ordering applies. Unwitnessed: ordering unproven; no timestamp-only acceptance |
@@ -22,38 +22,63 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Interrupted local commit | Recover prior or fully committed checkpoint; no false success |
 | Identical accepted retry | Existing result or explicit duplicate; no unintended extra version |
 | Resource added, removed or renamed | Rejected in baseline fixed-resource profile |
-| Metadata supplied versus omitted | Replacement versus unchanged, respectively |
+| Metadata supplied, omitted or null | Replacement, unchanged or removed, respectively |
+| Name set to null | Rejected |
+| Update that leaves a resource’s digest unchanged | That resource’s version does not advance |
 | Import then edit without authority | Read succeeds where evidence valid; edit authorization fails |
 | Update after deactivation | Rejected; historical evidence retained |
 | Old valid prefix served as current | Freshness unresolved or failed under policy, never assumed |
 | Divergent valid branches | Explicit fork/conflict, no timestamp winner |
+| Author entry on one branch declares the other abandoned | Declared branch and its descendants reported as abandoned, never current |
+| Each branch declares the other abandoned | Unresolved conflict |
 | Hosted mixed snapshot | Rejected before public result is marked verified |
+| Anchoring sat moved to a new holder | Owner reported as the new holder; author unchanged |
+| After anchoring, author-signed entry not inscribed on the sat | Not current |
+| Inscription on the anchoring sat not signed by the author, including by the owner | Rejected; state unchanged |
+| Author-signed entry inscribed by the owner | Accepted |
+| Entry that names a different sat or migrates after anchoring | Rejected |
+| Newer inscription on the sat that does not extend the head | Ignored; state follows the authenticated chain |
+| Same evidence inscribed on a different sat | No ownership conferred |
+| Anchoring an Original never published on the web layer | Rejected |
+| Migrate entry that leaves the witness parameter set, or is not approved by the witnesses | Rejected |
+| Entry inscribed on the anchoring sat without witness proofs | Accepted; no witnesses after anchoring |
+| Publication at the same or a lower block height than the previous accepted one | Not accepted |
 | Bitcoin failure, retry or reorganization | Durable boundary follows adapter policy, not pending intent |
-| Ordinary entry signed by a key removed from the author DID | Witnessed: refused by witnesses and not current. Unwitnessed: historically authorized, ordering unproven, never current |
-| Rotation entry by a removed key to a key in the latest author DID | Accepted |
-| Rotation entry to a key not in the referenced author DID version | Rejected |
-| Rotation entry that also changes state or another parameter, or rotates to its own signing key | Rejected as a rotation; checked as an ordinary entry |
-| Witnessed rotation entry referencing an older DID version, to a key the latest author DID no longer lists | Refused by witnesses |
+| Entry signed by a key removed from the author DID | Witnessed: refused by witnesses and not current. Unwitnessed: historically authorized, ordering unproven, never current |
 | Entry changes the witness parameter to a list the author DID does not declare | Rejected |
 | Entry sets the witness parameter to an empty object after witnesses are active | Rejected |
 | Entry after witness activation without enough witness proofs, whatever the deployment | Not current |
 | Entries before witness activation, signed by a key later removed | Ordering unproven; not made current by activation |
 | Any entry after the author DID is deactivated | Refused by witnesses; Original reported as non-current |
-| Entry sets updateKeys to an empty list or to more than one key | Rejected |
+| Entry that sets updateKeys or nextKeyHashes | Rejected |
+| Entry signed by a key the author DID added, with no asset log entry for the change | Accepted |
+| Author key not in the author DID’s Originals declaration | Author binding failure |
 | Author DID versionId absent from signed state | Rejected |
 | Verification method from another DID, with a different controller, or under authentication only | Author binding failure |
 | Key expressed as JWK or a different multikey encoding | Author binding failure |
 | Later entry names a different author DID, or an older author DID version than its predecessor | Rejected |
+| Author DID using a method the profile does not list | Rejected |
+| Witness cannot obtain author DID state no more than 60 seconds old | Entry refused |
 | Two proofs in the proof array | Rejected |
 | Stale author DID history served with a current asset log | Identity freshness not established; not reported as currently authorized |
 | VH-valid log that fails Originals rules, read through a generic resolver | Not reported as Originals-verified |
+| did:webvh whose document points to a did:vh that does not list it | Not an alias; no Originals result through that did:webvh |
+| Asset state lists a did:webvh whose document points elsewhere | Alias not confirmed; the did:vh still verifiable directly |
+| Served DID document for the did:vh that differs from the one derived from the log | Ignored; the derived document is used |
+| Derived DID document | Same for every resolver; `controller`, `alsoKnownAs` and `#files` match the author DID and asset state |
+| Plain did:vh resolver given an Originals log | Rejected by its unrecognised `method` value |
+| Later entry that moves the log between plain did:vh and the Originals extension | Rejected |
+| Proof using a cryptosuite other than `eddsa-jcs-2022` or `bip340-jcs-2025` | Rejected |
+| Entry whose state is a delta rather than the full asset state | Rejected |
+| Inscription carrying a compact delta | Decoded to the full entry; hashes and proofs checked over the decoded entry |
+| Inscription that does not decode deterministically | Rejected |
 | Lifecycle status deactivated without VH deactivated: true, or the reverse | Rejected |
 | Older prefix imported over a newer local history | Local current state not rolled back |
-| Log file larger than the profile cap | Distinct limit-exceeded failure |
+| Log file larger than the profile cap | Fetch refused; reported as unavailable |
 | Entry with duplicate JSON keys or an unsigned state field | Parse failure; no verified state |
 | Resource digest with an unlisted algorithm | Unsupported-profile failure |
 | Locator resolving or redirecting to a private address | Fetch refused; reported as unavailable |
-| History or identity history beyond profile limits | Distinct limit-exceeded failure |
+| History or identity history beyond profile limits | Last valid prefix reported, labelled limit-exceeded; never complete or current |
 | Archive with a symbolic link, `..` path or duplicate entry | Rejected before extraction |
 | SVG resource containing script, or a name containing markup | Not executed on the platform origin or in a client |
 
