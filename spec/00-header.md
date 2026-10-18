@@ -26,7 +26,7 @@ Participate:
 ~ [GitHub repo](https://github.com/aviarytech/originals-spec)
 ~ [File an issue](https://github.com/aviarytech/originals-spec/issues)
 ~ [Commit history](https://github.com/aviarytech/originals-spec/commits/master)
-~ [Security review report](https://github.com/aviarytech/originals-spec/blob/master/security-review.html)
+~ [Security review report](security-review.html)
 
 ------------------------------------
 
