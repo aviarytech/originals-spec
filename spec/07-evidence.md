@@ -22,9 +22,9 @@ P7.6 Evidence from a truncated prefix MUST NOT be represented as the latest stat
 
 P7.7 A verifier MUST enforce profile-defined limits on history length, entry size, identity-history length and the number of resources and versions. When a history exceeds a limit, the verifier reports the last valid prefix as VH requires, and MUST label the result limit-exceeded and MUST NOT report it as complete or current.
 
-P7.8 The verification report MUST state the latest author DID versionId used and whether its freshness was independently established. An Original MUST NOT be reported as currently authorized unless its identity evidence meets the selected freshness policy. For an anchored Original, that evidence needs to reach only the block of its latest accepted inscription (P9.15). Verifiers SHOULD retain the highest verified versionId seen for each author DID and each Original, and compare copies of both logs as VH describes.
+P7.8 The verification report MUST state the latest author DID versionId used and whether its freshness was independently established. An Original MUST NOT be reported as currently authorized unless its identity evidence meets the selected freshness policy. For an anchored Original, the author DID’s freshness needs to be established only as of the inscription time of the latest inscription on the anchoring sat that would extend the accepted head (P9.15); author DID history whose freshness is established only as of an earlier time is incomplete identity evidence. Verifiers SHOULD retain the highest verified versionId seen for each author DID and each Original, and compare copies of both logs as VH describes.
 
-P7.9 A verifier MUST NOT report an unwitnessed entry as current if its signing key is absent from the latest verified author DID state or its Originals declaration. An entry inscribed on an anchoring sat is instead checked against the author DID as it stood when the entry was inscribed (P9.15).
+P7.9 A verifier MUST NOT report an unwitnessed entry that is not inscribed on an anchoring sat as current if its signing key is absent from the latest verified author DID state or its Originals declaration. An entry inscribed on an anchoring sat is checked against the author DID’s state at its inscription time instead (P9.15).
 
 ### Proposed verification report
 

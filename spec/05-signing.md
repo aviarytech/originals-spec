@@ -42,7 +42,7 @@ To rotate, the author updates their DID: they add the new key to it and to its O
 
 For a witnessed Original, witnesses refuse an entry whose signing key the author’s latest DID no longer lists (P9.8). Once the author’s DID update reaches the witnesses, a thief holding the removed key cannot edit, deactivate or fork the Original. The thief also cannot change the witnesses, because the witness list is declared in the author’s DID (P9.9).
 
-For an anchored Original, Bitcoin readers check each inscribed entry against the author’s DID as it stood at the inscription’s block (P9.15). Removing a key refuses it for inscriptions in later blocks; entries already inscribed stay current, so rotating keys after selling an Original does not invalidate it.
+For an anchored Original, Bitcoin readers check each inscribed entry against the author’s DID as it stood at the entry’s inscription time (P9.15). Removing a key refuses it for entries inscribed after the removal; entries already inscribed stay current, so rotating keys after selling an Original does not invalidate it.
 
 These limits remain:
 
