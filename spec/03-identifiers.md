@@ -1,16 +1,16 @@
 ## Identifiers and resolution
 
-Each Original has its own identifier, used for resolution across private use, web publication and later layers, with identifier mechanics hidden by the SDK (D1). This draft assumes Bitcoin is the later layer, as in the existing SDK.
+Each Original has its own did:vh, used for resolution across private use, web publication and later layers, with identifier mechanics hidden by the SDK (D1). This draft assumes Bitcoin is the later layer, as in the existing SDK.
 
 Author identity remains distinct from asset identity. An asset identifier does not authorize an author to edit it. The same Original, identifier and authenticated history should continue across layers.
 
-### Decided: a VH Log specialisation
+### Decided: did:vh
 
-Originals is a specialisation of VH Log. Each Original has its own identifier, derived from the SCID of its genesis entry, and one log whose state is the asset [[ref: manifest]]. A resolver returns that log, and the evidence needed to obtain an exact checkpoint.
+Each Original is a did:vh, `did:vh:<SCID>`, with one DID log whose DID documents carry its [[ref: manifest]] (section 2). The DID has no location in it, so it never changes. A resolver is given the log through did:vh’s `src` option: a `file` location for private use and an `https` location for web publication, with one log at every layer. Once anchored, the Original also has a did:btco alias naming the anchoring sat (P9.10), and resolution should go through that alias.
 
-Because the identifier is not a did:vh, this draft has to define its own resolution contract: identifier syntax, how the log is located, relocation, exact-checkpoint requests, result metadata, offline behavior and errors. A self-certifying identifier does not supply these automatically. Whether the identifier is itself a DID, under a method name of its own, is open (D1).
+The SDK today identifies an Original by a `did:cel` identifier derived from its genesis, which never changes, and records `did:webvh` and `did:btco` identifiers as aliases when the Original moves up a layer [S14, S12]. This draft keeps that shape with did:vh as the stable identifier. Web publication uses the same did:vh at an `https` location rather than a separate did:webvh log.
 
-The SDK today identifies an Original by a `did:cel` identifier derived from its genesis, which never changes, and records `did:webvh` and `did:btco` identifiers as aliases when the Original moves up a layer [S14, S12]. This draft keeps that shape with a VH Log identifier as the stable one: the did:btco alias names the anchoring sat (P9.10).
+A new DID method built directly on VH Log, a plain non-DID identifier, and a did:webvh per Original were considered. The first would largely repeat did:vh, the second would need its own resolution contract and tooling, and the third puts the host in the identifier.
 
 ### Proposed rules
 
@@ -22,7 +22,7 @@ P3.3 A resolver MUST distinguish verified state, missing evidence, unsupported p
 
 P3.4 Publication URLs and redirects MUST NOT independently transfer author or log-control authority. Any continuity claim after relocation MUST be supported by the selected profile’s authenticated evidence.
 
-P3.5 A successful generic VH Log resolution MUST NOT be reported as Originals verification. Originals state MUST be derived only by a verifier that applies this profile, because generic resolvers ignore the profile’s additional rules.
+P3.5 A successful generic VH Log or did:vh resolution MUST NOT be reported as Originals verification. Originals state MUST be derived only by a verifier that applies this profile, because generic resolvers ignore the profile’s additional rules. For example, a generic did:vh resolver given a web copy of an anchored Original’s log can show an entry the author signed after a sale as current, although it was never inscribed (P9.12).
 
 ### Identity history and time
 

@@ -16,7 +16,7 @@ P5.5 VH validation MUST apply the pinned upstream algorithms for entry integrity
 
 P5.6 A candidate MUST NOT become the current state until the VH and author-binding checks succeed. Missing identity history MUST remain an explicit failure or incomplete-verification result; it MUST NOT downgrade to trusting the key alone.
 
-P5.7 Parsers MUST reject duplicate keys, values that the pinned canonicalization cannot represent exactly, and any member of parameters, proof or Originals-defined state that is not defined by the pinned VH Log version or this specialisation.
+P5.7 Parsers MUST reject duplicate keys, values that the pinned canonicalization cannot represent exactly, and any member of parameters, proof or Originals-defined state that is not defined by the pinned VH Log version, the pinned did:vh version or this profile. The profile MUST list the DID Core members it allows in the state.
 
 P5.8 The author DID MUST be fixed at genesis; an entry naming a different author DID MUST be rejected. Authorship never transfers; selling an Original transfers ownership of its anchoring sat only (P9.11). Author DIDs MUST use a DID method with verifiable version history that the profile lists; the baseline profile lists did:vh and did:webvh. The author DID versionId referenced by each entry MUST NOT be older than the one referenced by its predecessor.
 

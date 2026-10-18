@@ -59,6 +59,6 @@ This is not a normative wire format or test vector.
 - VH entry → Original identity, parent entry, resulting application state, author identity reference, one proof by the author’s key
 - Evidence package → VH history, author identity evidence, resource bytes
 
-Because Originals is a specialisation of VH Log (D1), the VH state is the asset manifest itself, not a DID document.
+Because each Original is a did:vh (D1), the VH state is a DID document. The manifest is carried in one member of that document, provisionally `originals`, holding the name, metadata, lifecycle and resource descriptors. Resource bytes are not in the state: they are files reached through DID URLs and bound by the digests in their descriptors. The asset DID document has no verification methods of its own, because the author signs every entry.
 
-Sources: VH Log state model [S2]; current envelope and resource behavior [S4, S5].
+Sources: VH Log and did:vh state models [S2, S3]; current envelope and resource behavior [S4, S5].
