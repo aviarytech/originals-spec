@@ -2,13 +2,13 @@
 
 ### Hosted publication
 
-The SDK hosted path publishes two histories: a did:webvh method log (`did.jsonl`) signed separately with Ed25519, and the asset’s own log (`cel.json`). The new format has a single history. A host serves the selected VH profile and exact resource evidence; the public reader verifies the same checkpoint semantics as the local reader.
+The SDK hosted path publishes two logs: a did:webvh method log (`did.jsonl`) signed separately with Ed25519, and the asset’s own log (`cel.json`). This draft keeps that shape: the Original’s history is only in the asset log, and the did:webvh log is its web alias, which locates the asset log and files through `#files` (section 3). A host serves the selected VH profile and exact resource evidence; the public reader verifies the same checkpoint semantics as the local reader.
 
 The Boop adapter needs its actual publishing path replaced: ordinary publication uses local per-asset Ed25519 signing rather than SDK publishToWeb. Replacing only publishToWeb leaves that signing path in place. The exact-snapshot public-reader requirement from Boop issue 232 [S10] remains a regression requirement.
 
 ### Proposed hosted rules
 
-P9.1 A published snapshot MUST bind its manifest, history checkpoint and resource descriptors. The public reader MUST verify that exact snapshot and MUST NOT combine history from one checkpoint with metadata or bytes presented as another.
+P9.1 A published snapshot MUST bind its asset state, history checkpoint and resource descriptors. The public reader MUST verify that exact snapshot and MUST NOT combine history from one checkpoint with metadata or bytes presented as another.
 
 P9.2 A publish retry MUST resume or repeat the same intended snapshot. Uploading bytes, publishing a locator or changing an index MUST NOT create a new asset transition unless an explicit authorized transition is part of the operation.
 
@@ -24,7 +24,7 @@ P9.5 Forks, reorganizations and competing publications MUST be exposed explicitl
 
 P9.6 Transaction retries MUST distinguish rebroadcasting the same intended transaction from preparing a replacement. Asset edits MUST NOT be silently re-signed or rebased because a transaction is retried. A wallet or sat holder MUST NOT acquire author or VH update authority by possession alone.
 
-P9.7 A host MUST serve resource bytes with their signed mediaType and MUST NOT let a valid signature override content-safety policy. Active content such as HTML or SVG MUST be served from an origin without user credentials, with content-type sniffing disabled and a restrictive content security policy, or rendered only in a sandbox. Any SDK consumer that renders resources or manifest strings, including desktop and mobile clients, MUST apply the same isolation and MUST escape names and metadata.
+P9.7 A host MUST serve resource bytes with their signed mediaType and MUST NOT let a valid signature override content-safety policy. Active content such as HTML or SVG MUST be served from an origin without user credentials, with content-type sniffing disabled and a restrictive content security policy, or rendered only in a sandbox. Any SDK consumer that renders resources or asset state strings, including desktop and mobile clients, MUST apply the same isolation and MUST escape names and metadata.
 
 P9.8 A hosted Original MUST activate VH witnesses: at least three, with a threshold of at least two and less than the number of witnesses, so that one lost or censoring witness cannot block or approve entries alone. Before approving an entry, an Originals witness MUST, in addition to the VH witness obligations:
 

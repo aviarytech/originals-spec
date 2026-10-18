@@ -9,8 +9,11 @@
 [[def: resource version, resource versions]]:
 ~ An exact byte sequence bound to a mediaType and cryptographic digest in verified asset history.
 
-[[def: manifest]]:
-~ The application view of an Original’s current name, metadata, resource descriptors and lifecycle status.
+[[def: asset log]]:
+~ The Original’s own VH log, specialised by this profile. It holds the Original’s history and is separate from the DID logs that name it.
+
+[[def: asset state]]:
+~ The state recorded in each asset log entry: the Original’s name, metadata, resource descriptors and lifecycle status. It is not a DID document.
 
 [[def: VH entry, VH entries]]:
 ~ Commits a state transition according to the selected VH profile.
@@ -53,12 +56,12 @@ P2.3 Every accepted state MUST preserve the association between the Original, it
 This is not a normative wire format or test vector.
 :::
 
-- Original identity → VH checkpoint → full application state
+- Original identity → asset log checkpoint → asset state
 - Application state → name, metadata, lifecycle, named resource descriptors
 - Resource descriptor → resourceID, mediaType, exact-byte digest
 - VH entry → Original identity, parent entry, resulting application state, author identity reference, one proof by the author’s key
 - Evidence package → VH history, author identity evidence, resource bytes
 
-Because each Original is a did:vh (D1), the VH state is a DID document. The manifest is carried in one member of that document, provisionally `originals`, holding the name, metadata, lifecycle and resource descriptors. Resource bytes are not in the state: they are files reached through DID URLs and bound by the digests in their descriptors. The asset DID document has no verification methods of its own, because the author signs every entry.
+The asset log’s state is the asset state, not a DID document (D1). The Original’s DIDs have their own DID logs, whose DID documents only name the Original and point to the asset log and resource files through the `#files` service (section 3). Resource bytes are not in any state: they are files bound by the digests in their descriptors.
 
 Sources: VH Log and did:vh state models [S2, S3]; current envelope and resource behavior [S4, S5].

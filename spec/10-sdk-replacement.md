@@ -9,7 +9,7 @@
 | Envelope | Portable evidence boundary | New discriminator and VH payload |
 | Resource helpers and cel history | Exact bytes and prior digest checks | Profile-specific descriptor encoding |
 | StorageAdapter | Byte storage abstraction for hosting | Durable local commit contract and diagnostics |
-| Hosted adapters | Exact snapshot delivery | Separate did:webvh log (`did.jsonl`) beside the asset log |
+| Hosted adapters | Exact snapshot delivery; did:webvh alias log beside the asset log | Separate Ed25519 signing of the did:webvh log; alias binding (P3.6) |
 | Bitcoin adapters | Durable boundary, retry intent, web-then-Bitcoin order, block-height gate, ownership snapshot | Current payloads and metadata format |
 | Boop publish path | Local editing and public reader | Per-asset local signing path |
 

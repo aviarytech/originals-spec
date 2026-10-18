@@ -4,7 +4,7 @@
 
 The active SDK paths provide local/offline operation, not an encrypted vault. Serialized metadata is plaintext, embedded bytes may be base64 encoded, and the storage adapter, used only for hosted publication, performs raw put, get and exists operations. Local persistence is the caller’s serialized envelope. Base64 is not encryption. Encryption and signing-key recovery are not implemented in the inspected active paths.
 
-This baseline should be stated plainly in product and SDK documentation. Private use means that the user can keep the evidence off public hosts; confidentiality then depends on the security of the chosen device, files and storage service. Sharing, synchronizing or publishing evidence can disclose the manifest and its history.
+This baseline should be stated plainly in product and SDK documentation. Private use means that the user can keep the evidence off public hosts; confidentiality then depends on the security of the chosen device, files and storage service. Sharing, synchronizing or publishing evidence can disclose the asset state and its history.
 
 ### Proposed storage and privacy rules
 

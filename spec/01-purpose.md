@@ -9,8 +9,8 @@ The immediate implementation target is a local vertical slice: create an Origina
 - **Confirmed direction:** Originals history uses Verifiable History. Stephen Curran’s VH Log and did:vh work provide the standards direction. Author signing uses identity verification rather than an application-maintained device-key allowlist.
 - **Retained SDK behavior:** an existing behavior to preserve, identified as such below. It is not a claim that the new implementation already exists.
 - **Proposed rule:** a requirement offered by this draft, numbered Pn.n and shown with a shaded label. The key words MUST, MUST NOT, SHOULD, SHOULD NOT and MAY in proposed rules are to be interpreted as described in BCP 14 [[spec: RFC2119]] [[spec: RFC8174]] when, and only when, they appear in all capitals. They do not imply agreement or a finalized upstream standard. Lowercase “must” and “should” in explanatory prose describe intent and are not conformance requirements.
-- **Decided:** a choice taken in review and recorded in section 13. Each Original has its own did:vh, with its complexity hidden by the SDK.
-- **Unresolved:** a choice that still requires review, such as the manifest schema and how resource files are addressed.
+- **Decided:** a choice taken in review and recorded in section 13. Each Original has its own VH log, named by a did:vh, with its complexity hidden by the SDK.
+- **Unresolved:** a choice that still requires review, such as the asset state schema.
 
 ### Scope and non-goals
 
@@ -20,17 +20,17 @@ VH Log and did:vh are pre-drafts. Their algorithms, parameter behavior and resol
 
 ### Relationship to VH Log and the DID methods
 
-Originals is a profile of VH Log and of the DID methods built on it [S2, S3]. Each Original is a did:vh; author DIDs use did:vh or did:webvh; and an anchored Original has a did:btco alias. VH Log defines the log mechanism: entry structure, hash chaining, SCID, parameters, updateKeys, witnesses, watchers, resolution, and the rules for publishing and retrieving log files. did:vh defines the DID document state, the `did:vh:<SCID>` identifier, and how a resolver is given the log through its `src` option. This draft does not repeat them. It defines only what is specific to Originals, and does not change VH Log or did:vh processing.
+Originals is a specialisation of VH Log for each Original’s [[ref: asset log]], and a profile of did:vh, did:webvh and did:btco for naming and locating it [S2, S3]. Each Original is named by a did:vh, gains a did:webvh alias when published on the web and a did:btco alias when anchored, and its author signs with a did:vh or did:webvh. The DID documents are not the Original’s history; they point to the asset log. VH Log defines the log mechanism: entry structure, hash chaining, SCID, parameters, updateKeys, witnesses, watchers, resolution, and the rules for publishing and retrieving log files. did:vh and did:webvh define their DID logs, identifiers and resolution, including did:webvh’s `#files` service. This draft does not repeat them. It defines only what is specific to Originals, and does not change VH Log or did:vh processing.
 
 Originals constrains these by:
 
-- Carrying the asset manifest (name, metadata, lifecycle and resource descriptors) in one member of the did:vh DID document, and serving resource bytes as files reached through DID URLs (section 2).
-- Using one did:vh for the Original’s whole life, located through `src` at each layer, with did:btco recorded as an alias once it is anchored (section 3, P9.10).
+- Specifying the asset log’s state as the asset state: name, metadata, lifecycle and resource descriptors (section 2).
+- Naming each Original with one did:vh for its whole life, plus did:webvh and did:btco aliases, each bound to the asset log in both directions and pointing to it and its files through `#files` (section 3, P9.10).
 - Requiring signed state fields for the profile, operation, resource transitions, author DID, author verification method and author DID version (P5.1).
 - Allowing exactly one proof per entry, by a `did:key` updateKey that is also an assertionMethod key of the author’s DID, and exactly one updateKey at a time, without prerotation on the asset log (P5.2, P5.3, P5.9).
 - Fixing the author DID at genesis (P5.8) and defining rotation entries (P5.10) and fork declarations (P6.6).
 - Defining resource descriptors bound to SHA-256 digests, a fixed resource set and history-derived versions (P4.1–P4.4).
-- Rejecting members that VH Log, did:vh or this profile do not define (P5.7), and requiring the deactivated parameter and the manifest lifecycle to agree (P6.5).
+- Rejecting members that VH Log or this profile do not define (P5.7), and requiring the deactivated parameter and the lifecycle status to agree (P6.5).
 - Requiring witnesses for hosted Originals: at least three, declared in the author’s DID, which also check the author’s latest DID state (P9.8, P9.9).
 - Ending witnesses at the anchoring entry, which sets the witness parameter to `{}`, after which inscription order on the anchoring sat orders entries (P9.10, P9.13).
 
@@ -41,12 +41,8 @@ Originals adds, outside the log:
 - Ownership as the holder of the anchoring sat, with no authority to change the Original (P9.11, P9.12).
 - A verification report that keeps Originals verification distinct from generic did:vh resolution (P3.5, section 7).
 
-::: issue Resource files through did:vh
-did:vh has no DID URL path handling; did:webvh has the implicit `#files` service. Serving resource bytes at DID URLs such as `did:vh:<SCID>/photo` needs did:vh to add path handling, or this profile to define it.
-:::
-
-::: issue Bitcoin as a `src`
-did:vh `src` references are URLs: `https`, `file` and other hierarchical schemes. An anchored Original’s log lives in inscriptions on a sat. A `src` kind for Bitcoin, which did:vh anticipates for later versions, would let a did:vh resolver read it directly.
+::: issue `#files` for did:vh
+did:webvh has the implicit `#files` service; did:vh has no DID URL path handling. Until did:vh adds it, a did:vh names an Original but cannot itself locate its files; readers use the did:webvh alias, or a `src` location for the did:vh log.
 :::
 
 ::: issue Ordering after witnesses
@@ -59,7 +55,7 @@ The author binding needs one asset log signature to be both an updateKey and a v
 
 ### Review priorities
 
-1. Specify the manifest member, resource file addressing and the Bitcoin `src`.
+1. Specify the asset state schema and how DID documents point to the asset log.
 2. Confirm the key binding, rotation entries, DID-declared witness policy and sat ownership in sections 5 and 9.
 3. Choose witness selection and the freshness bound verifiers apply to author DID state.
 4. Pin the signed entry state and portable evidence format.

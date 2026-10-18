@@ -64,6 +64,9 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Two proofs in the proof array | Rejected |
 | Stale author DID history served with a current asset log | Identity freshness not established; not reported as currently authorized |
 | VH-valid log that fails Originals rules, read through a generic resolver | Not reported as Originals-verified |
+| DID document points to an asset log that does not list that DID | Not an alias; no Originals result through that DID |
+| Asset log lists a DID whose document points elsewhere | Alias not confirmed; asset log still verifiable directly |
+| DID document content that differs from the asset state | Ignored; state comes only from the asset log |
 | Lifecycle status deactivated without VH deactivated: true, or the reverse | Rejected |
 | Older prefix imported over a newer local history | Local current state not rolled back |
 | Log file larger than the profile cap | Fetch refused; reported as unavailable |
