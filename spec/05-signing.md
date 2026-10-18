@@ -4,7 +4,7 @@ Originals uses an identity signer and an independent verifier instead of an appl
 
 ### Proposed rules for a signed change
 
-P5.1 Each VH entry MUST carry, in its signed state, the profile discriminator, Original identity, operation, resulting state commitment, resource transitions, the author DID, the absolute id of the author’s verification method and the exact author DID versionId. The VH entry chain binds the parent checkpoint. The VH proof MUST cover every security-relevant field, and only signed fields MAY affect verified state.
+P5.1 Each VH entry MUST carry, in its signed state, the Original identity, operation, resulting state commitment, resource transitions, the author DID, the absolute id of the author’s verification method and the exact author DID versionId. The extension version is identified by the `method` parameter, and the VH entry chain binds the parent checkpoint. The VH proof MUST cover every security-relevant field, and only signed fields MAY affect verified state.
 
 P5.2 An entry’s proof array MUST contain exactly one proof, and the author binding MUST be evaluated against that proof’s key. The proof’s verificationMethod MUST be a did:key URL for the updateKey, so that VH resolvers never resolve external identities; the author’s verification method is referenced only in the signed state.
 
@@ -16,7 +16,7 @@ P5.5 VH validation MUST apply the pinned upstream algorithms for entry integrity
 
 P5.6 A candidate MUST NOT become the current state until the VH and author-binding checks succeed. Missing identity history MUST remain an explicit failure or incomplete-verification result; it MUST NOT downgrade to trusting the key alone.
 
-P5.7 Parsers MUST reject duplicate keys, values that the pinned canonicalization cannot represent exactly, and any member of parameters, proof or Originals-defined state that is not defined by the pinned VH Log version or this profile.
+P5.7 Parsers MUST reject duplicate keys, values that the pinned canonicalization cannot represent exactly, and any member of parameters, proof or Originals-defined state that is not defined by the pinned VH Log version, the pinned did:vh version or this extension.
 
 P5.8 The author DID MUST be fixed at genesis; an entry naming a different author DID MUST be rejected. Authorship never transfers; selling an Original transfers ownership of its anchoring sat only (P9.11). Author DIDs MUST use a DID method with verifiable version history that the profile lists; the baseline profile lists did:vh and did:webvh. The author DID versionId referenced by each entry MUST NOT be older than the one referenced by its predecessor.
 
@@ -26,9 +26,11 @@ P5.10 A rotation entry’s parameters MUST contain only updateKeys, holding exac
 
 P5.11 A signer holding an Originals key MUST parse the entry, show the author the Original, operation and resource changes before signing, and refuse input that is not a well-formed Originals entry. The author’s Originals key MUST be a verification method used only for Originals entries, and MUST NOT also be an updateKey of the author DID’s own log.
 
+P5.12 Each entry’s proof MUST use the `eddsa-jcs-2022` or `bip340-jcs-2025` cryptosuite, which the extension permits under VH-Log’s rule for additional cryptosuites [S21]. A verifier MUST reject any other cryptosuite.
+
 ### Key policy
 
-The baseline profile has one author per Original, for the Original’s whole life. The author’s DID is the Original’s controller, and its prerotation protects the DID itself; asset logs do not activate VH prerotation. An asset log lists one current key of the author, and P5.9 keeps that key inside the author’s DID. There is no dedicated per-Original keypair by default; a compatible author key can control several logs. Naming the author DID in an entry grants no log authority by itself.
+The baseline profile has one author per Original, for the Original’s whole life. The author’s DID is the Original’s controller, and its prerotation protects the DID itself; asset logs do not activate VH prerotation. VH-Log recommends pre-rotation for a log with an authoritative source [S20], so that the active keys alone cannot get an entry accepted. On Bitcoin that protection comes from the sat instead: an entry is accepted only if inscribed on the anchoring sat (P9.12). An asset log lists one current key of the author, and P5.9 keeps that key inside the author’s DID. There is no dedicated per-Original keypair by default; a compatible author key can control several logs. Naming the author DID in an entry grants no log authority by itself.
 
 ### Collaboration deferred
 

@@ -10,10 +10,10 @@
 ~ An exact byte sequence bound to a mediaType and cryptographic digest in verified asset history.
 
 [[def: asset log]]:
-~ The Original’s own VH log, specialised by this profile. It holds the Original’s history and is separate from the DID logs that name it.
+~ The Original’s did:vh log under the Originals extension. It is the Original’s only history.
 
 [[def: asset state]]:
-~ The state recorded in each asset log entry: the Original’s name, metadata, resource descriptors and lifecycle status. It is not a DID document.
+~ The state recorded in full in each asset log entry: the Original’s name, metadata, lifecycle status, resource descriptors and aliases. It is not a DID document.
 
 [[def: VH entry, VH entries]]:
 ~ Commits a state transition according to the selected VH profile.
@@ -62,6 +62,6 @@ This is not a normative wire format or test vector.
 - VH entry → Original identity, parent entry, resulting application state, author identity reference, one proof by the author’s key
 - Evidence package → VH history, author identity evidence, resource bytes
 
-The asset log’s state is the asset state, not a DID document (D1). The Original’s DIDs have their own DID logs, whose DID documents only name the Original and point to the asset log and resource files through the `#files` service (section 3). Resource bytes are not in any state: they are files bound by the digests in their descriptors.
+The asset log’s state is the full asset state in every entry, not a delta and not a DID document (D1). The DID document for each version is derived, never stored: its `id` is the did:vh, it has a verification method for each active updateKey, its `alsoKnownAs` lists the aliases in the asset state, and its `#files` service is built from the resource descriptors. The asset itself is not placed in the DID document. Resource bytes are not in any state: they are files bound by the digests in their descriptors.
 
 Sources: VH Log and did:vh state models [S2, S3]; current envelope and resource behavior [S4, S5].

@@ -64,9 +64,16 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Two proofs in the proof array | Rejected |
 | Stale author DID history served with a current asset log | Identity freshness not established; not reported as currently authorized |
 | VH-valid log that fails Originals rules, read through a generic resolver | Not reported as Originals-verified |
-| DID document points to an asset log that does not list that DID | Not an alias; no Originals result through that DID |
-| Asset log lists a DID whose document points elsewhere | Alias not confirmed; asset log still verifiable directly |
-| DID document content that differs from the asset state | Ignored; state comes only from the asset log |
+| did:webvh whose document points to a did:vh that does not list it | Not an alias; no Originals result through that did:webvh |
+| Asset state lists a did:webvh whose document points elsewhere | Alias not confirmed; the did:vh still verifiable directly |
+| Served DID document for the did:vh that differs from the one derived from the log | Ignored; the derived document is used |
+| Derived DID document | Same for every resolver; `alsoKnownAs`, verification methods and `#files` match the asset state and active updateKeys |
+| Plain did:vh resolver given an Originals log | Rejected by its unrecognised `method` value |
+| Later entry that moves the log between plain did:vh and the Originals extension | Rejected |
+| Proof using a cryptosuite other than `eddsa-jcs-2022` or `bip340-jcs-2025` | Rejected |
+| Entry whose state is a delta rather than the full asset state | Rejected |
+| Inscription carrying a compact delta | Decoded to the full entry; hashes and proofs checked over the decoded entry |
+| Inscription that does not decode deterministically | Rejected |
 | Lifecycle status deactivated without VH deactivated: true, or the reverse | Rejected |
 | Older prefix imported over a newer local history | Local current state not rolled back |
 | Log file larger than the profile cap | Fetch refused; reported as unavailable |

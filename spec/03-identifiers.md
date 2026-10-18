@@ -4,19 +4,18 @@ Each Original has its own did:vh, used for resolution across private use, web pu
 
 Author identity remains distinct from asset identity. An asset identifier does not authorize an author to edit it. The same Original, identifier and authenticated history should continue across layers.
 
-### Decided: an asset log named by DIDs
+### Decided: the Original is a did:vh
 
-Each Original has one [[ref: asset log]], a VH log specialised by this profile, whose state is the [[ref: asset state]]. The asset log is the Original’s only history: resource versions, authority and ownership are derived from it and from Bitcoin, never from a DID document.
+Each Original is a did:vh, `did:vh:<SCID>`, whose log is its [[ref: asset log]] under the Originals extension (section 1). The SCID is the asset log’s SCID; there is no separate DID log for the Original. Resource versions, authority and ownership are derived from the asset log and from Bitcoin, never from a DID document.
 
-The Original is named by DIDs, each with its own DID log:
+The Original gains aliases, listed in its asset state and in the derived `alsoKnownAs`:
 
-- a did:vh from creation, which never changes;
-- a did:webvh alias once it is published on the web, whose implicit `#files` service maps DID URLs such as `did:webvh:<SCID>:example.com/photo` to files at that host;
-- a did:btco alias once it is anchored, naming the anchoring sat (P9.10).
+- a did:webvh once it is published on the web. This is a small did:webvh log of its own that points to the did:vh, and its implicit `#files` service maps DID URLs such as `did:webvh:<SCID>:example.com/photo` to files at that host;
+- a did:btco once it is anchored, naming the anchoring sat (P9.10). Once anchored, resolution should go through this alias.
 
-Each DID document points to the asset log and resource files through `#files`, and lists the Original’s other DIDs in `alsoKnownAs`. The asset log’s signed state lists the same DIDs as aliases. Once anchored, resolution should go through the did:btco alias.
+The derived DID document of the did:vh carries a `#files` service built from the resource descriptors, so the did:vh can locate the Original’s files itself.
 
-The SDK today has the same shape: an asset log identified by `did:cel`, with `did:webvh` and `did:btco` aliases recorded in its state, and a separate did:webvh log for hosting [S14, S12]. This draft names the Original with a did:vh instead of `did:cel`.
+The SDK today identifies an Original by `did:cel` and keeps a CEL 3 log [S14, S12]. Those logs cannot be converted: their SCIDs and signatures differ. The VH-Log format applies to new Originals only.
 
 ### Proposed rules
 
@@ -28,11 +27,13 @@ P3.3 A resolver MUST distinguish verified state, missing evidence, unsupported p
 
 P3.4 Publication URLs and redirects MUST NOT independently transfer author or log-control authority. Any continuity claim after relocation MUST be supported by the selected profile’s authenticated evidence.
 
-P3.5 A successful generic VH Log, did:vh or did:webvh resolution MUST NOT be reported as Originals verification. Originals state MUST be derived only by a verifier that applies this profile, because generic resolvers ignore the profile’s additional rules. For example, a generic VH Log resolver given a web copy of an anchored Original’s asset log can show an entry the author signed after a sale as current, although it was never inscribed (P9.12).
+P3.5 A successful generic VH Log, did:vh or did:webvh resolution MUST NOT be reported as Originals verification. Originals state MUST be derived only by a verifier that applies this profile, because generic resolvers ignore the profile’s additional rules. A generic did:vh resolver rejects an asset log by its unrecognised `method` value [S19, S20], so it fails closed rather than showing a different current state.
 
-P3.6 A DID is an alias of an Original only if its DID document points to that Original’s asset log and the asset log’s signed state lists the DID. A verifier MUST NOT accept either direction alone. A DID document MUST NOT be used to derive the Original’s state, resource versions, authority or ownership.
+P3.6 A did:webvh is an alias of an Original only if its DID document points to the Original’s did:vh and the Original’s asset state lists the did:webvh. A verifier MUST NOT accept either direction alone. A did:webvh DID document MUST NOT be used to derive the Original’s state, resource versions, authority or ownership.
 
-P3.7 The DID logs of an Original’s did:vh and did:webvh SHOULD be controlled by the author. Whoever controls them can stop them pointing to the asset log, but cannot change the Original or make another log its history (P3.6).
+P3.7 The did:webvh alias log SHOULD be controlled by the author. Whoever controls it can stop it pointing to the did:vh, but cannot change the Original or make another log its history (P3.6).
+
+P3.8 The DID document of an Original’s did:vh MUST be derived from the asset log as section 2 describes, and a resolver MUST derive the same document from the same log. A stored or served DID document for the did:vh MUST NOT be used.
 
 ### Identity history and time
 

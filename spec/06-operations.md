@@ -32,6 +32,6 @@ P6.6 When the SDK detects two or more valid branches from the same accepted entr
 
 The SDK should expose the selected checkpoint, derived resource versions, verification status and actionable error category. Suggested categories are invalid evidence, incomplete evidence, unsupported profile, unauthorized key, author binding failure, stale parent, fork, deactivated asset and unavailable bytes. Concrete API names and error codes remain a compatibility review item.
 
-VH entries carry whole-second versionTime values that strictly increase, so a log accepts at most one entry per second. The SDK’s mutation queue must respect that limit; the current SDK uses millisecond timestamps.
+VH entries carry whole-second versionTime values that strictly increase, so a log accepts at most one entry per second. The current SDK uses millisecond timestamps. VH-Log’s proposed rule for versionTime precision [S22] would let the extension allow finer values; whether to use it is open (D5).
 
 Sources: OriginalsAsset, OriginalsSDK and envelope [S4, S6, S7]; SDK transitions [S12].

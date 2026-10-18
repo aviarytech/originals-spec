@@ -21,6 +21,7 @@ The SDK is what exists, so this draft keeps its behavior unless there is a reaso
 
 | SDK today | This draft |
 |---|---|
+| Each Original is a CEL 3 log identified by `did:cel` | Each Original is a did:vh log under the Originals extension (section 3) |
 | Each Original is controlled by its own `did:key` | The author signs with a key bound to their DID, and witnesses check it (P5.3, P9.8) |
 | Concurrent edits are signed against the current head | An edit names its parent; a moved parent is a conflict (P4.5) |
 | An unchanged digest still advances the version | It does not (P4.4) |
@@ -29,7 +30,7 @@ The SDK is what exists, so this draft keeps its behavior unless there is a reaso
 | Commits are in memory; persistence is the caller’s | Durable local commit (P6.2) |
 | Ownership is reported as confirmed or not | Confirmation depth and index agreement are reported (P9.11) |
 
-Migration from earlier Originals formats is out of scope for this draft ([D7](#d7)).
+Existing CEL 3 assets cannot be converted, because their SCIDs and signatures differ; the VH-Log format applies to new Originals only. Migration from earlier Originals formats is out of scope for this draft ([D7](#d7)).
 
 ### Delivery sequence
 

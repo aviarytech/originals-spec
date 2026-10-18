@@ -10,9 +10,11 @@ Originals Protocol
 
 Depends On:
 ~ [VH-Log](https://swcurran.github.io/VH-Log/next/), the Verifiable History Log mechanism ([source](https://github.com/swcurran/VH-Log))
-~ [did:vh](https://swcurran.github.io/didvh/next/), the VH-Log specialisation each Original’s identifier uses, and an accepted author DID method ([source](https://github.com/swcurran/didvh))
-~ [did:webvh](https://github.com/decentralized-identity/didwebvh), a VH-Log specialisation and an accepted author DID method
-~ did:btco, the Bitcoin alias of an anchored Original
+~ [did:vh](https://swcurran.github.io/didvh/next/): each Original is a did:vh log under the Originals extension, which relies on the proposed [did:vh extension mechanism](https://github.com/swcurran/didvh/pull/3) ([source](https://github.com/swcurran/didvh))
+
+Profiles:
+~ [did:webvh](https://github.com/decentralized-identity/didwebvh), for an Original’s web alias and for author DIDs
+~ did:btco, for an anchored Original’s Bitcoin alias
 
 Related Specifications:
 ~ [Experimental did:webvh on VH-Log](https://github.com/decentralized-identity/didwebvh/pull/302)
