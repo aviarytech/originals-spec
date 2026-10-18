@@ -49,6 +49,6 @@ These limits remain:
 - For an unwitnessed Original, entries signed with a removed key cannot be distinguished from earlier ones. Verifiers report them as historically authorized with unproven ordering, never as current (P7.9).
 - A lost key that was never rotated cannot be replaced; recovery is a separate decision (section 8).
 
-A VH extension that lets a log name a DID as its controller would remove the rotation entries; it is a candidate upstream change alongside VH Log issue 5 [S2a]. Loading evidence does not restore signing authority, and claimed timestamps cannot establish signing before revocation.
+VH-Log pull request 11 [S25] would let the extension take the authorized keys from the author DID and remove the rotation entries (section 1). Loading evidence does not restore signing authority, and claimed timestamps cannot establish signing before revocation.
 
 Sources: VH update authorization and witnesses [S2]; editor authority proposal [S2a]; identity document rules [S3]; current signer/envelope boundaries [S4, S6, S7].

@@ -44,18 +44,10 @@ Originals adds, outside the log:
 - A did:webvh alias, a small did:webvh log of its own that points to the did:vh (P3.6).
 - A verification report that keeps Originals verification distinct from generic resolution (P3.5, section 7).
 
-The VH-Log hooks this relies on are open pull requests: an authoritative source [S20], additional cryptosuites [S21], versionTime precision [S22], locations not reached over HTTPS [S23] and alternative encodings [S24]. The did:vh extension mechanism is also an open pull request [S19].
+The VH-Log hooks this relies on are open pull requests: an authoritative source [S20], additional cryptosuites [S21], versionTime precision [S22], locations not reached over HTTPS [S23], alternative encodings whose decoding may depend on earlier entries [S24], and authorized keys from a controller [S25]. The did:vh extension mechanism is also an open pull request [S19]; it lets an extension define its own state, parameters, VH-Log specialisation rules and `src` kinds. The extension uses that to define a Bitcoin `src` kind, retrieved under VH-Log’s rule for locations not reached over HTTPS.
 
-::: issue Bitcoin location for did:vh
-did:vh’s `src` option kinds (`https`, `file` and other hierarchical schemes) are did:vh rules, and an extension may only replace rules that VH-Log lets a specialisation define. Either did:vh adds a Bitcoin `src` kind, or the extension defines the Bitcoin location through VH-Log’s rule for locations not reached over HTTPS [S23].
-:::
-
-::: issue Decoding that depends on earlier entries
-A Bitcoin inscription may carry a delta against the previous entry, so decoding one entry depends on earlier entries. The alternative-encodings pull request [S24] needs a sentence allowing that.
-:::
-
-::: issue Log authority from a DID
-The author binding needs one asset log signature to be both an updateKey and a verification method of the author’s DID, plus rotation entries to follow the DID. A VH Log extension that lets a log name a DID as its controller would remove the rotation entries; it is proposed alongside VH Log issue 5 [S2a]. None of the open pull requests covers it.
+::: issue Authorized keys from the author DID
+VH-Log pull request 11 [S25] lets a specialisation take a log’s authorized keys from a controller with its own history, such as the author’s DID. Once it is adopted, the extension will take them from the author DID: entries are signed by the author DID’s keys directly, with no `updateKeys` and no rotation entries (P5.9, P5.10), and witnesses or Bitcoin check entries against the author DID’s latest state as they already do. Until then the current key rules stand. VH-Log’s planned move to mandatory pre-rotation would conflict with them, so this pull request is needed before that change.
 :::
 
 ### Review priorities
