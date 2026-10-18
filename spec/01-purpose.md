@@ -27,10 +27,10 @@ VH Log defines the log mechanism: entry structure, hash chaining, SCID, paramete
 Using the rules a did:vh extension may define, Originals:
 
 - Defines each entry’s state as the full [[ref: asset state]]: name, metadata, lifecycle, resource descriptors and aliases. State is a full snapshot, never a delta, and never a DID document (section 2).
-- Derives the DID document for each version deterministically: its `id`, a verification method for each active updateKey, `alsoKnownAs` from the aliases in the asset state, and a `#files` service built from the resource descriptors. No DID document is stored, and the asset is not placed in it (section 2).
+- Derives the DID document for each version deterministically: its `id`, a `controller` equal to the author DID, `alsoKnownAs` from the aliases in the asset state, and a `#files` service built from the resource descriptors. No DID document is stored, and the asset is not placed in it (section 2).
 - Requires signed state fields for the operation, resource transitions, author DID, author verification method and author DID version (P5.1).
-- Allows exactly one proof per entry, using `eddsa-jcs-2022` or `bip340-jcs-2025` [S21], by a `did:key` updateKey that is also an assertionMethod key of the author’s DID, and exactly one updateKey at a time, without pre-rotation (P5.2, P5.3, P5.9, P5.12).
-- Fixes the author DID at genesis (P5.8) and defines rotation entries (P5.10) and fork declarations (P6.6).
+- Takes the log’s authorized keys from the author DID [S25]: one proof per entry, using `eddsa-jcs-2022` or `bip340-jcs-2025` [S21], by an assertionMethod key in the author DID’s Originals declaration at the version the entry names. There are no updateKeys, no pre-rotation and no rotation entries (P5.2, P5.3, P5.9, P5.10, P5.12).
+- Fixes the author DID at genesis (P5.8) and defines fork declarations (P6.6).
 - Defines resource descriptors bound to SHA-256 digests, a fixed resource set and history-derived versions (P4.1–P4.4).
 - Rejects members that VH Log, did:vh or this extension do not define (P5.7), and requires the deactivated parameter and the lifecycle status to agree (P6.5).
 - Requires witnesses for hosted Originals: at least three, declared in the author’s DID, which also check the author’s latest DID state (P9.8, P9.9).
@@ -46,14 +46,10 @@ Originals adds, outside the log:
 
 The VH-Log hooks this relies on are open pull requests: an authoritative source [S20], additional cryptosuites [S21], versionTime precision [S22], locations not reached over HTTPS [S23], alternative encodings whose decoding may depend on earlier entries [S24], and authorized keys from a controller [S25]. The did:vh extension mechanism is also an open pull request [S19]; it lets an extension define its own state, parameters, VH-Log specialisation rules and `src` kinds. The extension uses that to define a Bitcoin `src` kind, retrieved under VH-Log’s rule for locations not reached over HTTPS.
 
-::: issue Authorized keys from the author DID
-VH-Log pull request 11 [S25] lets a specialisation take a log’s authorized keys from a controller with its own history, such as the author’s DID. Once it is adopted, the extension will take them from the author DID: entries are signed by the author DID’s keys directly, with no `updateKeys` and no rotation entries (P5.9, P5.10), and witnesses or Bitcoin check entries against the author DID’s latest state as they already do. Until then the current key rules stand. VH-Log’s planned move to mandatory pre-rotation would conflict with them, so this pull request is needed before that change.
-:::
-
 ### Review priorities
 
 1. Specify the asset state schema, the `originals` method values and the DID document derivation.
-2. Confirm the key binding, rotation entries, DID-declared witness policy and sat ownership in sections 5 and 9.
+2. Confirm the key binding, the author DID’s Originals declaration, DID-declared witness policy and sat ownership in sections 5 and 9.
 3. Choose witness selection and the freshness bound verifiers apply to author DID state.
 4. Pin the signed entry state and portable evidence format.
 

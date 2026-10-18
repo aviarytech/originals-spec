@@ -25,7 +25,7 @@
 ~ A local, unsigned candidate change; it is never a verified resource version.
 
 [[def: updateKey, updateKeys]]:
-~ A VH key, expressed as raw Multikey material, that may append the next entry to a log under the previous accepted entry’s rules.
+~ A VH key, expressed as raw Multikey material, that may append the next entry to a log under the previous accepted entry’s rules. An asset log has none: its authorized keys come from the author DID ([P5.9](#p5.9)).
 
 [[def: witness, witnesses]]:
 ~ A VH witness that approves entries before they count as current. Originals witnesses also check the author’s latest DID state ([P9.8](#p9.8)).
@@ -34,9 +34,9 @@
 
 Author identity is the identity making a change. Its verification method is authorized through the applicable DID verification relationship and method rules.
 
-Log-control authority is the authority to append or modify VH history under the previous accepted entry’s rules, including the applicable updateKeys. VH updateKeys are raw Multikey material. A log signature alone does not establish author identity.
+Log-control authority is the authority to append or modify VH history under the previous accepted entry’s rules. In plain VH it comes from updateKeys. A log signature alone does not establish author identity.
 
-In the baseline profile these two authorities are held by one key. The author signs each VH entry with a key that is both an active updateKey for the Original and a verification method of the author’s DID. One signature therefore shows both who made the change and that it may be appended.
+In the baseline profile these two authorities come from one place. The author DID is the asset log’s controller, and the author signs each VH entry with a verification method of that DID. One signature therefore shows both who made the change and that it may be appended.
 
 Storage and publication authority is permission to store bytes or publish a checkpoint. A host, storage adapter, wallet, inscription holder or sat owner does not gain asset-editing authority merely by performing that role. One actor may hold several roles, but verifiers evaluate each role separately.
 
@@ -46,7 +46,7 @@ Ownership is not an authority. Once an Original is anchored on Bitcoin, its owne
 
 P2.1 An accepted [[ref: Original]] MUST have one unambiguous history identity and an exact verified current [[ref: checkpoint]]. An implementation MUST NOT merge divergent valid histories by choosing the latest claimed timestamp.
 
-P2.2 A committed asset change MUST be a valid [[ref: VH entry]] under the selected profile, signed by an active [[ref: updateKey]] that the verifier confirms is an authorized verification method of the author identity named in that entry. A raw update key with no verified author binding MUST NOT be treated as an authorized change.
+P2.2 A committed asset change MUST be a valid [[ref: VH entry]] under the selected profile, signed by a key that the verifier confirms is an authorized verification method of the author identity at the version named in that entry. A key with no verified author binding MUST NOT be treated as an authorized change.
 
 P2.3 Every accepted state MUST preserve the association between the Original, its [[ref: resourceIDs]] and the prior accepted checkpoint. Storage locations MUST be treated as retrieval hints, not substitutes for signed digest bindings.
 
@@ -62,6 +62,6 @@ This is not a normative wire format or test vector.
 - VH entry → Original identity, parent entry, resulting application state, author identity reference, one proof by the author’s key
 - Evidence package → VH history, author identity evidence, resource bytes
 
-The asset log’s state is the full asset state in every entry, not a delta and not a DID document (D1). The DID document for each version is derived, never stored: its `id` is the did:vh, it has a verification method for each active updateKey, its `alsoKnownAs` lists the aliases in the asset state, and its `#files` service is built from the resource descriptors. The asset itself is not placed in the DID document. Resource bytes are not in any state: they are files bound by the digests in their descriptors.
+The asset log’s state is the full asset state in every entry, not a delta and not a DID document (D1). The DID document for each version is derived, never stored: its `id` is the did:vh, its `controller` is the author DID, its `alsoKnownAs` lists the aliases in the asset state, and its `#files` service is built from the resource descriptors. The asset itself is not placed in the DID document. Resource bytes are not in any state: they are files bound by the digests in their descriptors.
 
 Sources: VH Log and did:vh state models [S2, S3]; current envelope and resource behavior [S4, S5].

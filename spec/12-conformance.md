@@ -10,7 +10,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Byte changed at same URL | Digest failure; no verified resource result |
 | Wrong genesis or Original ID | Identifier binding failure |
 | Broken chain or reordered entry | History invalid; no derived accepted state beyond failure |
-| Recognized author key not in this Original’s updateKeys | Rejected; identity alone grants no edit right |
+| Valid key of an identity other than the Original’s author DID | Rejected; identity alone grants no edit right |
 | Valid VH entry, key not a method of the named author DID | Author binding failure; VH validity cannot rescue it |
 | Wrong DID method binding or relationship | Identity authorization failure |
 | Old identity version with claimed old time | Witnessed: witness ordering applies. Unwitnessed: ordering unproven; no timestamp-only acceptance |
@@ -44,17 +44,15 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Entry inscribed on the anchoring sat without witness proofs | Accepted; no witnesses after anchoring |
 | Publication at the same or a lower block height than the previous accepted one | Not accepted |
 | Bitcoin failure, retry or reorganization | Durable boundary follows adapter policy, not pending intent |
-| Ordinary entry signed by a key removed from the author DID | Witnessed: refused by witnesses and not current. Unwitnessed: historically authorized, ordering unproven, never current |
-| Rotation entry by a removed key to a key in the latest author DID | Accepted |
-| Rotation entry to a key not in the referenced author DID version | Rejected |
-| Rotation entry that also changes state or another parameter, or rotates to its own signing key | Rejected as a rotation; checked as an ordinary entry |
-| Witnessed rotation entry referencing an older DID version, to a key the latest author DID no longer lists | Refused by witnesses |
+| Entry signed by a key removed from the author DID | Witnessed: refused by witnesses and not current. Unwitnessed: historically authorized, ordering unproven, never current |
 | Entry changes the witness parameter to a list the author DID does not declare | Rejected |
 | Entry sets the witness parameter to an empty object after witnesses are active | Rejected |
 | Entry after witness activation without enough witness proofs, whatever the deployment | Not current |
 | Entries before witness activation, signed by a key later removed | Ordering unproven; not made current by activation |
 | Any entry after the author DID is deactivated | Refused by witnesses; Original reported as non-current |
-| Entry sets updateKeys to an empty list or to more than one key | Rejected |
+| Entry that sets updateKeys or nextKeyHashes | Rejected |
+| Entry signed by a key the author DID added, with no asset log entry for the change | Accepted |
+| Author key not in the author DID’s Originals declaration | Author binding failure |
 | Author DID versionId absent from signed state | Rejected |
 | Verification method from another DID, with a different controller, or under authentication only | Author binding failure |
 | Key expressed as JWK or a different multikey encoding | Author binding failure |
@@ -67,7 +65,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | did:webvh whose document points to a did:vh that does not list it | Not an alias; no Originals result through that did:webvh |
 | Asset state lists a did:webvh whose document points elsewhere | Alias not confirmed; the did:vh still verifiable directly |
 | Served DID document for the did:vh that differs from the one derived from the log | Ignored; the derived document is used |
-| Derived DID document | Same for every resolver; `alsoKnownAs`, verification methods and `#files` match the asset state and active updateKeys |
+| Derived DID document | Same for every resolver; `controller`, `alsoKnownAs` and `#files` match the author DID and asset state |
 | Plain did:vh resolver given an Originals log | Rejected by its unrecognised `method` value |
 | Later entry that moves the log between plain did:vh and the Originals extension | Rejected |
 | Proof using a cryptosuite other than `eddsa-jcs-2022` or `bip340-jcs-2025` | Rejected |
