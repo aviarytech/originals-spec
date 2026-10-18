@@ -34,7 +34,7 @@ Using the rules a did:vh extension may define, Originals:
 - Defines resource descriptors bound to SHA-256 digests, a fixed resource set and history-derived versions (P4.1–P4.4).
 - Rejects members that VH Log, did:vh or this extension do not define (P5.7), and requires the deactivated parameter and the lifecycle status to agree (P6.5).
 - Requires witnesses for hosted Originals: at least three, declared in the author’s DID, which also check the author’s latest DID state (P9.8, P9.9).
-- Makes Bitcoin the authoritative source after anchoring [S20]: the anchoring entry clears the witness list, inscriptions on the anchoring sat decide which entries form the log, and they may carry a compact encoding that decodes deterministically to full entries [S23, S24] (P9.10, P9.13, P9.14).
+- Makes Bitcoin the authoritative source after anchoring [S20]: an Original can be anchored with or without having been published on the web, the anchoring entry clears any witness list, inscriptions on the anchoring sat decide which entries form the log, and they may carry a compact encoding that decodes deterministically to full entries [S23, S24] (P9.10, P9.13, P9.14).
 
 Originals adds, outside the log:
 
