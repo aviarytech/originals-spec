@@ -14,7 +14,7 @@ Depends On:
 
 Profiles:
 ~ [did:webvh](https://github.com/decentralized-identity/didwebvh), for an Original’s web alias and for author DIDs
-~ did:btco, for an anchored Original’s Bitcoin alias
+~ did:btco, for an anchored Original’s Bitcoin alias and for author DIDs
 
 Related Specifications:
 ~ [Experimental did:webvh on VH-Log](https://github.com/decentralized-identity/didwebvh/pull/302)

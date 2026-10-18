@@ -64,6 +64,11 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Key expressed as JWK or a different multikey encoding | Author binding failure |
 | Later entry names a different author DID, or an older author DID version than its predecessor | Rejected |
 | Author DID using a method the profile does not list | Rejected |
+| Anchored Original with a did:btco author DID, verified from Bitcoin alone | Author binding checked against inscribed DID versions in chain order |
+| did:btco author DID version inscribed after an Originals inscription in the same block | Not in effect for that inscription |
+| Anchoring entry naming the author DID’s own did:btco sat | Rejected |
+| Inscription on a did:btco author DID’s sat after its deactivation | Not a version; author DID remains deactivated |
+| Anchored Original whose did:vh or did:webvh author DID log is unavailable | Incomplete identity evidence; not reported as current |
 | Witness cannot obtain author DID state no more than 60 seconds old | Entry refused |
 | Two proofs in the proof array | Rejected |
 | Stale author DID history served with a current asset log | Identity freshness not established; not reported as currently authorized |

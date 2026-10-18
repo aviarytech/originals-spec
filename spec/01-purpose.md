@@ -22,7 +22,7 @@ VH Log and did:vh are pre-drafts. Their algorithms, parameter behavior and resol
 
 Originals is a did:vh extension [S19], and therefore a specialisation of VH Log [S2, S3]. Each Original is one did:vh log, its [[ref: asset log]], and its stable identifier is `did:vh:<SCID>`. There is no separate DID log for the Original. The extension defines its own `method` values, provisionally `originals:1.0`, each stating the VH-Log version it implies. A log cannot move between plain did:vh and the extension, and a resolver that does not implement the extension rejects the log by its unrecognised `method` value.
 
-VH Log defines the log mechanism: entry structure, hash chaining, SCID, parameters, updateKeys, witnesses, watchers, resolution, and the rules for publishing and retrieving log files. did:vh defines the identifier, sourcing the log and DID URL handling. This draft does not repeat them. It defines only what is specific to Originals. It also profiles did:webvh and did:btco, which name an Original as aliases, and did:vh and did:webvh as author DID methods.
+VH Log defines the log mechanism: entry structure, hash chaining, SCID, parameters, updateKeys, witnesses, watchers, resolution, and the rules for publishing and retrieving log files. did:vh defines the identifier, sourcing the log and DID URL handling. This draft does not repeat them. It defines only what is specific to Originals. It also profiles did:webvh and did:btco, which name an Original as aliases, and did:vh, did:webvh and did:btco as author DID methods.
 
 Using the rules a did:vh extension may define, Originals:
 

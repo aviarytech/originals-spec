@@ -41,7 +41,7 @@ A verification method reference needs a specific identity state and its method-b
 
 Ordering evidence comes from VH [[ref: witnesses]]. A witnessed Original’s entries are approved by witnesses that check the author’s latest DID state before approving (P9.8), so once a key’s removal reaches the witnesses, that key cannot add ordinary entries. The witness list itself is declared in the author’s DID (P9.9), so the asset key cannot change it. For an anchored Original, the block containing each inscription supplies that ordering, and its entries are checked against the author’s DID as it stood at that block (P9.15). An unwitnessed Original, such as one kept only on a device, has claimed ordering only (P7.6), and recovery from key compromise is limited (section 5).
 
-Author DIDs may use any DID method with verifiable version history that the profile lists; the baseline lists did:vh and did:webvh (P5.8). An unwitnessed Original gets no ordering evidence beyond its own log (D3).
+Author DIDs may use any DID method with verifiable version history that the profile lists; the baseline lists did:vh, did:webvh and did:btco (P5.8). A did:btco author DID keeps its history on Bitcoin, so the author binding of an anchored Original by such an author verifies from Bitcoin alone; one by a did:vh or did:webvh author also needs that author’s log from wherever it is hosted (P5.13). An unwitnessed Original gets no ordering evidence beyond its own log (D3).
 
 ::: issue Unresolved
 How exact identity versions are packaged, witness selection and independence, and the freshness bound verifiers apply (D3).
