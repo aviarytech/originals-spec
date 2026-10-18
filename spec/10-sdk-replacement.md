@@ -31,7 +31,7 @@ The SDK is what exists, so this draft keeps its behavior unless there is a reaso
 | Anchoring requires web publication first | An Original can be anchored from local (P9.10, P9.16) |
 | Ownership is reported as confirmed or not | Confirmation depth and index agreement are reported (P9.11) |
 
-Existing CEL 3 assets cannot be converted, because their SCIDs and signatures differ; the VH-Log format applies to new Originals only. Migration from earlier Originals formats is out of scope for this draft ([D7](#d7)).
+No Originals were issued under the CEL 3 format or earlier formats, so the SDK replaces them outright: there is no conversion, migration or legacy verification path ([D7](#d7)).
 
 ### Delivery sequence
 
@@ -39,6 +39,6 @@ Existing CEL 3 assets cannot be converted, because their SCIDs and signatures di
 2. Implement create, edit, evidence packages and fresh verification. Test without private keys in the reader and without network dependencies for a complete offline package.
 3. Add author DID key rotation, deactivation, incomplete evidence and conflict tests. Keep unresolved freshness claims visible.
 4. Replace the actual hosted and Boop publication paths, add witnesses for hosted Originals, and run exact-snapshot reader regressions.
-5. Specify and implement the Bitcoin representation and durable-boundary tests. Design migration separately.
+5. Specify and implement the Bitcoin representation and durable-boundary tests.
 
 Sources: SDK map [S1, S4–S9, S12–S18]. SDK files were checked at main revision 00fc683 on 15 October 2026.
