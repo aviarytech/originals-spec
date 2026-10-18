@@ -10,7 +10,7 @@
 | Resource helpers and cel history | Exact bytes and prior digest checks | Profile-specific descriptor encoding |
 | StorageAdapter | Byte storage abstraction for hosting | Durable local commit contract and diagnostics |
 | Hosted adapters | Exact snapshot delivery; did:webvh alias log beside the asset log | Separate Ed25519 signing of the did:webvh log; alias binding (P3.6) |
-| Bitcoin adapters | Durable boundary, retry intent, web-then-Bitcoin order, block-height gate, ownership snapshot | Current payloads and metadata format |
+| Bitcoin adapters | Durable boundary, retry intent, one-way layer order, block-height gate, ownership snapshot | Current payloads and metadata format |
 | Boop publish path | Local editing and public reader | Per-asset local signing path |
 
 This is a semantic mapping, not a final API diff. Existing callers may need explicit profile, identity-evidence or authorization arguments. Avoid new product concepts unless required by the VH/identity boundary. The current history implementation is removed, including its types, codecs, genesis/identifier derivation, replay verification, publication paths and tests.
@@ -28,6 +28,7 @@ The SDK is what exists, so this draft keeps its behavior unless there is a reaso
 | Null is rejected; metadata is cleared with `{}` | An explicit null removes metadata (P4.6) |
 | Create throws without a signer | Create can return an explicit unsigned draft (section 6) |
 | Commits are in memory; persistence is the caller’s | Durable local commit (P6.2) |
+| Anchoring requires web publication first | An Original can be anchored from local (P9.10, P9.16) |
 | Ownership is reported as confirmed or not | Confirmation depth and index agreement are reported (P9.11) |
 
 Existing CEL 3 assets cannot be converted, because their SCIDs and signatures differ; the VH-Log format applies to new Originals only. Migration from earlier Originals formats is out of scope for this draft ([D7](#d7)).

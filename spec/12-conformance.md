@@ -39,8 +39,14 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Entry that names a different sat or migrates after anchoring | Rejected |
 | Newer inscription on the sat that does not extend the head | Ignored; state follows the authenticated chain |
 | Same evidence inscribed on a different sat | No ownership conferred |
-| Anchoring an Original never published on the web layer | Rejected |
-| Migrate entry that leaves the witness parameter set, or is not approved by the witnesses | Rejected |
+| Anchoring an Original whose log never activated witnesses | Accepted; ordering before the anchor claimed only; uniqueness not established; ownership provisional |
+| Migrate entry, after witnesses are active, that leaves the witness parameter set or is not approved by the witnesses | Rejected |
+| Migrate entry that activates witnesses on a log that never had them | Rejected |
+| Two valid anchoring entries for one Original on different sats | The first in chain order is the anchor; the other and its descendants are a conflicting anchor, not current, conferring no ownership |
+| Unwitnessed anchor of a branch forked before witnesses were activated on another known branch | Conflicting anchor; not current |
+| Later anchoring entry that declares an earlier anchored branch abandoned | Declaration ignored; the first anchor stands |
+| Anchoring entry inscribed on a sat other than the one it names | Not an anchor |
+| Witness asked to approve an entry that does not extend the last entry it approved | Refused |
 | Entry inscribed on the anchoring sat without witness proofs | Accepted; no witnesses after anchoring |
 | Publication at the same or a lower block height than the previous accepted one | Not accepted |
 | Bitcoin failure, retry or reorganization | Durable boundary follows adapter policy, not pending intent |

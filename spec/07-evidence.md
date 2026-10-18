@@ -18,7 +18,7 @@ P7.4 Missing bytes MUST produce an explicit partial-availability result identify
 
 P7.5 Import MUST NOT confer signing authority, trust unknown keys, or replace an existing history with a conflicting branch without explicit handling. Untrusted archive paths, sizes and compression MUST be bounded before extraction. Import MUST reject absolute paths, `..` segments, symbolic links and duplicate entries. Import MUST NOT replace a newer local history with an older prefix of it.
 
-P7.6 Evidence from a truncated prefix MUST NOT be represented as the latest state without the selected freshness policy. A valid historical prefix and a fresh current result are separate claims. For an unwitnessed Original, and for entries before the entry that activated witnesses, reports MUST label time and ordering as claimed only.
+P7.6 Evidence from a truncated prefix MUST NOT be represented as the latest state without the selected freshness policy. A valid historical prefix and a fresh current result are separate claims. For an unwitnessed Original, and for entries before the entry that activated witnesses, reports MUST label time and ordering as claimed only, except that an anchoring inscription shows the entries before it existed no later than its block (P9.16).
 
 P7.7 A verifier MUST enforce profile-defined limits on history length, entry size, identity-history length and the number of resources and versions. When a history exceeds a limit, the verifier reports the last valid prefix as VH requires, and MUST label the result limit-exceeded and MUST NOT report it as complete or current.
 
