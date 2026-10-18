@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "node -e \"import('spec-up').then(m => m.default({ nowatch: true }))\" && cp security-review.html docs/",
-    "edit": "node -e \"import('spec-up').then(m => m.default())\""
+    "edit": "mkdir -p docs && cp security-review.html docs/ && node -e \"import('spec-up').then(m => m.default())\""
   },
   "devDependencies": {
     "spec-up": "^0.12.2"

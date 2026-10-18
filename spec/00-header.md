@@ -26,7 +26,7 @@ Participate:
 ~ [GitHub repo](https://github.com/aviarytech/originals-spec)
 ~ [File an issue](https://github.com/aviarytech/originals-spec/issues)
 ~ [Commit history](https://github.com/aviarytech/originals-spec/commits/master)
-~ [Security review report](security-review.html)
+~ [Security review report](security-review.html) (12–13 October 2026, of an earlier draft)
 
 ------------------------------------
 
