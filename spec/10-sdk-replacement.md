@@ -36,7 +36,7 @@ Existing CEL 3 assets cannot be converted, because their SCIDs and signatures di
 
 1. Pin upstream pre-drafts and choose enough of the application profile to implement a local experimental slice with its provisional choices clearly identified.
 2. Implement create, edit, evidence packages and fresh verification. Test without private keys in the reader and without network dependencies for a complete offline package.
-3. Add identity rotation, deactivation, incomplete evidence and conflict tests. Keep unresolved freshness claims visible.
+3. Add author DID key rotation, deactivation, incomplete evidence and conflict tests. Keep unresolved freshness claims visible.
 4. Replace the actual hosted and Boop publication paths, add witnesses for hosted Originals, and run exact-snapshot reader regressions.
 5. Specify and implement the Bitcoin representation and durable-boundary tests. Design migration separately.
 
