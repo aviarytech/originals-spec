@@ -10,6 +10,8 @@ Create prepares the initial asset state, resource descriptors and genesis entry.
 
 Edit reads an exact verified parent, checks the fixed resourceID set, computes new descriptors, has the author sign the next VH entry and verifies it. The current pointer changes only after the signed entry and new bytes are durably stored. For the caller this is one step.
 
+Anchor is an edit whose new asset state adds the did:btco alias of the anchoring sat and changes nothing else that the author does not choose to change. It is inscribed on that sat instead of being committed locally, and becomes current only once accepted there (P9.10, P9.12, P9.17).
+
 Packaging collects a selected verified checkpoint and its history into an evidence package. Load/import reconstructs and verifies evidence with no signing key requirement. A loaded Original is readable without becoming writable. Obtaining a signer is an explicit authority step, and eligibility to append is rechecked against the verified parent.
 
 Deactivate is a VH entry signed by the author’s key that sets the VH deactivated parameter and produces a terminal state. Subsequent ordinary edits are rejected. Historical evidence is retained and readable where the selected upstream resolution and evidence policy permit it; this draft does not assume that every resolver already supports historical deactivated-state access.

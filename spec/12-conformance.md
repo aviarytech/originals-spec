@@ -34,7 +34,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | After anchoring, author-signed entry not inscribed on the sat | Not current |
 | Inscription on the anchoring sat not signed by the author, including by the owner | Rejected; state unchanged |
 | Author-signed entry inscribed by the owner | Accepted |
-| Entry that names a different sat or migrates after anchoring | Rejected |
+| Entry after anchoring that removes or changes the did:btco alias, or adds another | Rejected |
 | Newer inscription on the sat that does not extend the head | Ignored; state follows the authenticated chain |
 | Same evidence inscribed on a different sat | No ownership conferred |
 | Anchoring an Original from the local or web layer | Accepted; ordering before the anchor claimed only; uniqueness not established; ownership provisional |
@@ -61,7 +61,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Key expressed as JWK or a different multikey encoding | Author binding failure |
 | Later entry names a different author DID, or an older author DID version than its predecessor | Rejected |
 | Author DID using a method the profile does not list | Rejected |
-| Anchored Original with a did:btco author DID, verified from Bitcoin alone | Author binding checked against inscribed DID versions in chain order |
+| Anchored Original with a did:btco author DID, verified with no author DID host | Author binding checked against inscribed DID versions in chain order |
 | did:btco author DID version inscribed after an Originals inscription in the same block | Not in effect for that inscription |
 | Anchoring entry naming the author DID’s own did:btco sat | Rejected |
 | Inscription on a did:btco author DID’s sat after its deactivation | Not a version; author DID remains deactivated |
@@ -88,6 +88,15 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | History or identity history beyond profile limits | Last valid prefix reported, labelled limit-exceeded; never complete or current |
 | Archive with a symbolic link, `..` path or duplicate entry | Rejected before extraction |
 | SVG resource containing script, or a name containing markup | Not executed on the platform origin or in a client |
+| Entry inscribed on a sat whose did:btco alias its asset state does not list | Not an anchoring entry; ignored and reported |
+| Inscription of the Originals media type on the anchoring sat carrying did:btco DID-document metadata | Rejected |
+| did:btco DID document inscribed on the anchoring sat by its holder | Ignored for the Original; a generic did:btco result is not reported as Originals verification |
+| Inscription carrying more than one entry | Rejected |
+| Anchored Original whose entries before the anchor are unavailable from any copy | Resolution fails; missing evidence |
+| Copy of the history before the anchor that the anchoring entry does not extend | Not this Original’s history |
+| Anchoring sat whose inscriptions cannot be read in full | Resolution fails |
+| Inscription with no confirmations | Reported as observed; not in the accepted log |
+| Reorganization that removes an accepted inscription | Reported with `authoritative-source-changed`; not silent |
 
 ### Release evidence
 
