@@ -23,6 +23,7 @@ The SDK is what exists, so this draft keeps its behavior unless there is a reaso
 |---|---|
 | Each Original is a CEL 3 log identified by `did:cel` | Each Original is a did:vh log under the Originals extension (section 3) |
 | Each Original is controlled by its own `did:key` | The author signs with a key bound to their DID (P5.3) |
+| Only the author signs | The author and editors it grants, each signing its own entries (P5.15–P5.18) |
 | Concurrent edits are signed against the current head | An edit names its parent; a moved parent is a conflict (P4.5) |
 | An unchanged digest still advances the version | It does not (P4.4) |
 | Null is rejected; metadata is cleared with `{}` | An explicit null removes metadata (P4.6) |
