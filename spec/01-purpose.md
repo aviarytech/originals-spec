@@ -33,8 +33,8 @@ Using the rules a did:vh extension may define, Originals:
 - Fixes the author DID at genesis (P5.8) and defines fork declarations (P6.6).
 - Defines resource descriptors bound to SHA-256 digests, a fixed resource set and history-derived versions (P4.1–P4.4).
 - Rejects members that VH Log, did:vh or this extension do not define (P5.7), and requires the deactivated parameter and the lifecycle status to agree (P6.5).
-- Requires witnesses for hosted Originals: at least three, declared in the author’s DID, which also check the author’s latest DID state (P9.8, P9.9).
-- Makes Bitcoin the authoritative source after anchoring [S20]: an Original can be anchored with or without having been published on the web, the anchoring entry clears any witness list, inscriptions on the anchoring sat decide which entries form the log, and they may carry a compact encoding that decodes deterministically to full entries [S23, S24] (P9.10, P9.13, P9.14).
+- Does not use VH witnesses in the asset log, hosted or not; ordering off Bitcoin is claimed only (P9.8, P9.9).
+- Makes Bitcoin the authoritative source after anchoring [S20]: an Original can be anchored with or without having been published on the web, inscriptions on the anchoring sat decide which entries form the log, and they may carry a compact encoding that decodes deterministically to full entries [S23, S24] (P9.10, P9.13, P9.14).
 
 Originals adds, outside the log:
 
@@ -49,8 +49,8 @@ The VH-Log hooks this relies on are open pull requests: an authoritative source 
 ### Review priorities
 
 1. Specify the asset state schema, the `originals` method values and the DID document derivation.
-2. Confirm the key binding, the author DID’s Originals declaration, DID-declared witness policy and sat ownership in sections 5 and 9.
-3. Choose witness selection and the freshness bound verifiers apply to author DID state.
+2. Confirm the key binding, the author DID’s Originals declaration and sat ownership in sections 5 and 9.
+3. Choose the freshness policy verifiers apply to author DID state (P7.8).
 4. Pin the signed entry state and portable evidence format.
 
 These decisions block an interoperable protocol release. They do not block review of the local lifecycle, compatibility requirements or failure behavior in this draft.

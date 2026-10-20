@@ -22,13 +22,13 @@ P5.8 The author DID MUST be fixed at genesis; an entry naming a different author
 
 P5.9 The asset log’s authorized keys MUST come from the author DID [S25]: an entry is authorized by any key that meets P5.3 at the author DID version the entry names. An entry that sets updateKeys or nextKeyHashes MUST be rejected. The author SHOULD remove from their DID, and from its Originals declaration, any key they no longer hold. Deactivation is the only way to end an Original.
 
-P5.10 Key rotation MUST happen only in the author DID. The asset log has no rotation entries: once the author DID adds a key, entries naming that DID version can be signed with it, and once it removes a key, witnesses and Bitcoin readers refuse that key for new entries (P9.8, P9.15).
+P5.10 Key rotation MUST happen only in the author DID. The asset log has no rotation entries: once the author DID adds a key, entries naming that DID version can be signed with it, and once it removes a key, Bitcoin readers refuse that key for new entries (P9.15), and unanchored entries signed with it are never current (P7.9).
 
 P5.11 A signer holding an Originals key MUST parse the entry, show the author the Original, operation and resource changes before signing, and refuse input that is not a well-formed Originals entry. The author’s Originals key MUST be a verification method used only for Originals entries, and MUST NOT also be an updateKey of the author DID’s own log; P5.3 enforces this by requiring the key to be in the author DID’s Originals declaration. For a did:btco author DID, the Originals key SHOULD NOT also be a key that can spend the output holding the DID’s sat; verifiers cannot check this.
 
 P5.12 Each entry’s proof MUST use the `eddsa-jcs-2022` or `bip340-jcs-2025` cryptosuite, which the extension permits under VH-Log’s rule for additional cryptosuites [S21]. A verifier MUST reject any other cryptosuite.
 
-P5.13 For a did:btco author DID, a version is an inscription on the DID’s sat that the did:btco method accepts as its DID document, and the entry’s signed author DID version names that inscription by its identifier. Versions are ordered by chain order: block height, then transaction index in the block, then inscription index in the transaction. The author DID state at an inscription on an anchoring sat is the later, in chain order, of the version the entry names and the latest version that precedes the inscription; P9.15 uses this instead of versionTime and timestamps. did:btco versions are subject to the adapter’s confirmation policy (P9.5), and a deactivated version is terminal for this profile: later inscriptions on the DID’s sat MUST NOT be treated as versions. Whoever holds the DID’s sat controls the author DID: moving the sat moves control of the author DID, and with it the ability to change its Originals keys and witness declaration and to sign as the author; the author DID named by each Original does not change (P5.8). A did:btco author DID’s sat MUST NOT be the anchoring sat of an Original naming that DID, and a verifier MUST reject an anchoring entry that names it.
+P5.13 For a did:btco author DID, a version is an inscription on the DID’s sat that the did:btco method accepts as its DID document, and the entry’s signed author DID version names that inscription by its identifier. Versions are ordered by chain order: block height, then transaction index in the block, then inscription index in the transaction. The author DID state at an inscription on an anchoring sat is the later, in chain order, of the version the entry names and the latest version that precedes the inscription; P9.15 uses this instead of versionTime and timestamps. did:btco versions are subject to the adapter’s confirmation policy (P9.5), and a deactivated version is terminal for this profile: later inscriptions on the DID’s sat MUST NOT be treated as versions. Whoever holds the DID’s sat controls the author DID: moving the sat moves control of the author DID, and with it the ability to change its Originals keys and to sign as the author; the author DID named by each Original does not change (P5.8). A did:btco author DID’s sat MUST NOT be the anchoring sat of an Original naming that DID, and a verifier MUST reject an anchoring entry that names it.
 
 ### Key policy
 
@@ -40,19 +40,19 @@ Only the author’s key may append in the baseline profile. Editors who can chan
 
 ### Key rotation and compromise
 
-To rotate, the author updates their DID: they add the new key to it and to its Originals declaration and, if the old key is compromised, remove it in the same update. Nothing is appended to the asset logs. The SDK sends the DID update to the witnesses of every witnessed Original the author has.
+To rotate, the author updates their DID: they add the new key to it and to its Originals declaration and, if the old key is compromised, remove it in the same update. Nothing is appended to the asset logs.
 
-For a witnessed Original, witnesses refuse an entry whose signing key the author’s latest DID no longer lists (P9.8). Once the author’s DID update reaches the witnesses, a thief holding the removed key cannot edit, deactivate or fork the Original. The thief also cannot change the witnesses, because the witness list is declared in the author’s DID (P9.9).
+For an unanchored Original, an entry signed with a removed key is never reported as current (P7.9), but nothing orders it: a thief holding the key before its removal can create a branch, which stays a reported fork until the Original is anchored (P6.6, P9.16).
 
 For an anchored Original, Bitcoin readers check each inscribed entry against the author’s DID as it stood at the entry’s inscription time (P9.15). Removing a key refuses it for entries inscribed after the removal; entries already inscribed stay current, so rotating keys after selling an Original does not invalidate it.
 
 These limits remain:
 
 - Before the author removes the stolen key, the thief can edit or deactivate any Original the author controls; deactivation is permanent.
-- The protection holds only while fewer than a threshold of witnesses misbehave or see stale author DID history (P9.8).
-- For an unwitnessed Original, an entry signed with a removed key can name an older author DID version and cannot be distinguished from earlier entries. Verifiers report it as historically authorized with unproven ordering, never as current (P7.9).
+- A verifier that holds only stale author DID history does not see the removal (P7.8).
+- For an unanchored Original, an entry signed with a removed key can name an older author DID version and cannot be distinguished from earlier entries. Verifiers report it as historically authorized with unproven ordering, never as current (P7.9).
 - A lost key can be replaced by updating the author DID, as long as the author still controls the DID; recovering a lost DID is a separate decision (section 8).
 
 Loading evidence does not restore signing authority, and claimed timestamps cannot establish signing before revocation.
 
-Sources: VH update authorization and witnesses [S2]; editor authority proposal [S2a]; identity document rules [S3]; current signer/envelope boundaries [S4, S6, S7].
+Sources: VH update authorization [S2]; editor authority proposal [S2a]; identity document rules [S3]; current signer/envelope boundaries [S4, S6, S7].
