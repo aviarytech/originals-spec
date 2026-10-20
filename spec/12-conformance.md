@@ -114,7 +114,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Editor entry signed before its revocation, on the revocation’s parent | Fork with the revocation; unresolved until anchoring, then decided by chain order (P5.17) |
 | Editor’s earlier entries after its grant is revoked | Remain valid |
 | Grant naming the author DID, a DID of the author’s identity, a duplicate editor or an unlisted DID method | Rejected (P5.15) |
-| Editor entry signed with a key removed from the editor DID | Unanchored: never current. Anchored: rejected if inscribed at or after the removal (P5.18) |
+| Editor entry signed with a key removed from the editor DID | Unanchored: never current. Anchored: rejected if inscribed at or after the removal, unless it names a later did:vh or did:webvh editor DID version that lists the key again (P5.18, P9.15) |
 | Editor entry after the author DID is deactivated | Unanchored: not current. Anchored: rejected if inscribed after the deactivation (P5.18) |
 | Editor entry inscribed on the anchoring sat by the owner | Accepted (P9.12) |
 | Editor DID history missing for an editor entry | Incomplete identity evidence; not reported as current (P7.1, P5.6) |
