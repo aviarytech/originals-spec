@@ -28,7 +28,7 @@ P9.7 A host MUST serve resource bytes with their signed mediaType and MUST NOT l
 
 P9.8 An Original’s asset log MUST NOT use VH witnesses, whether or not it is hosted, and hosted publication requires none. Off Bitcoin an Original is author-signed with claimed ordering only (P7.6); proven ordering, a single history and an owner come from anchoring (P9.10–P9.16). An author DID MAY use its own DID method’s witnesses or watchers, and this profile does not change them; the author DID of an Original SHOULD use them where its method has them, because P7.8 and P9.15 depend on its history.
 
-P9.9 The author’s Originals declaration, in the author’s DID document, MUST list the keys that may sign the author’s Originals (P5.3), and nothing else. An asset log entry that sets the VH witness parameter to anything other than an empty object MUST be rejected.
+P9.9 An asset log entry that sets the VH witness parameter to anything other than an empty object MUST be rejected (P9.8).
 
 ### Anchoring and ownership
 

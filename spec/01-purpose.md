@@ -29,7 +29,7 @@ Using the rules a did:vh extension may define, Originals:
 - Defines each entry’s state as the full [[ref: asset state]]: name, metadata, lifecycle, resource descriptors and aliases. State is a full snapshot, never a delta, and never a DID document (section 2).
 - Derives the DID document for each version deterministically: its `id`, a `controller` equal to the author DID, `alsoKnownAs` from the aliases in the asset state, and a `#files` service built from the resource descriptors. No DID document is stored, and the asset is not placed in it (section 2).
 - Requires signed state fields for the operation, resource transitions, author DID, author verification method and author DID version (P5.1).
-- Takes the log’s authorized keys from the author DID [S25]: one proof per entry, using `eddsa-jcs-2022` or `bip340-jcs-2025` [S21], by an assertionMethod key in the author DID’s Originals declaration at the version the entry names. There are no updateKeys, no pre-rotation and no rotation entries (P5.2, P5.3, P5.9, P5.10, P5.12).
+- Takes the log’s authorized keys from the author DID [S25]: one proof per entry, using `eddsa-jcs-2022` or `bip340-jcs-2025` [S21], by an assertionMethod key of the author DID at the version the entry names, other than an updateKey of the author DID’s own log. There are no updateKeys, no pre-rotation and no rotation entries (P5.2, P5.3, P5.9, P5.10, P5.12).
 - Fixes the author DID at genesis (P5.8) and leaves forks unresolved until anchoring settles them (P6.6, P9.16).
 - Defines resource descriptors bound to SHA-256 digests, a fixed resource set and history-derived versions (P4.1–P4.4).
 - Rejects members that VH Log, did:vh or this extension do not define (P5.7), and requires the deactivated parameter and the lifecycle status to agree (P6.5).
@@ -49,7 +49,7 @@ The VH-Log hooks this relies on are open pull requests: an authoritative source 
 ### Review priorities
 
 1. Specify the asset state schema, the `originals` method values and the DID document derivation.
-2. Confirm the key binding, the author DID’s Originals declaration and sat ownership in sections 5 and 9.
+2. Confirm the key binding and sat ownership in sections 5 and 9.
 3. Choose the freshness policy verifiers apply to author DID state (P7.8).
 4. Pin the signed entry state and portable evidence format.
 
