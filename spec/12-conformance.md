@@ -46,7 +46,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Entry signed by a key removed from the author DID | Unanchored: historically authorized, ordering unproven, never current. Anchored: rejected if its inscription time is at or after the removal’s versionTime |
 | Accepted anchored entry whose key the author DID later removes | Remains current |
 | Author DID deactivated after an Original is anchored | Accepted state remains current; entries inscribed later rejected |
-| Anchored entry naming an author DID version newer than its inscription time | Checked against the named version |
+| Anchored entry naming a did:vh or did:webvh author DID version whose versionTime is later than its inscription time | Checked against the named version (P9.15) |
 | Block whose timestamp is earlier than an ancestor’s | Inscription time is the greatest ancestor timestamp |
 | Author DID history missing through an inscription time | Incomplete identity evidence; not reported as current |
 | Author DID version published with a versionTime before an already accepted inscription it would reject | Retroactive revocation conflict reported; result not silently changed |
@@ -97,6 +97,14 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Anchoring sat whose inscriptions cannot be read in full | Resolution fails |
 | Inscription with no confirmations | Reported as observed; not in the accepted log |
 | Reorganization that removes an accepted inscription | Reported with `authoritative-source-changed`; not silent |
+| Inscribed entry naming a did:btco author DID version inscribed in a later block | Rejected; the version was not in effect (P5.13) |
+| Inscribed entry naming a did:btco author DID version inscribed later in the same block | Rejected (P5.13) |
+| Inscribed entry naming a did:btco author DID version inscribed earlier in the same block, whose key it holds | Accepted (P5.13) |
+| Entry before the anchor naming a did:btco author DID version inscribed after the anchoring inscription | Rejected (P5.13) |
+| Inscribed entry naming a preceding did:btco version whose key a later preceding version removed | Rejected; the key must hold in the latest preceding version (P5.13) |
+| Anchored Original whose historical resource bytes are unavailable | History valid; content availability partial for the affected resources (P7.4, P9.18) |
+| Verifier learns of a valid anchoring entry earlier in chain order than the one it reported | Earlier one reported as the anchor, previous one as conflicting, owner change reported; not silent (P9.16) |
+| Anchoring without an evidence package that verifies through the anchoring entry | SDK refuses to inscribe (P9.18) |
 
 ### Release evidence
 

@@ -32,6 +32,6 @@ Participate:
 
 Originals preserves the identifiable, signed history of named digital resources, such as a photograph or a document, and lets its author create, edit, verify and publish it. That history is built on Verifiable History (VH).
 
-Each change has one signature: the author signs the VH entry with a key bound to the author’s DID. Asset logs have no witnesses: off Bitcoin an Original’s ordering is claimed only, and anchoring it on Bitcoin gives it proven ordering, a single history and an owner.
+Each change has one signature: the author signs the VH entry with a key bound to the author’s DID. Asset logs have no witnesses: off Bitcoin an Original’s ordering is claimed only, and anchoring it on Bitcoin orders its entries on the anchoring sat and gives it a provisional owner. Bitcoin does not prove that no competing anchor exists on another sat, and the history before the anchor, author identity evidence and resource bytes stay off Bitcoin.
 
 This is a protocol and SDK design for review, not a finalized standard or an implementation. Numbered rules such as [P5.3](#p5.3) are proposed requirements; [D1](#d1)–[D7](#d7) record decisions, taken and open.
