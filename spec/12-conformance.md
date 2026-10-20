@@ -43,7 +43,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Anchoring entry inscribed on a sat other than the one it names | Not an anchor |
 | Publication at the same or a lower block height than the previous accepted one | Not accepted |
 | Bitcoin failure, retry or reorganization | Durable boundary follows adapter policy, not pending intent |
-| Entry signed by a key removed from the author DID | Unanchored: historically authorized, ordering unproven, never current. Anchored: rejected if its inscription time is at or after the removal’s versionTime |
+| Entry signed by a key removed from the author DID | Unanchored: historically authorized, ordering unproven, never current. Anchored: rejected if its inscription time is at or after the removal’s versionTime, unless it names a later did:vh or did:webvh version that lists the key again (P9.15) |
 | Accepted anchored entry whose key the author DID later removes | Remains current |
 | Author DID deactivated after an Original is anchored | Accepted state remains current; entries inscribed later rejected |
 | Anchored entry naming a did:vh or did:webvh author DID version whose versionTime is later than its inscription time | Checked against the named version (P9.15) |
@@ -103,8 +103,9 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Entry before the anchor naming a did:btco author DID version inscribed after the anchoring inscription | Rejected (P5.13) |
 | Inscribed entry naming a preceding did:btco version whose key a later preceding version removed | Rejected; the key must hold in the latest preceding version (P5.13) |
 | Anchored Original whose historical resource bytes are unavailable | History valid; content availability partial for the affected resources (P7.4, P9.18) |
+| Anchored entry naming a did:vh or did:webvh author DID version, later than its inscription time, that lists again a key removed before that time | Accepted against the named version (P9.15) |
 | Verifier learns of a valid anchoring entry earlier in chain order than the one it reported | Earlier one reported as the anchor, previous one as conflicting, owner change reported; not silent (P9.16) |
-| Anchoring without an evidence package that verifies through the anchoring entry | SDK refuses to inscribe (P9.18) |
+| Anchoring when the evidence package through the signed anchoring entry does not verify | SDK refuses to inscribe; a package that verifies is labelled pending Bitcoin acceptance until the inscription is confirmed (P9.18) |
 
 ### Release evidence
 
