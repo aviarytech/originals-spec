@@ -57,7 +57,7 @@ Editing authority is narrower. The author can grant an [[ref: editor]] permissio
 
 Storage and publication authority is permission to store bytes or publish a checkpoint. A host, storage adapter, wallet, inscription holder or sat owner does not gain asset-editing authority merely by performing that role. One actor may hold several roles, but verifiers evaluate each role separately.
 
-Ownership is not an authority. Once an Original is anchored on Bitcoin, its owner is whoever holds the anchoring sat (P9.11). Only the author signs changes, for the Original’s whole life, but on Bitcoin a change also has to be inscribed on the sat, so after a sale neither the author nor the owner can change the Original alone (P9.12).
+Ownership is not an authority. Once an Original is anchored on Bitcoin, its owner is whoever holds the anchoring sat (P9.11). Only the author, or an editor the author has granted, signs changes, for the Original’s whole life, but on Bitcoin a change also has to be inscribed on the sat, so after a sale neither a signer nor the owner can change the Original alone (P9.12).
 
 ### Proposed rules
 
