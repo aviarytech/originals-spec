@@ -13,7 +13,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Valid key of an identity other than the Original’s author DID | Rejected; identity alone grants no edit right |
 | Valid VH entry, key not a method of the named author DID | Author binding failure; VH validity cannot rescue it |
 | Wrong DID method binding or relationship | Identity authorization failure |
-| Old identity version with claimed old time | Witnessed: witness ordering applies. Unwitnessed: ordering unproven; no timestamp-only acceptance. Anchored: checked against the author DID state at the inscription time (P9.15) |
+| Old identity version with claimed old time | Unanchored: ordering unproven; no timestamp-only acceptance. Anchored: checked against the author DID state at the inscription time (P9.15) |
 | Missing identity history | Incomplete identity evidence; no blanket verified result |
 | Missing historical resource bytes | Explicit partial availability; supplied bytes still checked |
 | Caller changes version counter | Counter ignored or rejected; history-derived version retained |
@@ -39,31 +39,23 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Entry that names a different sat or migrates after anchoring | Rejected |
 | Newer inscription on the sat that does not extend the head | Ignored; state follows the authenticated chain |
 | Same evidence inscribed on a different sat | No ownership conferred |
-| Anchoring an Original whose log never activated witnesses | Accepted; ordering before the anchor claimed only; uniqueness not established; ownership provisional |
-| Migrate entry, after witnesses are active, that leaves the witness parameter set or is not approved by the witnesses | Rejected |
-| Migrate entry that activates witnesses on a log that never had them | Rejected |
+| Anchoring an Original from the local or web layer | Accepted; ordering before the anchor claimed only; uniqueness not established; ownership provisional |
 | Entry after anchoring that adds a did:webvh alias when the anchoring entry’s state listed none | Rejected |
 | Two valid anchoring entries for one Original on different sats | The first in chain order is the anchor; the other and its descendants are a conflicting anchor, not current, conferring no ownership |
-| Unwitnessed anchor of a branch forked before witnesses were activated on another known branch | Conflicting anchor; not current |
 | Later anchoring entry that declares an earlier anchored branch abandoned | Declaration ignored; the first anchor stands |
 | Anchoring entry inscribed on a sat other than the one it names | Not an anchor |
-| Witness asked to approve an entry that does not extend the last entry it approved | Refused |
-| Entry inscribed on the anchoring sat without witness proofs | Accepted; no witnesses after anchoring |
 | Publication at the same or a lower block height than the previous accepted one | Not accepted |
 | Bitcoin failure, retry or reorganization | Durable boundary follows adapter policy, not pending intent |
-| Entry signed by a key removed from the author DID | Witnessed: refused by witnesses and not current. Unwitnessed: historically authorized, ordering unproven, never current. Anchored: rejected if its inscription time is at or after the removal’s versionTime |
+| Entry signed by a key removed from the author DID | Unanchored: historically authorized, ordering unproven, never current. Anchored: rejected if its inscription time is at or after the removal’s versionTime |
 | Accepted anchored entry whose key the author DID later removes | Remains current |
 | Author DID deactivated after an Original is anchored | Accepted state remains current; entries inscribed later rejected |
 | Anchored entry naming an author DID version newer than its inscription time | Checked against the named version |
 | Block whose timestamp is earlier than an ancestor’s | Inscription time is the greatest ancestor timestamp |
 | Author DID history missing through an inscription time | Incomplete identity evidence; not reported as current |
 | Author DID version published with a versionTime before an already accepted inscription it would reject | Retroactive revocation conflict reported; result not silently changed |
-| Entry changes the witness parameter to a list the author DID does not declare | Rejected |
-| Entry sets the witness parameter to an empty object after witnesses are active | Rejected |
-| Entry after witness activation without enough witness proofs, whatever the deployment | Not current |
-| Entries before witness activation, signed by a key later removed | Ordering unproven; not made current by activation |
-| Any entry after the author DID is deactivated | Not anchored: refused by witnesses; Original reported as non-current. Anchored: accepted state remains current; entries inscribed later rejected (P9.15) |
+| Any entry after the author DID is deactivated | Not anchored: Original reported as non-current. Anchored: accepted state remains current; entries inscribed later rejected (P9.15) |
 | Entry that sets updateKeys or nextKeyHashes | Rejected |
+| Asset log entry that sets the witness parameter to anything other than an empty object | Rejected |
 | Entry signed by a key the author DID added, with no asset log entry for the change | Accepted |
 | Author key not in the author DID’s Originals declaration | Author binding failure |
 | Author DID versionId absent from signed state | Rejected |
@@ -76,7 +68,6 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Anchoring entry naming the author DID’s own did:btco sat | Rejected |
 | Inscription on a did:btco author DID’s sat after its deactivation | Not a version; author DID remains deactivated |
 | Anchored Original whose did:vh or did:webvh author DID log is unavailable | Incomplete identity evidence; not reported as current |
-| Witness cannot obtain author DID state no more than 60 seconds old | Entry refused |
 | Two proofs in the proof array | Rejected |
 | Stale author DID history served with a current asset log | Identity freshness not established; not reported as currently authorized |
 | VH-valid log that fails Originals rules, read through a generic resolver | Not reported as Originals-verified |

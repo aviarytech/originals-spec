@@ -28,7 +28,7 @@
 ~ A VH key, expressed as raw Multikey material, that may append the next entry to a log under the previous accepted entry’s rules. An asset log has none: its authorized keys come from the author DID ([P5.9](#p5.9)).
 
 [[def: witness, witnesses]]:
-~ A VH witness that approves entries before they count as current. Originals witnesses also check the author’s latest DID state ([P9.8](#p9.8)).
+~ A VH witness that approves entries before they count as current. Originals asset logs do not use witnesses ([P9.8](#p9.8)); an author DID may still use its own DID method’s witnesses.
 
 ### Three authorities
 

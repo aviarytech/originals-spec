@@ -18,13 +18,13 @@ P7.4 Missing bytes MUST produce an explicit partial-availability result identify
 
 P7.5 Import MUST NOT confer signing authority, trust unknown keys, or replace an existing history with a conflicting branch without explicit handling. Untrusted archive paths, sizes and compression MUST be bounded before extraction. Import MUST reject absolute paths, `..` segments, symbolic links and duplicate entries. Import MUST NOT replace a newer local history with an older prefix of it.
 
-P7.6 Evidence from a truncated prefix MUST NOT be represented as the latest state without the selected freshness policy. A valid historical prefix and a fresh current result are separate claims. For an unwitnessed Original, and for entries before the entry that activated witnesses, reports MUST label time and ordering as claimed only, except that an anchoring inscription shows the entries before it existed no later than its block (P9.16).
+P7.6 Evidence from a truncated prefix MUST NOT be represented as the latest state without the selected freshness policy. A valid historical prefix and a fresh current result are separate claims. For entries not inscribed on an anchoring sat, reports MUST label time and ordering as claimed only, except that an anchoring inscription shows the entries before it existed no later than its block (P9.16).
 
 P7.7 A verifier MUST enforce profile-defined limits on history length, entry size, identity-history length and the number of resources and versions. When a history exceeds a limit, the verifier reports the last valid prefix as VH requires, and MUST label the result limit-exceeded and MUST NOT report it as complete or current.
 
 P7.8 The verification report MUST state the latest author DID versionId used and whether its freshness was independently established. An Original MUST NOT be reported as currently authorized unless its identity evidence meets the selected freshness policy. For an anchored Original, the author DID’s freshness needs to be established only as of the inscription time of the latest inscription on the anchoring sat that would extend the accepted head (P9.15); author DID history whose freshness is established only as of an earlier time is incomplete identity evidence. Verifiers SHOULD retain the highest verified versionId seen for each author DID and each Original, and compare copies of both logs as VH describes.
 
-P7.9 A verifier MUST NOT report an unwitnessed entry that is not inscribed on an anchoring sat as current if its signing key is absent from the latest verified author DID state or its Originals declaration. An entry inscribed on an anchoring sat is checked against the author DID’s state at its inscription time instead (P9.15).
+P7.9 A verifier MUST NOT report an entry that is not inscribed on an anchoring sat as current if its signing key is absent from the latest verified author DID state or its Originals declaration. An entry inscribed on an anchoring sat is checked against the author DID’s state at its inscription time instead (P9.15).
 
 ### Proposed verification report
 
