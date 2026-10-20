@@ -32,7 +32,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Hosted mixed snapshot | Rejected before public result is marked verified |
 | Anchoring sat moved to a new holder | Owner reported as the new holder; author unchanged |
 | After anchoring, author-signed entry not inscribed on the sat | Not current |
-| Inscription on the anchoring sat not signed by the author, including by the owner | Rejected; state unchanged |
+| Inscription on the anchoring sat signed by neither the author nor an editor whose grant covers the change, including one by the owner | Rejected; state unchanged |
 | Author-signed entry inscribed by the owner | Accepted |
 | Entry after anchoring that removes or changes the did:btco alias, or adds another | Rejected |
 | Newer inscription on the sat that does not extend the head | Ignored; state follows the authenticated chain |
@@ -121,12 +121,13 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Two submissions with the same parent at a shared host | One accepted; the other refused with a stale-parent conflict returning the new head; refused candidate kept by the SDK, not published (P6.7, P6.8) |
 | Reconciled candidate signed by an authorized signer against the new head | Accepted (P6.8) |
 | Host changes or re-signs a submitted entry | Fails verification, or is not by an authorized signer (P6.7) |
-| Submission retried after a lost acknowledgement | Existing checkpoint returned; no second append (P6.7) |
+| Submission retried after a lost acknowledgement, including after the head has moved on | Existing checkpoint and current head returned; no second append and no conflict (P6.7) |
 | Refused candidate published elsewhere | Fork; unresolved until anchoring (P6.6, P6.8) |
 | Longer branch of a fork, or the branch with more signers | No winner; unresolved conflict (P6.6) |
 | Entry on one branch bringing in content from another | Accepted on its branch as a single-parent entry; fork remains (P6.6) |
 | did:webvh author moved under DID portability, then rotated; new entry signed with the new key naming a version after the move | Accepted; entries before the move still verify against versions before it (P5.14) |
 | Moved author: package, import into a fresh reader, verify, then continue editing with the new key | Same result in the fresh reader; editing continues with authority (P5.14) |
+| Moved author whose latest asset entry is an editor entry, read by a fresh reader with no package | Author freshness not established unless the moved author log is found; not reported as currently authorized (P5.14, P7.8) |
 | Verification method at a version after a move whose controller is the old DID | Author binding failure (P5.3, P5.14) |
 | Log with a different SCID whose `alsoKnownAs` lists the author DID | Not the author’s identity; entries signed with its keys rejected (P5.14) |
 | Old author DID location redirecting to a new host | Redirect not followed; no continuity established (P5.14, P8.5) |
