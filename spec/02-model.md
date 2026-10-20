@@ -63,7 +63,7 @@ Ownership is not an authority. Once an Original is anchored on Bitcoin, its owne
 
 P2.1 An accepted [[ref: Original]] MUST have one unambiguous history identity and an exact verified current [[ref: checkpoint]]. An implementation MUST NOT merge divergent valid histories by choosing the latest claimed timestamp.
 
-P2.2 A committed asset change MUST be a valid [[ref: VH entry]] under the selected profile, signed by a key that the verifier confirms is an authorized verification method, at the version named in that entry, of the author or of an editor whose grant covers the change (P5.16). A key with no verified author binding MUST NOT be treated as an authorized change.
+P2.2 A committed asset change MUST be a valid [[ref: VH entry]] under the selected profile, signed by a key that the verifier confirms is an authorized verification method, at the version named in that entry, of the author or of an editor whose grant covers the change (P5.16). A key with no verified signer binding, or an editor key whose grant in the parent’s state does not cover the change, MUST NOT be treated as an authorized change.
 
 P2.3 Every accepted state MUST preserve the association between the Original, its [[ref: resourceIDs]] and the prior accepted checkpoint. Storage locations MUST be treated as retrieval hints, not substitutes for signed digest bindings.
 

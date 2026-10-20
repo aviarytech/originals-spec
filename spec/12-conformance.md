@@ -10,8 +10,8 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Byte changed at same URL | Digest failure; no verified resource result |
 | Wrong genesis or Original ID | Identifier binding failure |
 | Broken chain or reordered entry | History invalid; no derived accepted state beyond failure |
-| Valid key of an identity other than the Original’s author DID | Rejected; identity alone grants no edit right |
-| Valid VH entry, key not a method of the named author DID | Author binding failure; VH validity cannot rescue it |
+| Valid key of an identity other than the Original’s author DID, with no grant in the parent’s state covering the change | Rejected; identity alone grants no edit right |
+| Valid VH entry, key not a method of the named signer DID (the author DID, or the editor DID for an editor entry) | Signer binding failure; VH validity cannot rescue it |
 | Wrong DID method binding or relationship | Identity authorization failure |
 | Old identity version with claimed old time | Unanchored: ordering unproven; no timestamp-only acceptance. Anchored: checked against the author DID state at the inscription time (P9.15) |
 | Missing identity history | Incomplete identity evidence; no blanket verified result |
@@ -126,7 +126,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Editor entry signed before its revocation, on the revocation’s parent | Fork with the revocation; unresolved until anchoring, then decided by chain order (P5.17) |
 | Editor’s earlier entries after its grant is revoked | Remain valid |
 | Grant naming the author DID, a DID of the author’s identity, a duplicate editor or an unlisted DID method | Rejected (P5.15) |
-| Editor entry signed with a key removed from the editor DID | Unanchored: never current. Anchored: rejected if inscribed at or after the removal, unless it names a later did:vh or did:webvh editor DID version that lists the key again (P5.18, P9.15) |
+| Editor entry signed with a key removed from the editor DID | Unanchored: not current while the latest verified editor DID state does not list the key. Anchored: rejected if inscribed at or after the removal, unless it names a later did:vh or did:webvh editor DID version that lists the key again (P9.15), or, for a did:btco editor DID, the latest version preceding the inscription lists it (P5.13); see P5.18 |
 | Editor entry after the author DID is deactivated | Unanchored: not current. Anchored: rejected if inscribed after the deactivation (P5.18) |
 | Editor entry inscribed on the anchoring sat by the owner | Accepted (P9.12) |
 | Editor DID history missing for an editor entry | Incomplete identity evidence; not reported as current (P7.1, P5.6) |
