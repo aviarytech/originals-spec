@@ -118,6 +118,32 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Anchored Original whose did:webvh alias is removed, then added again | Re-adding rejected (P9.10) |
 | Inscription body of exactly 350,000 bytes | Accepted, if otherwise valid (P9.17) |
 | Inscription body over 350,000 bytes, or an Original whose log through the anchoring entry is over it | Rejected; the SDK refuses to anchor (P9.17) |
+| Two editors with grants each sign an entry within their grant, on successive heads, with no author signature | Both accepted; author unchanged; each entry identifies its editor (P5.16) |
+| Editor entry changing content outside its grant: the name, the metadata or a resource it is not granted | Rejected (P5.16) |
+| Editor entry that changes grants, aliases, lifecycle or parameters, anchors, or deactivates | Rejected (P5.16) |
+| Editor entry whose author reference differs from its parent’s | Rejected (P5.16) |
+| Editor entry whose parent’s state has no grant for that editor, including after revocation | Rejected (P5.17) |
+| Editor entry signed before its revocation, on the revocation’s parent | Fork with the revocation; unresolved until anchoring, then decided by chain order (P5.17) |
+| Editor’s earlier entries after its grant is revoked | Remain valid |
+| Grant naming the author DID, a DID of the author’s identity, a duplicate editor or an unlisted DID method | Rejected (P5.15) |
+| Editor entry signed with a key removed from the editor DID | Unanchored: never current. Anchored: rejected if inscribed at or after the removal (P5.18) |
+| Editor entry after the author DID is deactivated | Unanchored: not current. Anchored: rejected if inscribed after the deactivation (P5.18) |
+| Editor entry inscribed on the anchoring sat by the owner | Accepted (P9.12) |
+| Editor DID history missing for an editor entry | Incomplete identity evidence; not reported as current (P7.1, P5.6) |
+| Two submissions with the same parent at a shared host | One accepted; the other refused with a stale-parent conflict returning the new head; refused candidate kept by the SDK, not published (P6.7, P6.8) |
+| Reconciled candidate signed by an authorized signer against the new head | Accepted (P6.8) |
+| Host changes or re-signs a submitted entry | Fails verification, or is not by an authorized signer (P6.7) |
+| Submission retried after a lost acknowledgement | Existing checkpoint returned; no second append (P6.7) |
+| Refused candidate published elsewhere | Fork; unresolved until anchoring (P6.6, P6.8) |
+| Longer branch of a fork, or the branch with more signers | No winner; unresolved conflict (P6.6) |
+| Entry on one branch bringing in content from another | Accepted on its branch as a single-parent entry; fork remains (P6.6) |
+| did:webvh author moved under DID portability, then rotated; new entry signed with the new key naming a version after the move | Accepted; entries before the move still verify against versions before it (P5.14) |
+| Moved author: package, import into a fresh reader, verify, then continue editing with the new key | Same result in the fresh reader; editing continues with authority (P5.14) |
+| Verification method at a version after a move whose controller is the old DID | Author binding failure (P5.3, P5.14) |
+| Log with a different SCID whose `alsoKnownAs` lists the author DID | Not the author’s identity; entries signed with its keys rejected (P5.14) |
+| Old author DID location redirecting to a new host | Redirect not followed; no continuity established (P5.14, P8.5) |
+| Author DID that changes DID method | Not continuity; entries naming the new DID’s keys rejected (P5.14) |
+| The Original’s did:webvh alias moves to another host | Handled as an alias change (P3.6, P9.3); author binding unaffected |
 
 ### Release evidence
 
