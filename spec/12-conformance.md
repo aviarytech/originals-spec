@@ -105,7 +105,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Anchored Original whose historical resource bytes are unavailable | History valid; content availability partial for the affected resources (P7.4, P9.18) |
 | Anchored entry naming a did:vh or did:webvh author DID version, later than its inscription time, that lists again a key removed before that time | Accepted against the named version (P9.15) |
 | Verifier learns of a valid anchoring entry earlier in chain order than the one it reported | Earlier one reported as the anchor, previous one as conflicting, owner change reported; not silent (P9.16) |
-| Anchoring when the evidence package through the signed anchoring entry does not verify | SDK refuses to inscribe; a package that verifies is labelled pending Bitcoin acceptance until the inscription is confirmed (P9.18) |
+| Anchoring when the history or signer identity evidence through the signed anchoring entry is incomplete or does not verify | SDK refuses to inscribe; missing historical resource bytes instead make the package partial, and the author is told; a package that verifies is labelled pending Bitcoin acceptance until the inscription is confirmed (P9.18) |
 
 ### Release evidence
 
