@@ -28,9 +28,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Import then edit without authority | Read succeeds where evidence valid; edit authorization fails |
 | Update after deactivation | Rejected; historical evidence retained |
 | Old valid prefix served as current | Freshness unresolved or failed under policy, never assumed |
-| Divergent valid branches | Explicit fork/conflict, no timestamp winner |
-| Author entry on one branch declares the other abandoned | Declared branch and its descendants reported as abandoned, never current |
-| Each branch declares the other abandoned | Unresolved conflict |
+| Divergent valid branches not settled on Bitcoin | Unresolved conflict; every branch reported; none current; no timestamp winner |
 | Hosted mixed snapshot | Rejected before public result is marked verified |
 | Anchoring sat moved to a new holder | Owner reported as the new holder; author unchanged |
 | After anchoring, author-signed entry not inscribed on the sat | Not current |
@@ -42,7 +40,6 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Anchoring an Original from the local or web layer | Accepted; ordering before the anchor claimed only; uniqueness not established; ownership provisional |
 | Entry after anchoring that adds a did:webvh alias when the anchoring entry’s state listed none | Rejected |
 | Two valid anchoring entries for one Original on different sats | The first in chain order is the anchor; the other and its descendants are a conflicting anchor, not current, conferring no ownership |
-| Later anchoring entry that declares an earlier anchored branch abandoned | Declaration ignored; the first anchor stands |
 | Anchoring entry inscribed on a sat other than the one it names | Not an anchor |
 | Publication at the same or a lower block height than the previous accepted one | Not accepted |
 | Bitcoin failure, retry or reorganization | Durable boundary follows adapter policy, not pending intent |

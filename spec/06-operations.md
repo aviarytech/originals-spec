@@ -26,7 +26,7 @@ P6.4 A retried operation MUST preserve its intended parent and signed entry. If 
 
 P6.5 Deactivation MUST be expressed as VH deactivated: true, and the lifecycle status in the asset state MUST match it; a verifier MUST reject a mismatch in either direction. Deactivation MUST be terminal for new edits in the baseline profile, and a verifier MUST reject an update after an accepted deactivation. If the latest verified author DID is deactivated, the verifier MUST report an Original that is not anchored as non-current. For an anchored Original, author DID deactivation refuses entries inscribed after it and leaves the accepted state current (P9.15). Any future reactivation feature requires an explicit new profile and authorization policy.
 
-P6.6 When the SDK detects two or more valid branches from the same accepted entry, it MUST show every branch to the author and MUST NOT choose one by timestamp. The author resolves the fork by appending an ordinary entry to the chosen branch whose signed state lists the first entry of each abandoned branch. A verifier MUST report those branches and their descendants as abandoned forks, never as current. If branches declare each other abandoned, the verifier MUST report an unresolved conflict. Declarations do not decide between anchoring entries (P9.16).
+P6.6 When the SDK detects two or more valid branches from the same accepted entry, it MUST show every branch to the author and MUST NOT choose one by timestamp. A verifier MUST report divergent valid branches as an unresolved conflict, and MUST NOT report any of them as current, until anchoring settles the fork (P9.16). No signed entry or declaration settles a fork off Bitcoin.
 
 ### Observable results
 
