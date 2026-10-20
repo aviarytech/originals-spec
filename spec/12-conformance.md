@@ -38,7 +38,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Newer inscription on the sat that does not extend the head | Ignored; state follows the authenticated chain |
 | Same evidence inscribed on a different sat | No ownership conferred |
 | Anchoring an Original from the local or web layer | Accepted; ordering before the anchor claimed only; uniqueness not established; ownership provisional |
-| Entry after anchoring that adds a did:webvh alias when the anchoring entry’s state listed none | Rejected |
+| Entry after anchoring that adds a did:webvh alias when the anchoring entry’s state listed none | Accepted if it is an author entry inscribed on the anchoring sat and the alias points back; the web host gains no authority (P9.10) |
 | Two valid anchoring entries for one Original on different sats | The first in chain order is the anchor; the other and its descendants are a conflicting anchor, not current, conferring no ownership |
 | Anchoring entry inscribed on a sat other than the one it names | Not an anchor |
 | Publication at the same or a lower block height than the previous accepted one | Not accepted |
@@ -133,6 +133,8 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Old author DID location redirecting to a new host | Redirect not followed; no continuity established (P5.14, P8.5) |
 | Author DID that changes DID method | Not continuity; entries naming the new DID’s keys rejected (P5.14) |
 | The Original’s did:webvh alias moves to another host | Handled as an alias change (P3.6, P9.3); author binding unaffected |
+| Entry adding a did:webvh alias after anchoring that is not inscribed on the anchoring sat | Not current (P9.10, P9.12) |
+| Web host of an anchored Original serves entries the anchoring sat does not carry | Ignored; the sat decides (P9.13, P9.17) |
 
 ### Release evidence
 
