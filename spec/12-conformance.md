@@ -144,7 +144,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Log with a different SCID whose `alsoKnownAs` lists the author DID | Not the author’s identity; entries signed with its keys rejected (P5.14) |
 | Old author DID location redirecting to a new host | Redirect not followed; no continuity established (P5.14, P8.5) |
 | Author DID that changes DID method | Not continuity; entries naming the new DID’s keys rejected (P5.14) |
-| The Original’s did:webvh alias moves to another host | Handled as an alias change (P3.6, P9.3); author binding unaffected |
+| The Original’s did:webvh alias moves to another host | Unanchored: handled as an alias change by an author entry (P3.6, P9.3). Anchored: a new did:webvh alias is rejected (P9.10). Author binding unaffected either way |
 
 ### Release evidence
 
