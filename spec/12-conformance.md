@@ -59,7 +59,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Author DID versionId absent from signed state | Rejected |
 | Verification method from another DID, with a different controller, or under authentication only | Author binding failure |
 | Key expressed as JWK or a different multikey encoding | Author binding failure |
-| Later entry names a different author DID, or an older author DID version than its predecessor | Rejected |
+| Later entry names a different author DID, or an older author DID version than the most recent earlier author entry | Rejected |
 | Author DID using a method the profile does not list | Rejected |
 | Anchored Original with a did:btco author DID, verified with no author DID host | Author binding checked against inscribed DID versions in chain order |
 | did:btco author DID version inscribed after an Originals inscription in the same block | Not in effect for that inscription |
@@ -123,18 +123,18 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Editor entry that changes grants, aliases, lifecycle or parameters, anchors, or deactivates | Rejected (P5.16) |
 | Editor entry whose author reference differs from its parent’s | Rejected (P5.16) |
 | Editor entry whose parent’s state has no grant for that editor, including after revocation | Rejected (P5.17) |
-| Editor entry signed before its revocation, on the revocation’s parent | Fork with the revocation; unresolved until anchoring, then decided by chain order (P5.17) |
+| Editor entry signed before its revocation, on the revocation’s parent | Unanchored: fork, unresolved; settled by the anchor’s branch (P9.16). After anchoring: the first inscribed in chain order extending the head is accepted, the other ignored (P9.13) |
 | Editor’s earlier entries after its grant is revoked | Remain valid |
 | Grant naming the author DID, a DID of the author’s identity, a duplicate editor or an unlisted DID method | Rejected (P5.15) |
 | Editor entry signed with a key removed from the editor DID | Unanchored: not current while the latest verified editor DID state does not list the key. Anchored: rejected if inscribed at or after the removal, unless it names a later did:vh or did:webvh editor DID version that lists the key again (P9.15), or, for a did:btco editor DID, the latest version preceding the inscription lists it (P5.13); see P5.18 |
-| Editor entry after the author DID is deactivated | Unanchored: not current. Anchored: rejected if inscribed after the deactivation (P5.18) |
+| Editor entry after the author DID is deactivated | Unanchored: not current. Anchored: rejected if its inscription time is at or after the author DID deactivation’s versionTime, or for a did:btco author DID if the deactivation precedes it in chain order (P9.15, P5.18) |
 | Editor entry inscribed on the anchoring sat by the owner | Accepted (P9.12) |
 | Editor DID history missing for an editor entry | Incomplete identity evidence; not reported as current (P7.1, P5.6) |
 | Two submissions with the same parent at a shared host | One accepted; the other refused with a stale-parent conflict returning the new head; refused candidate kept by the SDK, not published (P6.7, P6.8) |
 | Reconciled candidate signed by an authorized signer against the new head | Accepted (P6.8) |
 | Host changes or re-signs a submitted entry | Fails verification, or is not by an authorized signer (P6.7) |
 | Submission retried after a lost acknowledgement, including after the head has moved on | Existing checkpoint and current head returned; no second append and no conflict (P6.7) |
-| Refused candidate published elsewhere | Fork; unresolved until anchoring (P6.6, P6.8) |
+| Refused candidate published elsewhere | Unanchored: fork; unresolved until anchoring. Anchored: not current; ignored (P6.6, P6.8, P9.12, P9.13) |
 | Longer branch of a fork, or the branch with more signers | No winner; unresolved conflict (P6.6) |
 | Entry on one branch bringing in content from another | Accepted on its branch as a single-parent entry; fork remains (P6.6) |
 | did:webvh author moved under DID portability, then rotated; new entry signed with the new key naming a version after the move | Accepted; entries before the move still verify against versions before it (P5.14) |
@@ -145,6 +145,11 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Old author DID location redirecting to a new host | Redirect not followed; no continuity established (P5.14, P8.5) |
 | Author DID that changes DID method | Not continuity; entries naming the new DID’s keys rejected (P5.14) |
 | The Original’s did:webvh alias moves to another host | Unanchored: handled as an alias change by an author entry (P3.6, P9.3). Anchored: a new did:webvh alias is rejected (P9.10). Author binding unaffected either way |
+| Editor entry whose proof’s verificationMethod is the author’s, or whose operation is not update | Rejected (P5.2, P5.16) |
+| Editor entry naming an older editor DID version than that editor’s previous entry | Rejected (P5.8, P5.18) |
+| Grant naming a resourceID outside the resource set, or more grants than the profile limit | Rejected; limit-exceeded (P5.15, P7.7) |
+| Unanchored: verifier that reported a state learns of a competing branch | Conflict reported; not silent (P6.6) |
+| Grant, before or after anchoring, naming the anchoring sat’s did:btco DID or the Original’s own did:vh | Rejected (P5.15) |
 
 ### Release evidence
 

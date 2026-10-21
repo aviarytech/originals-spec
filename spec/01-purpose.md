@@ -26,9 +26,9 @@ VH Log defines the log mechanism: entry structure, hash chaining, SCID, paramete
 
 Using the rules a did:vh extension may define, Originals:
 
-- Defines each entry’s state as the full [[ref: asset state]]: name, metadata, lifecycle, resource descriptors and aliases. State is a full snapshot, never a delta, and never a DID document (section 2).
+- Defines each entry’s state as the full [[ref: asset state]]: name, metadata, lifecycle, resource descriptors, aliases and editor grants. State is a full snapshot, never a delta, and never a DID document (section 2).
 - Derives the DID document for each version deterministically: its `id`, a `controller` equal to the author DID, `alsoKnownAs` from the aliases in the asset state, and a `#files` service built from the resource descriptors. No DID document is stored, and the asset is not placed in it (section 2).
-- Requires signed state fields for the operation, resource transitions, author DID, author verification method and author DID version (P5.1).
+- Requires signed state fields for the operation, resource transitions, author DID, author verification method and author DID version, and for an editor entry the editor reference (P5.1, P5.16).
 - Takes the log’s controller keys from the author DID [S25], with editor keys limited to the changes their grants allow (P5.16): one proof per entry, using `eddsa-jcs-2022` or `bip340-jcs-2025` [S21], by an assertionMethod key of the author DID at the version the entry names, other than an updateKey of the author DID’s own log. There are no updateKeys, no pre-rotation and no rotation entries (P5.2, P5.3, P5.9, P5.10, P5.12).
 - Fixes the author DID at genesis (P5.8), lets the author grant editors who sign their own entries for named content only (P5.15–P5.18), keeps a signer’s identity across did:webvh moves only through that DID’s own verified history (P5.14), and leaves forks unresolved until anchoring settles them (P6.6, P9.16).
 - Defines resource descriptors bound to SHA-256 digests, a fixed resource set and history-derived versions (P4.1–P4.4).

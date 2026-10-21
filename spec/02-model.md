@@ -13,7 +13,7 @@
 ~ The Original’s did:vh log under the Originals extension. It is the Original’s only history.
 
 [[def: asset state]]:
-~ The state recorded in full in each asset log entry: the Original’s name, metadata, lifecycle status, resource descriptors and aliases. It is not a DID document.
+~ The state recorded in full in each asset log entry: the Original’s name, metadata, lifecycle status, resource descriptors, aliases and editor grants. It is not a DID document.
 
 [[def: VH entry, VH entries]]:
 ~ Commits a state transition according to the selected VH profile.
@@ -74,7 +74,7 @@ This is not a normative wire format or test vector.
 :::
 
 - Original identity → asset log checkpoint → asset state
-- Application state → name, metadata, lifecycle, named resource descriptors
+- Application state → name, metadata, lifecycle, named resource descriptors, aliases, editor grants
 - Resource descriptor → resourceID, mediaType, exact-byte digest
 - VH entry → Original identity, parent entry, resulting application state, author identity reference, an editor reference for an editor entry, one proof by the signer’s key
 - Evidence package → VH history, author identity evidence, resource bytes
