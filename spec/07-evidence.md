@@ -12,7 +12,7 @@ P7.1 An evidence package MUST declare whether it is complete or partial. A compl
 
 P7.2 Packaging MUST preserve signed bytes or canonical signed representations as required by each proof format. Reformatting, normalization or changing an envelope discriminator MUST NOT be presented as preserving an existing signature.
 
-P7.3 A reader MUST validate evidence before exposing derived state as verified. Verification MUST establish identifier/genesis binding, history continuity, log authority, author binding, state transitions and resource digests. A private key MUST NOT be required for any read-only check.
+P7.3 A reader MUST validate evidence before exposing derived state as verified. Verification MUST establish identifier/genesis binding, history continuity, log authority, author binding and state transitions, and MUST check the digest of every resource byte sequence it is given. Resource bytes are not needed for the log to verify; missing ones are reported as unavailable content (P7.4, P9.18). A private key MUST NOT be required for any read-only check.
 
 P7.4 Missing bytes MUST produce an explicit partial-availability result identifying the affected resource and checkpoint. Available bytes MUST still be checked. Missing proof or identity evidence MUST be reported separately from missing content; no missing item permits bypassing a signature or digest check.
 
@@ -28,7 +28,7 @@ P7.9 A verifier MUST NOT report an entry that is not inscribed on an anchoring s
 
 ### Proposed verification report
 
-Return separate results for history validity, author binding, identity evidence, resource availability and freshness/order policy. Include the verified checkpoint, profile, unresolved dependencies, missing items and failures. Avoid a single green “verified” result that conceals incomplete identity evidence or unavailable historical bytes. If the SDK offers a single acceptance check, its default policy must require every part of the report to pass.
+Return separate results for history validity, author binding, identity evidence, resource availability and freshness/order policy. Include the verified checkpoint, profile, unresolved dependencies, missing items and failures. Avoid a single green “verified” result that conceals incomplete identity evidence or unavailable historical bytes. If the SDK offers a single acceptance check, its default policy must require every part of the report to pass except content availability, which is reported separately: a verified log with unavailable bytes passes as a log, and an application that needs the content checks availability as well.
 
 ::: example Harbor at dawn, packaged
 For the photo example, a package through photo version 2 contains the genesis and update entries, Alice’s identity evidence, plus B1 and B2. If B1 is omitted, the reader may still verify supplied history and B2 where all proof evidence is present, but reports that historical photo version 1 bytes are unavailable. It cannot claim to be a complete package.
