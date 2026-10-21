@@ -54,7 +54,8 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Entry that sets updateKeys or nextKeyHashes | Rejected |
 | Asset log entry that sets the witness parameter to anything other than an empty object | Rejected |
 | Entry signed by a key the author DID added, with no asset log entry for the change | Accepted |
-| Author key not in the author DID’s Originals declaration | Author binding failure |
+| Author key not under assertionMethod in the author DID | Author binding failure |
+| Author key that is also an updateKey of the author DID’s own log | Author binding failure |
 | Author DID versionId absent from signed state | Rejected |
 | Verification method from another DID, with a different controller, or under authentication only | Author binding failure |
 | Key expressed as JWK or a different multikey encoding | Author binding failure |
