@@ -8,7 +8,7 @@ An evidence package describes what it includes and what is unavailable. Complete
 
 ### Proposed package rules
 
-P7.1 An evidence package MUST declare whether it is complete or partial. A complete package MUST include the VH evidence through the selected checkpoint, the identity evidence required to check each entry’s author binding, and the historical resource bytes referenced by that prefix. It MUST identify the Original, profile and target checkpoint unambiguously.
+P7.1 An evidence package MUST declare whether it is complete or partial. A complete package MUST include the VH evidence through the selected checkpoint, the identity evidence required to check each entry’s signer binding, for the author and for every editor that signed an entry, and the historical resource bytes referenced by that prefix. It MUST identify the Original, profile and target checkpoint unambiguously.
 
 P7.2 Packaging MUST preserve signed bytes or canonical signed representations as required by each proof format. Reformatting, normalization or changing an envelope discriminator MUST NOT be presented as preserving an existing signature.
 
@@ -20,11 +20,11 @@ P7.5 Import MUST NOT confer signing authority, trust unknown keys, or replace an
 
 P7.6 Evidence from a truncated prefix MUST NOT be represented as the latest state without the selected freshness policy. A valid historical prefix and a fresh current result are separate claims. For entries not inscribed on an anchoring sat, reports MUST label time and ordering as claimed only, except that an anchoring inscription shows the entries before it existed no later than its block (P9.16).
 
-P7.7 A verifier MUST enforce profile-defined limits on history length, entry size, identity-history length and the number of resources and versions. When a history exceeds a limit, the verifier reports the last valid prefix as VH requires, and MUST label the result limit-exceeded and MUST NOT report it as complete or current.
+P7.7 A verifier MUST enforce profile-defined limits on history length, entry size, identity-history length, the number of editor grants and the number of resources and versions. When a history exceeds a limit, the verifier reports the last valid prefix as VH requires, and MUST label the result limit-exceeded and MUST NOT report it as complete or current.
 
-P7.8 The verification report MUST state the latest author DID versionId used and whether its freshness was independently established. An Original MUST NOT be reported as currently authorized unless its identity evidence meets the selected freshness policy. For an anchored Original, the author DID’s freshness needs to be established only as of the inscription time of the latest inscription on the anchoring sat that would extend the accepted head (P9.15); author DID history whose freshness is established only as of an earlier time is incomplete identity evidence. Verifiers SHOULD retain the highest verified versionId seen for each author DID and each Original, and compare copies of both logs as VH describes.
+P7.8 The verification report MUST state, for the author DID and each editor DID it relied on, the latest versionId used and whether its freshness was independently established. An Original MUST NOT be reported as currently authorized unless its identity evidence meets the selected freshness policy. For an anchored Original, the author DID’s freshness needs to be established only as of the inscription time of the latest inscription on the anchoring sat that would extend the accepted head (P9.15); author DID history whose freshness is established only as of an earlier time is incomplete identity evidence. Verifiers SHOULD retain the highest verified versionId seen for each author DID and each Original, and compare copies of both logs as VH describes.
 
-P7.9 A verifier MUST NOT report an entry that is not inscribed on an anchoring sat as current if its signing key is not under assertionMethod in the latest verified author DID state. An entry inscribed on an anchoring sat is checked against the author DID’s state at its inscription time instead (P9.15).
+P7.9 A verifier MUST NOT report an entry that is not inscribed on an anchoring sat as current if its signing key is not under assertionMethod in the latest verified state of its signer’s DID, or if the author DID’s latest verified state is deactivated (P6.5, P5.18). An entry inscribed on an anchoring sat is checked instead against its signer’s DID state at its inscription time, and an editor entry also against the author DID’s deactivation at that time (P9.15, P5.18).
 
 ### Proposed verification report
 

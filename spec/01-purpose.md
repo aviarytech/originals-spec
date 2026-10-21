@@ -14,7 +14,7 @@ The immediate implementation target is a local vertical slice: create an Origina
 
 ### Scope and non-goals
 
-The working basis is one separate VH history per Original, with one author whose key signs each change. The draft covers resource state, author and controller authority, local operations, portable evidence, and boundaries with storage and publication. It does not invent a new DID method, finalize a wire format or proof suite, promise encryption or key recovery, or treat Bitcoin possession as edit authority.
+The working basis is one separate VH history per Original, with one author for its whole life. Each change is signed by the author or by an editor the author has granted permission to change named content (P5.15). The draft covers resource state, author and controller authority, local operations, portable evidence, and boundaries with storage and publication. It does not invent a new DID method, finalize a wire format or proof suite, promise encryption or key recovery, or treat Bitcoin possession as edit authority.
 
 VH Log and did:vh are pre-drafts. Their algorithms, parameter behavior and resolution semantics remain dependencies to pin and test. The SDK compatibility observations refer to the SDK at main revision 00fc683: the local entry under `packages/sdk/src/v3`, the history engine under `packages/cel/src/v3`, and the full SDK in `packages/sdk/src/core/OriginalsSDK3.ts` that adds hosting and Bitcoin. The SDK is the working reference, not the authority: where this draft departs from it, section 10 says so.
 
@@ -26,11 +26,11 @@ VH Log defines the log mechanism: entry structure, hash chaining, SCID, paramete
 
 Using the rules a did:vh extension may define, Originals:
 
-- Defines each entry’s state as the full [[ref: asset state]]: name, metadata, lifecycle, resource descriptors and aliases. State is a full snapshot, never a delta, and never a DID document (section 2).
+- Defines each entry’s state as the full [[ref: asset state]]: name, metadata, lifecycle, resource descriptors, aliases and editor grants. State is a full snapshot, never a delta, and never a DID document (section 2).
 - Derives the DID document for each version deterministically: its `id`, a `controller` equal to the author DID, `alsoKnownAs` from the aliases in the asset state, and a `#files` service built from the resource descriptors. No DID document is stored, and the asset is not placed in it (section 2).
-- Requires signed state fields for the operation, resource transitions, author DID, author verification method and author DID version (P5.1).
-- Takes the log’s authorized keys from the author DID [S25]: one proof per entry, using `eddsa-jcs-2022` or `bip340-jcs-2025` [S21], by an assertionMethod key of the author DID at the version the entry names, other than an updateKey of the author DID’s own log. There are no updateKeys, no pre-rotation and no rotation entries (P5.2, P5.3, P5.9, P5.10, P5.12).
-- Fixes the author DID at genesis (P5.8) and leaves forks unresolved until anchoring settles them (P6.6, P9.16).
+- Requires signed state fields for the operation, resource transitions, author DID, author verification method and author DID version, and for an editor entry the editor reference (P5.1, P5.16).
+- Takes the log’s controller keys from the author DID [S25], with editor keys limited to the changes their grants allow (P5.16): one proof per entry, using `eddsa-jcs-2022` or `bip340-jcs-2025` [S21], by an assertionMethod key of the author DID at the version the entry names, other than an updateKey of the author DID’s own log. There are no updateKeys, no pre-rotation and no rotation entries (P5.2, P5.3, P5.9, P5.10, P5.12).
+- Fixes the author DID at genesis (P5.8), lets the author grant editors who sign their own entries for named content only (P5.15–P5.18), keeps a signer’s identity across did:webvh moves only through that DID’s own verified history (P5.14), and leaves forks unresolved until anchoring settles them (P6.6, P9.16).
 - Defines resource descriptors bound to SHA-256 digests, a fixed resource set and history-derived versions (P4.1–P4.4).
 - Rejects members that VH Log, did:vh or this extension do not define (P5.7), and requires the deactivated parameter and the lifecycle status to agree (P6.5).
 - Does not use VH witnesses in the asset log, hosted or not; ordering off Bitcoin is claimed only (P9.8, P9.9).
@@ -45,6 +45,10 @@ Originals adds, outside the log:
 - A verification report that keeps Originals verification distinct from generic resolution (P3.5, section 7).
 
 The VH-Log hooks this relies on are open pull requests: an authoritative source [S20], additional cryptosuites [S21], versionTime precision [S22], locations not reached over HTTPS [S23], alternative encodings whose decoding may depend on earlier entries [S24], and authorized keys from a controller [S25]. The did:vh extension mechanism is also an open pull request [S19]; it lets an extension define its own state, parameters, VH-Log specialisation rules and `src` kinds. The extension uses that to define a Bitcoin `src` kind, retrieved under VH-Log’s rule for locations not reached over HTTPS.
+
+::: issue Editors in VH-Log
+VH-Log PR 11 [S25] lets a specialisation take a log’s authorized keys from one controller, fixed in the first entry. Editor entries (P5.15–P5.18) are also signed by other identities that the state names, and change only state. VH-Log needs to let a specialisation define such additional signers, whose entries cannot change parameters: either by extending PR 11, or through the editor-keys proposal in VH-Log PR 6 [S28], which uses an `editorKeys` parameter instead and is related to VH-Log issue 5 [S2a]. Until one of them lands, editor entries are a rule this profile adds that VH-Log does not yet permit.
+:::
 
 ### Review priorities
 
