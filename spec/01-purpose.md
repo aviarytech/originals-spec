@@ -54,7 +54,6 @@ VH-Log PR 11 [S25] lets a specialisation take a log’s authorized keys from one
 
 1. Specify the asset state schema, the `originals` method values and the DID document derivation.
 2. Confirm the key binding and sat ownership in sections 5 and 9.
-3. Choose the freshness policy verifiers apply to author DID state (P7.8).
 4. Pin the signed entry state and portable evidence format.
 
 These decisions block an interoperable protocol release. They do not block review of the local lifecycle, compatibility requirements or failure behavior in this draft.
