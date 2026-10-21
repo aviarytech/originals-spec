@@ -12,7 +12,7 @@ D3 **Historical identity and ordering.** Decided (owner decision Q14, 19 October
 
 D4 **Entry state and package.** Decided: resource digests are SHA-256 multihashes, the only algorithm in the baseline set (P4.2); canonicalization is whatever the pinned VH Log version uses, and proofs use `eddsa-jcs-2022` or `bip340-jcs-2025`, permitted under VH-Log’s proposed rule for additional cryptosuites [S21] (P5.12). Open: entry state fields, asset log file names, multibase encoding, envelope discriminator, completeness declaration and limits. Publish real test vectors only after those choices.
 
-D5 **Operational edge cases.** Decided: an update that leaves a digest unchanged does not advance that resource’s version (P4.4); an explicit null removes metadata, and the name cannot be null (P4.6); the author resolves a fork by continuing one branch and declaring the others abandoned (P6.6). Open: atomic local commit and duplicate submission details, and whether to allow finer versionTime precision [S22].
+D5 **Operational edge cases.** Decided: an update that leaves a digest unchanged does not advance that resource’s version (P4.4); an explicit null removes metadata, and the name cannot be null (P4.6); only Bitcoin settles a fork: until an Original is anchored, divergent valid branches are an unresolved conflict and none is current, whatever the timestamps (owner decision Q5, 19 October 2026; P6.6, P9.16). Open: atomic local commit and duplicate submission details, and whether to allow finer versionTime precision [S22].
 
 D6 **Transport profiles.** Open: hosted discovery and relocation, Boop adapter changes, and the new Bitcoin representation, boundary, confirmations and reorganization policy. No final MIME type is selected here.
 
