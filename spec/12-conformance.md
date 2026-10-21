@@ -43,7 +43,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Anchoring entry inscribed on a sat other than the one it names | Not an anchor |
 | Publication at the same or a lower block height than the previous accepted one | Not accepted |
 | Bitcoin failure, retry or reorganization | Durable boundary follows adapter policy, not pending intent |
-| Entry signed by a key removed from the author DID | Unanchored: historically authorized, ordering unproven, not current while the latest verified author DID state does not list the key (P7.9). Anchored: rejected if its inscription time is at or after the removal’s versionTime, unless it names a later did:vh or did:webvh version that lists the key again (P9.15); for did:btco, rejected unless the latest version preceding the inscription lists the key (P5.13) |
+| Entry signed by a key removed from the author DID | Unanchored: historically authorized, ordering unproven, not current while the latest verified author DID state does not list the key (P7.9). Anchored: an anchoring entry or later inscribed entry is rejected if its inscription time is at or after the removal’s versionTime, unless it names a later did:vh or did:webvh version that lists the key again (P9.15); for did:btco, rejected unless the latest version preceding the inscription lists the key (P5.13) |
 | Accepted anchored entry whose key the author DID later removes | Remains current |
 | Author DID deactivated after an Original is anchored | Accepted state remains current; entries inscribed later rejected |
 | Anchored entry naming a did:vh or did:webvh author DID version whose versionTime is later than its inscription time | Checked against the named version (P9.15) |
@@ -112,6 +112,12 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Inscriptions read from a network other than the one the did:btco alias names | Not on the anchoring sat (P9.10) |
 | did:btco author DID inscription the index reports on a sat other than the one the DID names | Not a version of that DID (P5.13) |
 | Entry after anchoring that replaces the did:webvh alias with a different one | Rejected (P9.10) |
+| Entry before the anchoring entry, in the anchoring inscription, signed by a key removed from its signer’s DID before the inscription | Accepted against the version it names; ordering claimed (P9.15) |
+| did:btco alias with an unknown network prefix, a sign, leading zeros or a number beyond the supply of sats | Rejected (P9.10) |
+| Two indexes the verifier uses disagree on which sat an inscription is on | Not accepted; missing evidence reported until they agree (P9.10) |
+| Anchored Original whose did:webvh alias is removed, then added again | Re-adding rejected (P9.10) |
+| Inscription body of exactly 350,000 bytes | Accepted, if otherwise valid (P9.17) |
+| Inscription body over 350,000 bytes, or an Original whose log through the anchoring entry is over it | Rejected; the SDK refuses to anchor (P9.17) |
 
 ### Release evidence
 
