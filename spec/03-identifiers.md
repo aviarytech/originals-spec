@@ -44,7 +44,7 @@ Asset logs do not use VH [[ref: witnesses]] (P9.8). Off Bitcoin, on the local an
 Author DIDs may use any DID method with verifiable version history that the profile lists; the baseline lists did:vh, did:webvh and did:btco (P5.8). A did:btco author DID keeps its history on Bitcoin, so the author binding of an anchored Original by such an author needs no author DID host; one by a did:vh or did:webvh author also needs that author’s log from wherever it is hosted (P5.13). Either way, the Original’s whole log, including the entries before its anchor, is on the anchoring sat (P9.17). An unanchored Original gets no ordering evidence beyond its own log (D3).
 
 ::: issue Unresolved
-How exact identity versions are packaged, and the freshness policy verifiers apply to author DID state (D3, P7.8).
+How exact identity versions are packaged (D3).
 :::
 
 Sources: VH Log and did:vh pre-drafts [S2, S3]; SDK identity and layers [S12, S14].

@@ -27,7 +27,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Update that leaves a resource’s digest unchanged | That resource’s version does not advance |
 | Import then edit without authority | Read succeeds where evidence valid; edit authorization fails |
 | Update after deactivation | Rejected; historical evidence retained |
-| Old valid prefix served as current | Freshness unresolved or failed under policy, never assumed |
+| Old valid prefix served as current | Reported valid as of its checkpoint, never current (P7.10) |
 | Divergent valid branches not settled on Bitcoin | Unresolved conflict; every branch reported; none current; no timestamp winner |
 | Hosted mixed snapshot | Rejected before public result is marked verified |
 | Anchoring sat moved to a new holder | Owner reported as the new holder; author unchanged |
@@ -50,7 +50,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Block whose timestamp is earlier than an ancestor’s | Inscription time is the greatest ancestor timestamp |
 | Author DID history missing through an inscription time | Incomplete identity evidence; not reported as current |
 | Author DID version published with a versionTime before an already accepted inscription it would reject | Retroactive revocation conflict reported; result not silently changed |
-| Any entry after the author DID is deactivated | Not anchored: Original reported as non-current. Anchored: accepted state remains current; entries inscribed later rejected (P9.15) |
+| Any entry after the author DID is deactivated | Not anchored: deactivation reported; entries historically authorized only (P7.9). Anchored: accepted state remains current; entries inscribed later rejected (P9.15) |
 | Entry that sets updateKeys or nextKeyHashes | Rejected |
 | Asset log entry that sets the witness parameter to anything other than an empty object | Rejected |
 | Entry signed by a key the author DID added, with no asset log entry for the change | Accepted |
@@ -150,6 +150,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Grant naming a resourceID outside the resource set, or more grants than the profile limit | Rejected; limit-exceeded (P5.15, P7.7) |
 | Unanchored: verifier that reported a state learns of a competing branch | Conflict reported; not silent (P6.6) |
 | Grant, before or after anchoring, naming the anchoring sat’s did:btco DID or the Original’s own did:vh | Rejected (P5.15) |
+| Unanchored Original with complete evidence and signer DID histories fetched moments ago | Reported valid as of its verified checkpoint, with each signer DID versionId and fetch time; never current or currently authorized (P7.10) |
 
 ### Release evidence
 
