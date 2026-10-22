@@ -31,7 +31,7 @@ Using the rules a did:vh extension may define, Originals:
 - Requires signed state fields for the operation, resource transitions, author DID, author verification method and author DID version, and for an editor entry the editor reference (P5.1, P5.16).
 - Takes the log’s controller keys from the author DID [S25], with editor keys limited to the changes their grants allow (P5.16): one proof per entry, using `eddsa-jcs-2022` or `bip340-jcs-2025` [S21], by an assertionMethod key of the author DID at the version the entry names, other than an updateKey of the author DID’s own log. There are no updateKeys, no pre-rotation and no rotation entries (P5.2, P5.3, P5.9, P5.10, P5.12).
 - Fixes the author DID at genesis (P5.8), lets the author grant editors who sign their own entries for named content only (P5.15–P5.18), keeps a signer’s identity across did:webvh moves only through that DID’s own verified history (P5.14), and leaves forks unresolved until anchoring settles them (P6.6, P9.16).
-- Defines resource descriptors bound to SHA-256 digests, a fixed resource set and history-derived versions (P4.1–P4.4).
+- Defines resource descriptors bound to SHA-256 digests, a resource set that only the author can add to or remove from, and history-derived versions (P4.1–P4.4).
 - Rejects members that VH Log, did:vh or this extension do not define (P5.7), and requires the deactivated parameter and the lifecycle status to agree (P6.5).
 - Does not use VH witnesses in the asset log, hosted or not; ordering off Bitcoin is claimed only (P9.8, P9.9).
 - Makes Bitcoin the authoritative source after anchoring [S20]: an Original can be anchored with or without having been published on the web, inscriptions on the anchoring sat decide which entries form the log, and they may carry a compact encoding that decodes deterministically to full entries [S23, S24] (P9.10, P9.13, P9.14).
@@ -44,11 +44,7 @@ Originals adds, outside the log:
 - A did:webvh alias, a small did:webvh log of its own that points to the did:vh (P3.6).
 - A verification report that keeps Originals verification distinct from generic resolution (P3.5, section 7).
 
-The VH-Log hooks this relies on are open pull requests: an authoritative source [S20], additional cryptosuites [S21], versionTime precision [S22], locations not reached over HTTPS [S23], alternative encodings whose decoding may depend on earlier entries [S24], and authorized keys from a controller [S25]. The did:vh extension mechanism is also an open pull request [S19]; it lets an extension define its own state, parameters, VH-Log specialisation rules and `src` kinds. The extension uses that to define a Bitcoin `src` kind, retrieved under VH-Log’s rule for locations not reached over HTTPS.
-
-::: issue Editors in VH-Log
-VH-Log PR 11 [S25] lets a specialisation take a log’s authorized keys from one controller, fixed in the first entry. Editor entries (P5.15–P5.18) are also signed by other identities that the state names, and change only state. VH-Log needs to let a specialisation define such additional signers, whose entries cannot change parameters: either by extending PR 11, or through the editor-keys proposal in VH-Log PR 6 [S28], which uses an `editorKeys` parameter instead and is related to VH-Log issue 5 [S2a]. Until one of them lands, editor entries are a rule this profile adds that VH-Log does not yet permit.
-:::
+The VH-Log hooks this relies on are open pull requests: an authoritative source [S20], additional cryptosuites [S21], versionTime precision [S22], locations not reached over HTTPS [S23], alternative encodings whose decoding may depend on earlier entries [S24], and authorized keys and editors from a controller [S25], which provides the boundary editor entries need (P5.15–P5.18). The did:vh extension mechanism is also an open pull request [S19]; it lets an extension define its own state, parameters, VH-Log specialisation rules and `src` kinds. The extension uses that to define a Bitcoin `src` kind, retrieved under VH-Log’s rule for locations not reached over HTTPS.
 
 ### Review priorities
 

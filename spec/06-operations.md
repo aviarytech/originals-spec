@@ -8,7 +8,7 @@ The SDK today queues concurrent edits and signs each against whatever head is cu
 
 Create prepares the initial asset state, resource descriptors and genesis entry. The author signs it, the SDK verifies it and commits one valid initial checkpoint. It returns either a verified Original or an explicit unsigned [[ref: draft]]; these outcomes are different types or clearly distinguishable states.
 
-Edit reads an exact verified parent, checks the fixed resourceID set, computes new descriptors, has the author or a granted editor sign the next VH entry and verifies it. The current pointer changes only after the signed entry and new bytes are durably stored. For the caller this is one step.
+Edit reads an exact verified parent, checks the resourceID set, which only an author entry may change (P4.1), computes new descriptors, has the author or a granted editor sign the next VH entry and verifies it. The current pointer changes only after the signed entry and new bytes are durably stored. For the caller this is one step.
 
 Anchor is an edit whose new asset state adds the did:btco alias of the anchoring sat and changes nothing else that the author does not choose to change. It is inscribed on that sat instead of being committed locally, and becomes current only once accepted there (P9.10, P9.12, P9.17).
 

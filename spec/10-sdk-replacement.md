@@ -21,6 +21,7 @@ The SDK is what exists, so this draft keeps its behavior unless there is a reaso
 
 | SDK today | This draft |
 |---|---|
+| The resource set is fixed at genesis | The author can add and remove resources (P4.1) |
 | Each Original is a CEL 3 log identified by `did:cel` | Each Original is a did:vh log under the Originals extension (section 3) |
 | Each Original is controlled by its own `did:key` | The author signs with a key bound to their DID (P5.3) |
 | Only the author signs | The author and editors it grants, each signing its own entries (P5.15–P5.18) |
