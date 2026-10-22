@@ -18,7 +18,8 @@
         "10-sdk-replacement.md",
         "11-security.md",
         "12-conformance.md",
-        "13-decisions.md"
+        "13-decisions.md",
+        "14-wire-format.md"
       ],
       "source": {
         "host": "github",

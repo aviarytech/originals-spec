@@ -48,7 +48,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Author DID deactivated after an Original is anchored | Accepted state remains current; entries inscribed later rejected |
 | Anchored entry naming a did:vh or did:webvh author DID version whose versionTime is later than its inscription time | Checked against the named version (P9.15) |
 | Block whose timestamp is earlier than an ancestor’s | Inscription time is the greatest ancestor timestamp |
-| Author DID history missing through an inscription time | Incomplete identity evidence; not reported as current |
+| Anchored entry whose did:vh or did:webvh signer DID is known only up to a version older than the entry’s inscription time | Checked against the newest known version; the report states that version and when it was obtained (P7.8, P9.15) |
 | Author DID version published with a versionTime before an already accepted inscription it would reject | Retroactive revocation conflict reported; result not silently changed |
 | Any entry after the author DID is deactivated | Not anchored: deactivation reported; entries historically authorized only (P7.9). Anchored: accepted state remains current; entries inscribed later rejected (P9.15) |
 | Entry that sets updateKeys or nextKeyHashes | Rejected |
@@ -67,7 +67,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Inscription on a did:btco author DID’s sat after its deactivation | Not a version; author DID remains deactivated |
 | Anchored Original whose did:vh or did:webvh author DID log is unavailable | Incomplete identity evidence; not reported as current |
 | Two proofs in the proof array | Rejected |
-| Stale author DID history served with a current asset log | Identity freshness not established; not reported as currently authorized |
+| Older author DID history served when the verifier has retained a newer version | The newer version is used (P7.8) |
 | VH-valid log that fails Originals rules, read through a generic resolver | Not reported as Originals-verified |
 | did:webvh whose document points to a did:vh that does not list it | Not an alias; no Originals result through that did:webvh |
 | Asset state lists a did:webvh whose document points elsewhere | Alias not confirmed; the did:vh still verifiable directly |
@@ -151,6 +151,14 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Unanchored: verifier that reported a state learns of a competing branch | Conflict reported; not silent (P6.6) |
 | Grant, before or after anchoring, naming the anchoring sat’s did:btco DID or the Original’s own did:vh | Rejected (P5.15) |
 | Unanchored Original with complete evidence and signer DID histories fetched moments ago | Reported valid as of its verified checkpoint, with each signer DID versionId and fetch time; never current or currently authorized (P7.10) |
+| Entry state with a member section 14 does not list, at any level | Rejected (P14.4) |
+| Resource digest in a non-canonical encoding, or a multihash other than SHA-256 | Rejected (P14.7) |
+| `asset.editors` present as an empty array | Rejected (P14.5) |
+| Resource descriptor whose `size` or `mediaType` changes without its `digest` | Rejected (P14.6) |
+| Entry whose UTF-8 line is 65,536 bytes / 65,537 bytes | Accepted / rejected (P14.13) |
+| Derived DID document compared with section 14’s template | Identical for every resolver (P14.9) |
+| Evidence package built twice from the same contents | Byte-identical archives (P14.10) |
+| Evidence package with a compressed archive entry or a name over 255 bytes | Rejected (P14.10) |
 
 ### Release evidence
 
