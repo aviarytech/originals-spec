@@ -48,7 +48,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Author DID deactivated after an Original is anchored | Accepted state remains current; entries inscribed later rejected |
 | Anchored entry naming a did:vh or did:webvh author DID version whose versionTime is later than its inscription time | Checked against the named version (P9.15) |
 | Block whose timestamp is earlier than an ancestor’s | Inscription time is the greatest ancestor timestamp |
-| Author DID history missing through an inscription time | Incomplete identity evidence; not reported as current |
+| Anchored entry whose did:vh or did:webvh signer DID is known only up to a version older than the entry’s inscription time | Checked against the newest known version; the report states that version and when it was obtained (P7.8, P9.15) |
 | Author DID version published with a versionTime before an already accepted inscription it would reject | Retroactive revocation conflict reported; result not silently changed |
 | Any entry after the author DID is deactivated | Not anchored: deactivation reported; entries historically authorized only (P7.9). Anchored: accepted state remains current; entries inscribed later rejected (P9.15) |
 | Entry that sets updateKeys or nextKeyHashes | Rejected |
@@ -67,7 +67,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Inscription on a did:btco author DID’s sat after its deactivation | Not a version; author DID remains deactivated |
 | Anchored Original whose did:vh or did:webvh author DID log is unavailable | Incomplete identity evidence; not reported as current |
 | Two proofs in the proof array | Rejected |
-| Stale author DID history served with a current asset log | Identity freshness not established; not reported as currently authorized |
+| Older author DID history served when the verifier has retained a newer version | The newer version is used (P7.8) |
 | VH-valid log that fails Originals rules, read through a generic resolver | Not reported as Originals-verified |
 | did:webvh whose document points to a did:vh that does not list it | Not an alias; no Originals result through that did:webvh |
 | Asset state lists a did:webvh whose document points elsewhere | Alias not confirmed; the did:vh still verifiable directly |
