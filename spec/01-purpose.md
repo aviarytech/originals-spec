@@ -10,7 +10,7 @@ The immediate implementation target is a local vertical slice: create an Origina
 - **Retained SDK behavior:** an existing behavior to preserve, identified as such below. It is not a claim that the new implementation already exists.
 - **Proposed rule:** a requirement offered by this draft, numbered Pn.n and shown with a shaded label. The key words MUST, MUST NOT, SHOULD, SHOULD NOT and MAY in proposed rules are to be interpreted as described in BCP 14 [[spec: RFC2119]] [[spec: RFC8174]] when, and only when, they appear in all capitals. They do not imply agreement or a finalized upstream standard. Lowercase “must” and “should” in explanatory prose describe intent and are not conformance requirements.
 - **Decided:** a choice taken in review and recorded in section 13. Each Original is a did:vh whose log is its history, under the Originals did:vh extension, with its complexity hidden by the SDK.
-- **Unresolved:** a choice that still requires review, such as the asset state schema.
+- **Unresolved:** a choice that still requires review, such as confirming the provisional wire format in section 14.
 
 ### Scope and non-goals
 

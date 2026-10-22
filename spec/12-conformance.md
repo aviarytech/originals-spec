@@ -151,6 +151,14 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Unanchored: verifier that reported a state learns of a competing branch | Conflict reported; not silent (P6.6) |
 | Grant, before or after anchoring, naming the anchoring sat’s did:btco DID or the Original’s own did:vh | Rejected (P5.15) |
 | Unanchored Original with complete evidence and signer DID histories fetched moments ago | Reported valid as of its verified checkpoint, with each signer DID versionId and fetch time; never current or currently authorized (P7.10) |
+| Entry state with a member section 14 does not list, at any level | Rejected (P14.4) |
+| Resource digest in a non-canonical encoding, or a multihash other than SHA-256 | Rejected (P14.7) |
+| `asset.editors` present as an empty array | Rejected (P14.5) |
+| Resource descriptor whose `size` or `mediaType` changes without its `digest` | Rejected (P14.6) |
+| Entry whose UTF-8 line is 65,536 bytes / 65,537 bytes | Accepted / rejected (P14.13) |
+| Derived DID document compared with section 14’s template | Identical for every resolver (P14.9) |
+| Evidence package built twice from the same contents | Byte-identical archives (P14.10) |
+| Evidence package with a compressed archive entry or a name over 255 bytes | Rejected (P14.10) |
 
 ### Release evidence
 
