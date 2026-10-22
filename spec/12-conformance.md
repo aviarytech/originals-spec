@@ -21,7 +21,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Signer rejects or returns invalid proof | No partial state commit |
 | Interrupted local commit | Recover prior or fully committed checkpoint; no false success |
 | Identical accepted retry | Existing result or explicit duplicate; no unintended extra version |
-| Resource added, removed or renamed | Rejected in baseline fixed-resource profile |
+| Resource added or removed by an author entry | Accepted; an added resource is at version 1; a removed one stays verifiable in history (P4.1, P4.4) |
 | Metadata supplied, omitted or null | Replacement, unchanged or removed, respectively |
 | Name set to null | Rejected |
 | Update that leaves a resource’s digest unchanged | That resource’s version does not advance |
@@ -159,6 +159,12 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Derived DID document compared with section 14’s template | Identical for every resolver (P14.9) |
 | Evidence package built twice from the same contents | Byte-identical archives (P14.10) |
 | Evidence package with a compressed archive entry or a name over 255 bytes | Rejected (P14.10) |
+| Editor entry that adds or removes a resource, even one its grant names | Rejected (P5.16) |
+| Entry that adds a resource with a resourceID the Original used before | Rejected (P4.1) |
+| Entry that removes the last resource | Rejected (P4.1) |
+| Author entry removing a resource that a grant still names | Rejected (P5.15) |
+| Added resource not in any grant | No editor may change it until an author entry grants it (P5.15) |
+| Transitions for an added and a removed resource | `from: null` for the added one, `to: null` for the removed one, in the order P14.4 gives (P14.4) |
 
 ### Release evidence
 

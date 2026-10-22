@@ -18,7 +18,7 @@ P14.4 An entry’s state MUST have exactly the members `id`, `operation`, `autho
 - `operation` is `create` in the genesis entry and `update` or `deactivate` in every other entry. Anchoring is an `update` (P9.10).
 - `author` and `editor` are each exactly `{did, verificationMethod, versionId}`, all strings (P5.1, P5.16). For a did:btco signer, `versionId` is the inscription id of the version (P5.13).
 - `asset` has the required members `name`, `status`, `resources` and `aliases`, and the optional members `metadata` and `editors`.
-- `transitions` is an array of `{resource, from, to}`, where `from` is the previous digest or null and `to` is the new digest. It MUST list exactly the resources whose digest changed, in resource order; in the genesis entry it lists every resource with `from: null`; a deactivation lists none.
+- `transitions` is an array of `{resource, from, to}`, where `from` is the previous digest, or null for an added resource, and `to` is the new digest, or null for a removed resource. It MUST list exactly the resources added, removed or whose digest changed: first those in the resulting `resources`, in that order, then the removed ones, in their previous order; in the genesis entry it lists every resource with `from: null`; a deactivation lists none.
 
 P14.5 The members of `asset`:
 
@@ -26,7 +26,7 @@ P14.5 The members of `asset`:
 - `metadata`: a JSON object. When absent, there is no metadata (P4.6).
 - `status`: `active` or `deactivated`, agreeing with the operation and the deactivated parameter (P6.5).
 - `aliases`: an array of DIDs with at most one did:webvh and at most one did:btco. The genesis entry lists none.
-- `resources`: an array of resource descriptors, fixed in number and order at genesis, with at least one (P4.1).
+- `resources`: an array of resource descriptors, with at least one, at most the limit in P14.13, and unique ids. Existing resources keep their order; an added resource is appended, and a removed one leaves the others in order (P4.1).
 - `editors`: an array of 1 to 32 grants, each exactly `{did, name, metadata, resources}`, where `name` and `metadata` are booleans and `resources` is an array of resource ids. An empty array MUST NOT be used; absence means no editors (P5.15).
 
 P14.6 A resource descriptor is exactly `{id, mediaType, size, digest}`. `id` matches `^[A-Za-z0-9._-]{1,64}$`. `mediaType` is a `type/subtype` media type without parameters. `size` is the byte length, a non-negative integer. `mediaType` and `size` MUST NOT change unless `digest` changes in the same entry.
