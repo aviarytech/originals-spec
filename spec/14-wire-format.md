@@ -1,6 +1,6 @@
 ## Wire format (provisional)
 
-This section pins the byte-level choices that independent implementations must share. Every value here is **provisional**: it is taken from the Originals SDK at revision 1b3cabdd [S29], which is the only implementation, and recorded so that it is reviewed as a decision rather than adopted silently (D1, D4). Where the SDK and this section differ, this section says so and the SDK is expected to change. A value may still change before an interoperable release, and changing it changes the `method` value.
+This section pins the byte-level choices that independent implementations must share. The Bitcoin values in P14.12 and the limits in P14.13 are decided (owner decisions, 21 October 2026). Every other value here is **provisional**: it is taken from the Originals SDK at revision 1b3cabdd [S29], which is the only implementation, and recorded so that it is reviewed as a decision rather than adopted silently (D1, D4). Where the SDK and this section differ, this section says so and the SDK is expected to change. A value may still change before an interoperable release, and changing it changes the `method` value.
 
 ### Log and parameters
 
@@ -86,7 +86,7 @@ P14.13 A verifier MUST enforce these limits (P7.7, P8.5):
 |---|---|
 | Entries in an asset log | 10,000 |
 | Bytes in one entry, as its UTF-8 line without the line feed | 65,536 |
-| Resources | 64 |
+| Resources at any one time | 256 |
 | Editor grants | 32 |
 | Versions of one signer DID | 1,000 |
 | Bytes in a fetched log file | 16 MiB |
