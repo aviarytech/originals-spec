@@ -106,7 +106,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Anchored entry naming a did:vh or did:webvh author DID version, later than its inscription time, that lists again a key removed before that time | Accepted against the named version (P9.15) |
 | Verifier learns of a valid anchoring entry earlier in chain order than the one it reported | Earlier one reported as the anchor, previous one as conflicting, owner change reported; not silent (P9.16) |
 | Anchoring when the log or signer identity evidence through the signed anchoring entry does not verify | SDK refuses to inscribe (P9.18) |
-| Verified anchoring inscription after submission | Submitted, not observed, while the network is not seen to hold it; pending Bitcoin acceptance while in the mempool or confirmed; anchored once confirmed (P9.18) |
+| Verified anchoring inscription after submission | Submitted, not observed, while the network is not seen to hold it; pending Bitcoin acceptance while in the mempool or confirmed; once confirmed, reverified and reported anchored, not anchored, or anchored with incomplete identity evidence (P9.18) |
 | Anchoring inscription that does not start at the genesis entry, or whose entries do not verify as one log | Not an anchor (P9.17) |
 | Anchoring inscription whose last entry is not an anchoring entry naming that sat | Not an anchor (P9.17) |
 | Inscription the Bitcoin index reports on a sat whose number differs from the did:btco alias’s sat number | Not on the anchoring sat; ignored and reported (P9.10) |
@@ -176,12 +176,18 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Signer DID log obtained at a location whose latest version’s `id` names another location | Not used as that identity’s latest (P7.8) |
 | Anchoring inscription submitted but rejected, evicted or not visible to the SDK’s Bitcoin provider | Labelled submitted, not observed; never pending Bitcoin acceptance (P9.18) |
 | did:btco inscription with a delegated or content-encoded body whose own metadata is a DID document for that DID | A version of that DID (P5.13) |
-| did:btco inscription on the DID’s sat whose metadata the verifier has not read | History ends before it; identity evidence incomplete (P5.13) |
+| did:btco inscription on the DID’s sat whose metadata the verifier has not read | History ends before it; an entry depending on it has incomplete identity evidence, or is unverifiable if inscribed after the anchoring inscription (P5.13, P9.15) |
 | Author entry that adds a resource and grants it to an editor | Accepted; the editor may change it from the next entry (P5.15, P5.17) |
 | Number such as `1e16` or `9007199254740993.0` in an entry | Rejected (P14.3) |
 | Asset log or inscription body with a carriage return, non-compact JSON or no final line feed | Rejected (P14.2) |
 | Proof with a member other than those P14.8 lists | Rejected (P14.8) |
-| Evidence package whose entries are unsorted or carry other dates, flags or modes | A reader may accept it; a writer never produces it (P14.10) |
+| Evidence package whose entries are unsorted or carry other dates or flags | A reader may accept it; a writer never produces it (P14.10) |
+| Evidence package with a name that is not valid UTF-8, or an entry whose mode is not a regular file | Rejected (P14.10, P7.5) |
+| Valid publication after an earlier unverifiable inscription extending the same head | Not accepted until the unverifiable one is resolved; reported as waiting on it (P9.15) |
+| Earlier unverifiable inscription later verified as invalid, with a valid later publication from the same head | The later publication is accepted; the change of head is reported (P9.15) |
+| did:btco signer gap found after an inscription was accepted | That inscription becomes unverifiable; the head is recomputed and the change reported (P9.15) |
+| Entry in the anchoring inscription naming a signer version number the verifier holds under another versionId | Rejected (P9.15) |
+| `name` of 1,024 / 1,025 UTF-16 code units, counting a non-BMP character as two | Accepted / rejected (P14.5) |
 | Signer DID log from the old host whose latest version moves the DID and removes a key | Removal applied; moved log sought; freshness not established until found (P7.8, P5.14) |
 | did:btco signer whose named version is known but an earlier inscription on its sat is unread | Unverifiable; not accepted against the older state (P9.15) |
 | Asset log line with whitespace outside JSON strings / with keys in non-JCS order | Rejected / accepted (P14.2) |
