@@ -165,6 +165,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Author entry removing a resource that a grant still names | Rejected (P5.15) |
 | Added resource not in any grant | No editor may change it until an author entry grants it (P5.15) |
 | Transitions for an added and a removed resource | `from: null` for the added one, `to: null` for the removed one, in the order P14.4 gives (P14.4) |
+| Original with 256 resources whose entries are within the entry limit / 257 resources | Accepted / rejected (P14.13) |
 
 ### Release evidence
 

@@ -1,6 +1,6 @@
-## Wire format (provisional)
+## Wire format (partly provisional)
 
-This section pins the byte-level choices that independent implementations must share. Every value here is **provisional**: it is taken from the Originals SDK at revision 1b3cabdd [S29], which is the only implementation, and recorded so that it is reviewed as a decision rather than adopted silently (D1, D4). Where the SDK and this section differ, this section says so and the SDK is expected to change. A value may still change before an interoperable release, and changing it changes the `method` value.
+This section pins the byte-level choices that independent implementations must share. The Bitcoin values in P14.12 and the limits in P14.13 are decided (owner decisions, 21 October 2026). Every other value here is **provisional**: it is taken from the Originals SDK at revision 1b3cabdd [S29], which is the only implementation, and recorded so that it is reviewed as a decision rather than adopted silently (D1, D4). Where the SDK and this section differ, this section says so and the SDK is expected to change. A value may still change before an interoperable release, and changing it changes the `method` value.
 
 ### Log and parameters
 
@@ -86,12 +86,14 @@ P14.13 A verifier MUST enforce these limits (P7.7, P8.5):
 |---|---|
 | Entries in an asset log | 10,000 |
 | Bytes in one entry, as its UTF-8 line without the line feed | 65,536 |
-| Resources | 64 |
+| Resources at any one time | 256 |
 | Editor grants | 32 |
 | Versions of one signer DID | 1,000 |
 | Bytes in a fetched log file | 16 MiB |
 | Bytes in one fetched resource | 64 MiB |
 | Time for one fetch | 15 seconds |
+
+Every entry carries the full resource list, so the resource limit and the entry limit interact. With 256 resources an entry that describes each of them can exceed 65,536 bytes: with 64-character resourceIDs a genesis entry is about 86 KB, and even with short resourceIDs an entry that changes all 256 resources is about 65.7 KB. A 350,000-byte inscription (P9.17) also holds far fewer large entries: about 6 to 10 entries at 256 resources, against 26 to 40 at 64. The SDK MUST refuse to sign an entry over the entry limit, rather than produce one every verifier rejects. Authors of Originals with many resources SHOULD keep resourceIDs short and SHOULD anchor early, while the log through the anchoring entry still fits one inscription.
 
 The SDK measures entry size in UTF-16 code units of the re-serialised entry and sets no resource-size limit; this section measures UTF-8 bytes of the line as stored and sets 64 MiB, so that implementations in other languages agree.
 
