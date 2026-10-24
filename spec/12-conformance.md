@@ -14,7 +14,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Valid VH entry, key not a method of the named signer DID (the author DID, or the editor DID for an editor entry) | Signer binding failure; VH validity cannot rescue it |
 | Wrong DID method binding or relationship | Identity authorization failure |
 | Old identity version with claimed old time | Unanchored: ordering unproven; no timestamp-only acceptance. Anchored: checked against the author DID state at the inscription time (P9.15) |
-| Missing identity history | Incomplete identity evidence; no blanket verified result |
+| Missing identity history for an entry the accepted state depends on | Incomplete identity evidence; no blanket verified result. For an inscription after the anchor, see P9.15’s unverifiable case |
 | Missing historical resource bytes | Explicit partial availability; supplied bytes still checked |
 | Caller changes version counter | Counter ignored or rejected; history-derived version retained |
 | Stale parent or prior digest | Conflict; no silent rebase or commit |
@@ -65,7 +65,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | did:btco author DID version inscribed after an Originals inscription in the same block | Not in effect for that inscription |
 | Anchoring entry naming the author DID’s own did:btco sat | Rejected |
 | Inscription on a did:btco author DID’s sat after its deactivation | Not a version; author DID remains deactivated |
-| Anchored Original whose did:vh or did:webvh author DID log is unavailable | Incomplete identity evidence; not reported as current |
+| Anchored Original whose did:vh or did:webvh author DID log is unavailable for entries the accepted state depends on | Incomplete identity evidence; not reported as current. Later inscriptions it cannot check are unverifiable and leave the accepted state current (P9.15) |
 | Two proofs in the proof array | Rejected |
 | Older author DID history served when the verifier has retained a newer version | The newer version is used (P7.8) |
 | VH-valid log that fails Originals rules, read through a generic resolver | Not reported as Originals-verified |
@@ -105,7 +105,8 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Anchored Original whose resource bytes, current or historical, are unavailable | Log verified; content reported unavailable for the affected resources; not a verification failure (P7.4, P9.18) |
 | Anchored entry naming a did:vh or did:webvh author DID version, later than its inscription time, that lists again a key removed before that time | Accepted against the named version (P9.15) |
 | Verifier learns of a valid anchoring entry earlier in chain order than the one it reported | Earlier one reported as the anchor, previous one as conflicting, owner change reported; not silent (P9.16) |
-| Anchoring when the log or signer identity evidence through the signed anchoring entry does not verify | SDK refuses to inscribe; one that verifies is labelled pending Bitcoin acceptance until confirmed (P9.18) |
+| Anchoring when the log or signer identity evidence through the signed anchoring entry does not verify | SDK refuses to inscribe (P9.18) |
+| Verified anchoring inscription after submission | Submitted, not observed, while the network is not seen to hold it; pending Bitcoin acceptance while in the mempool or confirmed; anchored once confirmed (P9.18) |
 | Anchoring inscription that does not start at the genesis entry, or whose entries do not verify as one log | Not an anchor (P9.17) |
 | Anchoring inscription whose last entry is not an anchoring entry naming that sat | Not an anchor (P9.17) |
 | Inscription the Bitcoin index reports on a sat whose number differs from the did:btco alias’s sat number | Not on the anchoring sat; ignored and reported (P9.10) |
@@ -129,7 +130,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Editor entry signed with a key removed from the editor DID | Unanchored: not current while the latest verified editor DID state does not list the key. Anchored: rejected if inscribed at or after the removal, unless it names a later did:vh or did:webvh editor DID version that lists the key again (P9.15), or, for a did:btco editor DID, the latest version preceding the inscription lists it (P5.13); see P5.18 |
 | Editor entry after the author DID is deactivated | Unanchored: not current. Anchored: rejected if its inscription time is at or after the author DID deactivation’s versionTime, or for a did:btco author DID if the deactivation precedes it in chain order (P9.15, P5.18) |
 | Editor entry inscribed on the anchoring sat by the owner | Accepted (P9.12) |
-| Editor DID history missing for an editor entry | Incomplete identity evidence; not reported as current (P7.1, P5.6) |
+| Editor DID history missing for an editor entry | In the accepted state: incomplete identity evidence, not reported as current (P7.1, P5.6). An inscription after the anchor: unverifiable; accepted state stays current (P9.15) |
 | Two submissions with the same parent at a shared host | One accepted; the other refused with a stale-parent conflict returning the new head; refused candidate kept by the SDK, not published (P6.7, P6.8) |
 | Reconciled candidate signed by an authorized signer against the new head | Accepted (P6.8) |
 | Host changes or re-signs a submitted entry | Fails verification, or is not by an authorized signer (P6.7) |
@@ -181,6 +182,9 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Asset log or inscription body with a carriage return, non-compact JSON or no final line feed | Rejected (P14.2) |
 | Proof with a member other than those P14.8 lists | Rejected (P14.8) |
 | Evidence package whose entries are unsorted or carry other dates, flags or modes | A reader may accept it; a writer never produces it (P14.10) |
+| Signer DID log from the old host whose latest version moves the DID and removes a key | Removal applied; moved log sought; freshness not established until found (P7.8, P5.14) |
+| did:btco signer whose named version is known but an earlier inscription on its sat is unread | Unverifiable; not accepted against the older state (P9.15) |
+| Asset log line with whitespace outside JSON strings / with keys in non-JCS order | Rejected / accepted (P14.2) |
 
 ### Release evidence
 
