@@ -166,6 +166,21 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Added resource not in any grant | No editor may change it until an author entry grants it (P5.15) |
 | Transitions for an added and a removed resource | `from: null` for the added one, `to: null` for the removed one, in the order P14.4 gives (P14.4) |
 | Original with 256 resources whose entries are within the entry limit / 257 resources | Accepted / rejected (P14.13) |
+| Inscription after the anchor naming a signer DID version the verifier cannot verify | Reported unverifiable; the accepted state stays current and its identity evidence is not made incomplete (P9.15) |
+| Inscription after the anchor naming a did:vh or did:webvh signer version number the verifier holds under another versionId | Rejected (P9.15) |
+| Inscription after the anchor naming a did:btco signer version not in that DID’s fully read history | Rejected (P5.13, P9.15) |
+| Unverifiable inscription after the anchor that the verifier later verifies and accepts | Change of head reported, not silent (P9.15) |
+| Moved signer with no verified entry yet, whose latest entry names a location other than its earliest | Earliest entry’s location asked first; a log from either must verify from the identity’s genesis (P5.14) |
+| Signer DID log obtained from a location without support from that DID’s witnesses or watchers | Freshness not established; the report states where and when it was obtained and that a newer version may exist (P7.8) |
+| Signer DID log obtained at a location whose latest version’s `id` names another location | Not used as that identity’s latest (P7.8) |
+| Anchoring inscription submitted but rejected, evicted or not visible to the SDK’s Bitcoin provider | Labelled submitted, not observed; never pending Bitcoin acceptance (P9.18) |
+| did:btco inscription with a delegated or content-encoded body whose own metadata is a DID document for that DID | A version of that DID (P5.13) |
+| did:btco inscription on the DID’s sat whose metadata the verifier has not read | History ends before it; identity evidence incomplete (P5.13) |
+| Author entry that adds a resource and grants it to an editor | Accepted; the editor may change it from the next entry (P5.15, P5.17) |
+| Number such as `1e16` or `9007199254740993.0` in an entry | Rejected (P14.3) |
+| Asset log or inscription body with a carriage return, non-compact JSON or no final line feed | Rejected (P14.2) |
+| Proof with a member other than those P14.8 lists | Rejected (P14.8) |
+| Evidence package whose entries are unsorted or carry other dates, flags or modes | A reader may accept it; a writer never produces it (P14.10) |
 
 ### Release evidence
 

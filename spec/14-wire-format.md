@@ -6,9 +6,9 @@ This section pins the byte-level choices that independent implementations must s
 
 P14.1 An Original’s asset log MUST use the `method` value `originals:1.0`, which implies `vh-log:1.0`. The genesis entry’s parameters MUST be exactly `method` and `scid`; a deactivation entry’s parameters MUST be exactly `{"deactivated": true}`; every other entry’s parameters MUST be `{}`. A null parameter value MUST be rejected (P5.9, P9.9).
 
-P14.2 The asset log file is named `did.jsonl`. Each entry is one line of compact JSON ending in a single line feed. An asset log has no witness file (P9.8). `versionTime` MUST carry at most three fractional digits and end in `Z`, and MUST be later than the previous entry’s by at least one millisecond (D5) [S22].
+P14.2 The asset log file is named `did.jsonl`. Each entry is one line of compact JSON ending in a single line feed. An asset log has no witness file (P9.8). `versionTime` MUST carry at most three fractional digits and end in `Z`, and MUST be later than the previous entry’s by at least one millisecond (D5) [S22]. A reader MUST reject an asset log, hosted or packaged, and an inscription body (P14.12) that breaks this line format, including one with a carriage return, non-compact JSON or no final line feed. The logs of signer DIDs and did:webvh aliases follow their own DID methods.
 
-P14.3 Canonicalization is JCS [[spec: RFC8785]]. Parsers MUST reject duplicate keys, lone surrogates, integers outside the IEEE 754 safe range, `-0` and nesting deeper than 64 levels (P5.7).
+P14.3 Canonicalization is JCS [[spec: RFC8785]]. Parsers MUST reject duplicate keys, lone surrogates, any number whose value is an integer outside the IEEE 754 safe range however it is written (for example `1e16` or `9007199254740993.0`), `-0` and nesting deeper than 64 levels (P5.7).
 
 ### Entry state
 
@@ -22,7 +22,7 @@ P14.4 An entry’s state MUST have exactly the members `id`, `operation`, `autho
 
 P14.5 The members of `asset`:
 
-- `name`: a string of 1 to 1,024 characters.
+- `name`: a string of 1 to 1,024 UTF-16 code units (owner decision, 23 October 2026).
 - `metadata`: a JSON object. When absent, there is no metadata (P4.6).
 - `status`: `active` or `deactivated`, agreeing with the operation and the deactivated parameter (P6.5).
 - `aliases`: an array of DIDs with at most one did:webvh and at most one did:btco. The genesis entry lists none.
@@ -35,7 +35,7 @@ P14.7 A resource digest is the letter `z` followed by the base58btc encoding of 
 
 ### Proofs and keys
 
-P14.8 Each entry has exactly one proof with `type` `DataIntegrityProof`, `proofPurpose` `assertionMethod`, a `cryptosuite` of `eddsa-jcs-2022` or `bip340-jcs-2025` (P5.12), a `verificationMethod` byte-identical to the signer reference’s, and a `proofValue` of `z` followed by the base58btc encoding of the 64-byte signature. Signer keys are Multikeys in base58btc: Ed25519 with prefix 0xed01 and 32 bytes, or secp256k1 with prefix 0xe701 and a 33-byte compressed key. Ed25519 verification MUST reject small-order points.
+P14.8 Each entry has exactly one proof with `type` `DataIntegrityProof`, `proofPurpose` `assertionMethod`, a `cryptosuite` of `eddsa-jcs-2022` or `bip340-jcs-2025` (P5.12), a `verificationMethod` byte-identical to the signer reference’s, and a `proofValue` of `z` followed by the base58btc encoding of the 64-byte signature. Signer keys are Multikeys in base58btc: Ed25519 with prefix 0xed01 and 32 bytes, or secp256k1 with prefix 0xe701 and a 33-byte compressed key. Ed25519 verification MUST reject small-order points. A proof has exactly the members `type`, `cryptosuite`, `verificationMethod`, `proofPurpose` and `proofValue` (P14.4).
 
 ### Derived DID document
 
@@ -59,7 +59,7 @@ The `#files` service names each resource by id with its descriptor; where to fet
 
 ### Evidence package
 
-P14.10 An evidence package is a ZIP archive whose entries are all stored without compression, sorted by name, with the date 1980-01-01 00:00, the UTF-8 name flag and Unix mode 0100644, so that the same contents give the same bytes. Names are at most 255 bytes. It contains:
+P14.10 An evidence package is a ZIP archive whose entries are all stored without compression. Names are at most 255 bytes of UTF-8. A writer MUST produce entries sorted by name, with the date 1980-01-01 00:00, the UTF-8 name flag and Unix mode 0100644, so that the same contents give the same bytes; a reader MAY ignore these fields. It contains:
 
 - `originals-evidence.json`, the manifest: exactly `{format, profile, original, checkpoint, head, completeness, missing}`, where `format` is `originals-evidence/0.1`, `profile` is `originals:1.0`, `completeness` is `complete` or `partial` (P7.1), and `missing` lists `{kind: "resource", resource, version, digest, versionId}` and `{kind: "identity", did, role}` items, `role` being `author` or `editor`;
 - `asset/did.jsonl`, the asset log;
@@ -76,7 +76,7 @@ P14.11 A did:webvh alias is a did:webvh log of its own whose DID document lists 
 
 ### Bitcoin
 
-P14.12 An Originals inscription has the media type `application/vnd.originals.vh+jsonl`, no metadata and no content encoding, and a body of at most 350,000 bytes (P9.17). The anchoring inscription’s body is the asset log’s lines from genesis through the anchoring entry, each ending in a line feed; every later body is exactly one such line. A did:btco DID matches `^did:btco:((sig|test|reg):)?(0|[1-9][0-9]{0,15})$` with a sat number no greater than 2,099,999,997,689,999 (P9.10). A did:btco signer version is an inscription whose metadata is a CBOR DID document, in shortest-form encoding, whose `id` is that DID (P5.13).
+P14.12 An Originals inscription has the media type `application/vnd.originals.vh+jsonl`, no metadata and no content encoding, and a body of at most 350,000 bytes (P9.17). The anchoring inscription’s body is the asset log’s lines from genesis through the anchoring entry, each ending in a line feed; every later body is exactly one such line. A did:btco DID matches `^did:btco:((sig|test|reg):)?(0|[1-9][0-9]{0,15})$` with a sat number no greater than 2,099,999,997,689,999 (P9.10). A did:btco signer version is an inscription whose own metadata is a CBOR DID document, in shortest-form encoding, whose `id` is that DID, whatever its body, delegation or content encoding (P5.13).
 
 ### Limits
 
