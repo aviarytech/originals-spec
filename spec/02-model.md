@@ -1,10 +1,7 @@
 ## Model and terminology
 
 [[def: Original, Originals]]:
-~ A logical asset with a stable identifier, a verifiable state history and a set of named resources. Its content can be a photograph, a document, or several related byte streams.
-
-[[def: resourceID, resourceIDs]]:
-~ Identifies one logical resource across revisions.
+~ A logical asset with a stable identifier, a verifiable state history and exactly one resource, which can have many versions. Its content can be a photograph or a document (P4.1).
 
 [[def: resource version, resource versions]]:
 ~ An exact byte sequence bound to a mediaType and cryptographic digest in verified asset history.
@@ -13,7 +10,7 @@
 ~ The Original’s did:vh log under the Originals extension. It is the Original’s only history.
 
 [[def: asset state]]:
-~ The state recorded in full in each asset log entry: the Original’s name, metadata, lifecycle status, resource descriptors, aliases and editor grants. It is not a DID document.
+~ The state recorded in full in each asset log entry: the Original’s name, metadata, lifecycle status, resource descriptor, aliases and editor grants. It is not a DID document.
 
 [[def: VH entry, VH entries]]:
 ~ Commits a state transition according to the selected VH profile.
@@ -65,7 +62,7 @@ P2.1 An accepted [[ref: Original]] MUST have one unambiguous history identity an
 
 P2.2 A committed asset change MUST be a valid [[ref: VH entry]] under the selected profile, signed by a key that the verifier confirms is an authorized verification method, at the version named in that entry, of the author or of an editor whose grant covers the change (P5.16). A key with no verified signer binding, or an editor key whose grant in the parent’s state does not cover the change, MUST NOT be treated as an authorized change.
 
-P2.3 Every accepted state MUST preserve the association between the Original, its [[ref: resourceIDs]] and the prior accepted checkpoint. Storage locations MUST be treated as retrieval hints, not substitutes for signed digest bindings.
+P2.3 Every accepted state MUST preserve the association between the Original, its resource and the prior accepted checkpoint. Storage locations MUST be treated as retrieval hints, not substitutes for signed digest bindings.
 
 ### Conceptual state illustration
 
@@ -74,8 +71,8 @@ This is not a normative wire format or test vector.
 :::
 
 - Original identity → asset log checkpoint → asset state
-- Application state → name, metadata, lifecycle, named resource descriptors, aliases, editor grants
-- Resource descriptor → resourceID, mediaType, exact-byte digest
+- Application state → name, metadata, lifecycle, the resource descriptor, aliases, editor grants
+- Resource descriptor → mediaType, size, exact-byte digest
 - VH entry → Original identity, parent entry, resulting application state, author identity reference, an editor reference for an editor entry, one proof by the signer’s key
 - Evidence package → VH history, author identity evidence, resource bytes
 

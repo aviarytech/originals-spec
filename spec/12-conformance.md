@@ -21,10 +21,10 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Signer rejects or returns invalid proof | No partial state commit |
 | Interrupted local commit | Recover prior or fully committed checkpoint; no false success |
 | Identical accepted retry | Existing result or explicit duplicate; no unintended extra version |
-| Resource added or removed by an author entry | Accepted; an added resource is at version 1; a removed one stays verifiable in history (P4.1, P4.4) |
+| Entry whose state has no resource, or more than one | Rejected (P4.1, P14.5) |
 | Metadata supplied, omitted or null | Replacement, unchanged or removed, respectively |
 | Name set to null | Rejected |
-| Update that leaves a resource’s digest unchanged | That resource’s version does not advance |
+| Update that leaves the resource’s digest unchanged | Its version does not advance; `transitions` is empty (P4.4, P14.4) |
 | Import then edit without authority | Read succeeds where evidence valid; edit authorization fails |
 | Update after deactivation | Rejected; historical evidence retained |
 | Old valid prefix served as current | Reported valid as of its checkpoint, never current (P7.10) |
@@ -89,7 +89,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Archive with a symbolic link, `..` path or duplicate entry | Rejected before extraction |
 | SVG resource containing script, or a name containing markup | Not executed on the platform origin or in a client |
 | Entry inscribed on a sat whose did:btco alias its asset state does not list | Not an anchoring entry; ignored and reported |
-| Inscription of the Originals media type on the anchoring sat carrying did:btco DID-document metadata | Rejected |
+| Inscription on the anchoring sat whose metadata is a did:btco DID document, not an array of entries | Not an Originals inscription; ignored for the Original (P14.12) |
 | did:btco DID document inscribed on the anchoring sat by its holder | Ignored for the Original; a generic did:btco result is not reported as Originals verification |
 | Inscription other than the anchoring inscription carrying more than one entry | Rejected |
 | Anchored Original verified from Bitcoin alone, with no copy of the log | Complete log verified from the anchoring sat (P9.17) |
@@ -102,7 +102,8 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Inscribed entry naming a did:btco author DID version inscribed earlier in the same block, whose key it holds | Accepted (P5.13) |
 | Entry before the anchor naming a did:btco author DID version inscribed after the anchoring inscription | Rejected (P5.13) |
 | Inscribed entry naming a preceding did:btco version whose key a later preceding version removed | Rejected; the key must hold in the latest preceding version (P5.13) |
-| Anchored Original whose resource bytes, current or historical, are unavailable | Log verified; content reported unavailable for the affected resources; not a verification failure (P7.4, P9.18) |
+| Anchored Original whose uninscribed resource versions are unavailable | Log verified; those versions reported unavailable; not a verification failure (P7.4, P9.18) |
+| Anchored Original read from Bitcoin alone | Current version’s bytes read from the newest accepted inscription’s body and checked against its descriptor (P9.17, P9.18) |
 | Anchored entry naming a did:vh or did:webvh author DID version, later than its inscription time, that lists again a key removed before that time | Accepted against the named version (P9.15) |
 | Verifier learns of a valid anchoring entry earlier in chain order than the one it reported | Earlier one reported as the anchor, previous one as conflicting, owner change reported; not silent (P9.16) |
 | Anchoring when the log or signer identity evidence through the signed anchoring entry does not verify | SDK refuses to inscribe (P9.18) |
@@ -117,10 +118,17 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | did:btco alias with an unknown network prefix, a sign, leading zeros or a number beyond the supply of sats | Rejected (P9.10) |
 | Two indexes the verifier uses disagree on which sat an inscription is on | Not accepted; missing evidence reported until they agree (P9.10) |
 | Anchored Original whose did:webvh alias is removed, then added again | Re-adding rejected (P9.10) |
-| Inscription body of exactly 350,000 bytes | Accepted, if otherwise valid (P9.17) |
-| Inscription body over 350,000 bytes, or an Original whose log through the anchoring entry is over it | Rejected; the SDK refuses to anchor (P9.17) |
+| Inscription whose metadata and body are exactly 350,000 bytes together | Accepted, if otherwise valid (P9.17) |
+| Inscription whose metadata and body are over 350,000 bytes together, or an Original whose log through the anchoring entry and current version are over it | Rejected; the SDK refuses to anchor or publish (P9.17) |
+| Inscription whose body’s digest or size differs from its last entry’s resource descriptor | Rejected (P9.17) |
+| Inscription whose content type differs from its last entry’s resource `mediaType`, or that has a content encoding | Rejected (P9.17) |
+| SDK about to inscribe an entry | Tells the author the inscribed version, name and metadata become public and permanent, and warns when the version is active content (P9.18) |
+| Inscription after the anchor whose entry changes only the name or metadata | Body is the unchanged current version, inscribed again (P9.17) |
+| Inscription metadata containing a CBOR tag, byte string, float, indefinite-length item, non-text map key or duplicate key | Rejected (P14.12) |
+| Inscription metadata split over several data pushes | Concatenated, then decoded (P14.12) |
+| Entry carried in inscription metadata | Hashes and proof checked over its JCS form; key order in the CBOR map does not matter (P14.3, P14.12) |
 | Two editors with grants each sign an entry within their grant, on successive heads, with no author signature | Both accepted; author unchanged; each entry identifies its editor (P5.16) |
-| Editor entry changing content outside its grant: the name, the metadata or a resource it is not granted | Rejected (P5.16) |
+| Editor entry changing content outside its grant: the name, the metadata or the resource | Rejected (P5.16) |
 | Editor entry that changes grants, aliases, lifecycle or parameters, anchors, or deactivates | Rejected (P5.16) |
 | Editor entry whose author reference differs from its parent’s | Rejected (P5.16) |
 | Editor entry whose parent’s state has no grant for that editor, including after revocation | Rejected (P5.17) |
@@ -148,7 +156,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | The Original’s did:webvh alias moves to another host | Unanchored: handled as an alias change by an author entry (P3.6, P9.3). Anchored: a new did:webvh alias is rejected (P9.10). Author binding unaffected either way |
 | Editor entry whose proof’s verificationMethod is the author’s, or whose operation is not update | Rejected (P5.2, P5.16) |
 | Editor entry naming an older editor DID version than that editor’s previous entry | Rejected (P5.8, P5.18) |
-| Grant naming a resourceID outside the resource set, or more grants than the profile limit | Rejected; limit-exceeded (P5.15, P7.7) |
+| More grants than the profile limit | Rejected; limit-exceeded (P5.15, P7.7) |
 | Unanchored: verifier that reported a state learns of a competing branch | Conflict reported; not silent (P6.6) |
 | Grant, before or after anchoring, naming the anchoring sat’s did:btco DID or the Original’s own did:vh | Rejected (P5.15) |
 | Unanchored Original with complete evidence and signer DID histories fetched moments ago | Reported valid as of its verified checkpoint, with each signer DID versionId and fetch time; never current or currently authorized (P7.10) |
@@ -160,13 +168,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Derived DID document compared with section 14’s template | Identical for every resolver (P14.9) |
 | Evidence package built twice from the same contents | Byte-identical archives (P14.10) |
 | Evidence package with a compressed archive entry or a name over 255 bytes | Rejected (P14.10) |
-| Editor entry that adds or removes a resource, even one its grant names | Rejected (P5.16) |
-| Entry that adds a resource with a resourceID the Original used before | Rejected (P4.1) |
-| Entry that removes the last resource | Rejected (P4.1) |
-| Author entry removing a resource that a grant still names | Rejected (P5.15) |
-| Added resource not in any grant | No editor may change it until an author entry grants it (P5.15) |
-| Transitions for an added and a removed resource | `from: null` for the added one, `to: null` for the removed one, in the order P14.4 gives (P14.4) |
-| Original with 256 resources whose entries are within the entry limit / 257 resources | Accepted / rejected (P14.13) |
+| Transitions in the genesis entry / an entry changing the resource / any other entry | `[{from: null, to}]` / `[{from, to}]` / `[]` (P14.4) |
 | Inscription after the anchor naming a signer DID version the verifier cannot verify | Reported unverifiable; the accepted state stays current and its identity evidence is not made incomplete; later publications from that head wait (P9.15) |
 | Inscription after the anchor naming a did:vh or did:webvh signer version number the verifier holds under another versionId | Rejected (P9.15) |
 | Inscription after the anchor naming a did:btco signer version not in that DID’s fully read history | Rejected (P5.13, P9.15) |
@@ -177,9 +179,8 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Anchoring inscription submitted but rejected, evicted or not visible to the SDK’s Bitcoin provider | Labelled submitted, not observed; never pending Bitcoin acceptance (P9.18) |
 | did:btco inscription with a delegated or content-encoded body whose own metadata is a DID document for that DID | A version of that DID (P5.13) |
 | did:btco inscription on the DID’s sat whose metadata the verifier has not read | History ends before it; an entry depending on it has incomplete identity evidence, or is unverifiable if inscribed after the anchoring inscription (P5.13, P9.15) |
-| Author entry that adds a resource and grants it to an editor | Accepted; the editor may change it from the next entry (P5.15, P5.17) |
 | Number such as `1e16` or `9007199254740993.0` in an entry | Rejected (P14.3) |
-| Asset log or inscription body with a carriage return, non-compact JSON or no final line feed | Rejected (P14.2) |
+| Asset log with a carriage return, non-compact JSON or no final line feed | Rejected (P14.2) |
 | Proof with a member other than those P14.8 lists | Rejected (P14.8) |
 | Evidence package whose entries are unsorted or carry other dates or flags | A reader may accept it; a writer never produces it (P14.10) |
 | Evidence package with a name that is not valid UTF-8, or an entry whose mode is not a regular file | Rejected (P14.10, P7.5) |

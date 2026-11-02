@@ -11,9 +11,9 @@ Each Original is a did:vh, `did:vh:<SCID>`, whose log is its [[ref: asset log]] 
 The Original gains aliases, listed in its asset state and in the derived `alsoKnownAs`:
 
 - a did:webvh once it is published on the web. This is a small did:webvh log of its own that points to the did:vh, and its implicit `#files` service maps DID URLs such as `did:webvh:<SCID>:example.com/photo` to files at that host;
-- a did:btco once it is anchored, naming the anchoring sat (P9.10). Once anchored, resolution should go through this alias. Originals inscriptions on that sat carry no did:btco DID-document metadata (P9.17), so the alias is resolved only by a verifier applying this profile (P3.5).
+- a did:btco once it is anchored, naming the anchoring sat (P9.10). Once anchored, resolution should go through this alias. Originals inscriptions on that sat carry log entries, not a did:btco DID document, in their metadata (P9.17, P14.12), so the alias is resolved only by a verifier applying this profile (P3.5).
 
-The derived DID document of the did:vh carries a `#files` service built from the resource descriptors, so the did:vh can locate the Original’s files itself.
+The derived DID document of the did:vh carries a `#files` service built from the resource descriptor, so the did:vh can locate the Original’s files itself.
 
 The SDK today identifies an Original by `did:cel` and keeps a CEL 3 log [S14, S12]. No Originals were issued in that format, so it is replaced without conversion or migration.
 
@@ -27,7 +27,7 @@ P3.3 A resolver MUST distinguish verified state, missing evidence, unsupported p
 
 P3.4 Publication URLs and redirects MUST NOT independently transfer author or log-control authority. Any continuity claim after relocation MUST be supported by the selected profile’s authenticated evidence.
 
-P3.5 A successful generic VH Log, did:vh, did:webvh or did:btco resolution MUST NOT be reported as Originals verification. Originals state MUST be derived only by a verifier that applies this profile, because generic resolvers ignore the profile’s additional rules. A generic did:vh resolver rejects an asset log by its unrecognised `method` value [S19, S20], so it fails closed rather than showing a different current state. A generic did:btco resolver finds no DID document on an anchoring sat, because Originals inscriptions carry none (P9.17); if the sat’s holder inscribes one there, a generic did:btco resolver returns it, and it MUST NOT be used for the Original (P3.8).
+P3.5 A successful generic VH Log, did:vh, did:webvh or did:btco resolution MUST NOT be reported as Originals verification. Originals state MUST be derived only by a verifier that applies this profile, because generic resolvers ignore the profile’s additional rules. A generic did:vh resolver rejects an asset log by its unrecognised `method` value [S19, S20], so it fails closed rather than showing a different current state. A generic did:btco resolver finds no DID document on an anchoring sat, because the metadata of Originals inscriptions is an array of log entries, not a DID document (P9.17, P14.12); if the sat’s holder inscribes one there, a generic did:btco resolver returns it, and it MUST NOT be used for the Original (P3.8).
 
 P3.6 A did:webvh is an alias of an Original only if its DID document points to the Original’s did:vh and the Original’s asset state lists the did:webvh. A verifier MUST NOT accept either direction alone. A did:webvh DID document MUST NOT be used to derive the Original’s state, resource versions, authority or ownership.
 
