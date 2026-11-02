@@ -124,7 +124,9 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Inscription whose content type differs from its last entry’s resource `mediaType`, or that has a content encoding | Rejected (P9.17) |
 | SDK about to inscribe an entry | Tells the author the inscribed version, name and metadata become public and permanent, and warns when the version is active content (P9.18) |
 | Inscription after the anchor whose entry changes only the name or metadata | Body is the unchanged current version, inscribed again (P9.17) |
-| Inscription metadata containing a CBOR tag, byte string, float, indefinite-length item, non-text map key or duplicate key | Rejected (P14.12) |
+| Inscription metadata containing a CBOR tag, byte string, indefinite-length item, non-text map key or duplicate key | Rejected (P14.12) |
+| Entry whose metadata holds a non-integer number, inscribed as a half-, single- or double-precision float | Accepted; hashes and proof checked over its JCS form (P14.3, P14.12) |
+| Inscription metadata holding a NaN, infinite or negative-zero float, or one above P14.3’s bound | Rejected (P14.12) |
 | Inscription metadata split over several data pushes | Concatenated, then decoded (P14.12) |
 | Entry carried in inscription metadata | Hashes and proof checked over its JCS form; key order in the CBOR map does not matter (P14.3, P14.12) |
 | Two editors with grants each sign an entry within their grant, on successive heads, with no author signature | Both accepted; author unchanged; each entry identifies its editor (P5.16) |
