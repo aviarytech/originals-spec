@@ -6,7 +6,7 @@ The SDK today queues concurrent edits and signs each against whatever head is cu
 
 ### Proposed operation contract
 
-Create prepares the initial asset state, resource descriptors and genesis entry. The author signs it, the SDK verifies it and commits one valid initial checkpoint. It returns either a verified Original or an explicit unsigned [[ref: draft]]; these outcomes are different types or clearly distinguishable states.
+Create prepares the initial asset state, resource descriptor and genesis entry. The author signs it, the SDK verifies it and commits one valid initial checkpoint. It returns either a verified Original or an explicit unsigned [[ref: draft]]; these outcomes are different types or clearly distinguishable states.
 
 Edit reads an exact verified parent, computes the resource’s new descriptor, if its bytes change (P4.1), has the author or a granted editor sign the next VH entry and verifies it. The current pointer changes only after the signed entry and new bytes are durably stored. For the caller this is one step.
 

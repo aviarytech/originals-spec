@@ -122,6 +122,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Inscription whose metadata and body are over 350,000 bytes together, or an Original whose log through the anchoring entry and current version are over it | Rejected; the SDK refuses to anchor or publish (P9.17) |
 | Inscription whose body’s digest or size differs from its last entry’s resource descriptor | Rejected (P9.17) |
 | Inscription whose content type differs from its last entry’s resource `mediaType`, or that has a content encoding | Rejected (P9.17) |
+| SDK about to inscribe an entry | Tells the author the inscribed version, name and metadata become public and permanent, and warns when the version is active content (P9.18) |
 | Inscription after the anchor whose entry changes only the name or metadata | Body is the unchanged current version, inscribed again (P9.17) |
 | Inscription metadata containing a CBOR tag, byte string, float, indefinite-length item, non-text map key or duplicate key | Rejected (P14.12) |
 | Inscription metadata split over several data pushes | Concatenated, then decoded (P14.12) |

@@ -13,7 +13,7 @@ The Original gains aliases, listed in its asset state and in the derived `alsoKn
 - a did:webvh once it is published on the web. This is a small did:webvh log of its own that points to the did:vh, and its implicit `#files` service maps DID URLs such as `did:webvh:<SCID>:example.com/photo` to files at that host;
 - a did:btco once it is anchored, naming the anchoring sat (P9.10). Once anchored, resolution should go through this alias. Originals inscriptions on that sat carry log entries, not a did:btco DID document, in their metadata (P9.17, P14.12), so the alias is resolved only by a verifier applying this profile (P3.5).
 
-The derived DID document of the did:vh carries a `#files` service built from the resource descriptors, so the did:vh can locate the Original’s files itself.
+The derived DID document of the did:vh carries a `#files` service built from the resource descriptor, so the did:vh can locate the Original’s files itself.
 
 The SDK today identifies an Original by `did:cel` and keeps a CEL 3 log [S14, S12]. No Originals were issued in that format, so it is replaced without conversion or migration.
 

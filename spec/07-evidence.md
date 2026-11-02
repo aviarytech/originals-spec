@@ -14,7 +14,7 @@ P7.2 Packaging MUST preserve signed bytes or canonical signed representations as
 
 P7.3 A reader MUST validate evidence before exposing derived state as verified. Verification MUST establish identifier/genesis binding, history continuity, log authority, author binding and state transitions, and MUST check the digest of every resource byte sequence it is given. Resource bytes are not needed for the log to verify; missing ones are reported as unavailable content (P7.4, P9.18). A private key MUST NOT be required for any read-only check.
 
-P7.4 Missing bytes MUST produce an explicit partial-availability result identifying the affected resource and checkpoint. Available bytes MUST still be checked. Missing proof or identity evidence MUST be reported separately from missing content; no missing item permits bypassing a signature or digest check.
+P7.4 Missing bytes MUST produce an explicit partial-availability result identifying the affected resource version and checkpoint. Available bytes MUST still be checked. Missing proof or identity evidence MUST be reported separately from missing content; no missing item permits bypassing a signature or digest check.
 
 P7.5 Import MUST NOT confer signing authority, trust unknown keys, or replace an existing history with a conflicting branch without explicit handling. Untrusted archive paths, sizes and compression MUST be bounded before extraction. Import MUST reject absolute paths, `..` segments, symbolic links and duplicate entries. Import MUST NOT replace a newer local history with an older prefix of it.
 
