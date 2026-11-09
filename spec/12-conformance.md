@@ -198,6 +198,21 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Signer DID log from the old host whose latest version moves the DID and removes a key | Removal applied; moved log sought; freshness not established until found (P7.8, P5.14) |
 | did:btco signer whose named version is known but an earlier inscription on its sat is unread | Unverifiable; not accepted against the older state (P9.15) |
 | Asset log line with whitespace outside JSON strings / with keys in non-JCS order | Rejected / accepted (P14.2) |
+| Carried file whose bytes, with the carrier removed, are the version its log’s last entry names | Log verified, version verified, valid as of that checkpoint; never current unless anchored (P7.12, P7.14) |
+| Carried file whose remaining bytes differ by one byte, or by changed line endings | Bytes not verified; Original and checkpoint MAY be reported, the log’s result separately (P7.12) |
+| Carried file read offline, signer DID not resolvable | Log and version checked; identity evidence incomplete, never a pass (P7.13, P5.6) |
+| Carried log whose last entry names a media type with a different carrier, or none | No valid carrier (P7.12, P14.14) |
+| Trailer whose length exceeds the file, whose footer is altered by end-of-line conversion, or whose log breaks P14.2 | No trailer, or log invalid; never a wrong version (P14.15) |
+| Text file with an earlier text block followed by content | The earlier block is content, not a carrier (P14.16) |
+| Text block with CR LF line ends, or whitespace after the closing line | Accepted; the whitespace is not part of the version (P14.16) |
+| Text block entry line with `\u` escapes / with a raw `--` inside a block comment | Accepted, checked over its JCS form / not written by a conforming writer (P14.16) |
+| JSON member that is the root object’s last, with entries reformatted and keys reordered | Accepted; entries checked over their JCS form (P14.17) |
+| JSON member that is not last, or a second root member of the same name | Not a carrier; MAY identify the Original only (P7.12, P14.17) |
+| JSON document whose root is an array, or already has the member | Writer refuses (P7.15, P14.17) |
+| Writer asked to carry a draft, or a version other than the last entry’s | Refused (P7.15) |
+| Carrier added or removed | No entry signed; the version is unchanged (P7.16) |
+| Carried log older than the reader’s local history, or on another branch | Local history kept; a branch reported as a conflict (P7.14, P7.5) |
+| Anchored Original whose carried log disagrees with the anchoring sat | State from the sat; the carried log is not preferred (P7.14, P9.13) |
 
 ### Release evidence
 

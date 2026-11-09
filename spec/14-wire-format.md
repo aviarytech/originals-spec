@@ -106,4 +106,43 @@ The SDK measures entry size in UTF-16 code units of the re-serialised entry and 
 
 A shared host (P6.7) needs no particular transport. As a guide, the SDK submits `{original, entry, resources, identities}`, where `entry` is the exact line, and the host answers `accepted` or `already-accepted` with the checkpoint and head, or `stale-parent` with the head.
 
+### Carried log (proposed)
+
+Everything in this subsection is provisional. The media types listed were checked only on macOS (Preview, Quick Look, `sips`, `afinfo`, PDFKit) with a 12,000-byte trailer; adding a media type needs the same evidence across the readers it targets.
+
+P14.14 The carrier for a resource version is chosen by the `mediaType` its descriptor names (P14.6), and no other carrier is valid for it (P7.12):
+
+| Carrier | `mediaType` |
+|---|---|
+| Trailer (P14.15) | `image/png`, `image/jpeg`, `image/gif`, `image/tiff`, `image/heic`, `application/pdf`, `audio/mp4`, `audio/wav`, `audio/aiff` |
+| Text block (P14.16) | the media types in P14.16’s table |
+| JSON member (P14.17) | `application/json` and any type with the `+json` suffix |
+
+Any other media type has no carrier, including ZIP-based formats such as EPUB and Office documents, whose readers look for their directory only in the last 65,557 bytes. In every carrier the log is at most 16 MiB and its entries are subject to P14.13.
+
+P14.15 A trailer is the asset log `L`, exactly as P14.2 defines `did.jsonl`, followed by a 24-byte footer: the byte length of `L` as an unsigned 64-bit big-endian integer, then the 16 bytes `89 4F 52 49 47 49 4E 41 4C 4C 4F 47 0D 0A 1A 0A` (`\x89ORIGINALLOG\r\n\x1A\n`). A file has a trailer only if its last 16 bytes are that sequence and the length is at most the file’s size less 24. The carrier is the last `24 + length` bytes, and the resource version is every byte before it. Like PNG’s signature, the footer is damaged by end-of-line conversion and by stripping the high bit, so a file altered that way has no trailer rather than a wrong one.
+
+P14.16 A text block is a line feed followed by these lines, each ending in a line feed:
+
+- the comment opener, for a block comment;
+- `=====BEGIN ORIGINAL=====`;
+- one line per entry, in order, each the compact JSON of the entry as in P14.2;
+- `=====END ORIGINAL=====`;
+- the comment closer, for a block comment.
+
+For a line comment, each of the marker and entry lines starts with the comment prefix and one space. The carrier runs from its first line feed to its last, and the resource version is every byte before it. A writer MAY end every carrier line with CR LF instead, when the resource version’s own lines end that way. A reader MUST accept LF or CR LF at the end of each carrier line, and MUST allow any spaces, tabs, carriage returns and line feeds after the carrier, which are not part of the version. Only a block that ends the file counts; any earlier block is content. Inside JSON strings, a writer MUST escape characters with `\u` escapes so that no marker or entry line contains the closing sequence of its comment or, for a block comment, `--`; the marker lines contain neither. These escapes do not change the entry’s JCS form (P14.3), and P14.2’s line rules otherwise apply to each entry line once its comment prefix and line end are removed.
+
+| `mediaType` | Comment |
+|---|---|
+| `text/plain` | none: the lines stand alone |
+| `text/markdown`, `text/html`, `application/xhtml+xml`, `image/svg+xml`, `application/xml`, `text/xml` | block, `<!--` and `-->` |
+| `text/css` | block, `/*` and `*/` |
+| `text/javascript`, `application/typescript`, `text/x-c`, `text/x-c++`, `text/x-java-source`, `text/x-go`, `text/x-rust`, `text/x-swift`, `text/x-kotlin` | line, `//` |
+| `text/x-python`, `text/x-shellscript`, `text/x-ruby`, `application/yaml`, `application/toml` | line, `#` |
+| `application/sql` | line, `--` |
+
+Other `text/` types, such as `text/csv`, have no carrier, because a trailing line would be read as content.
+
+P14.17 A JSON member is the last member of the document’s root object, named `originalLog`, whose value is an array of the entries, in order, each a JSON object. The carrier runs from the first byte after the previous member’s value, or after the root object’s `{` when it is the only member, through the array’s closing `]`, and the resource version is the document with exactly those bytes removed. A document has a JSON member only if its root is an object, the member is that object’s last, and no other root member has that name. A reader MUST locate the member with a parser that reports byte offsets, rejecting a duplicate name at the root. It checks each entry as P14.12 checks entries carried in inscription metadata: under P14.3–P14.8, its hashes and proof computed over its JCS form, its size measured as that form in UTF-8 (P14.13). P14.2’s line format does not apply. Whitespace, key order and string escapes in the entries are therefore free, so a carried log survives reformatting, although the remaining bytes then no longer match the version (P7.12). A writer MUST refuse a document whose root is not an object or already has the member (P7.15).
+
 Sources: Originals SDK revision 1b3cabdd [S29].

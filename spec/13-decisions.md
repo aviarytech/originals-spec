@@ -26,6 +26,7 @@ Every open or provisional choice, the rules it affects and what it blocks. An **
 |---|---|---|---|
 | Confirming the provisional asset state schema, entry state fields, `originals:1.0` method value and derived DID document | [D1](#d1), [D4](#d4) | P14.1–P14.9 | Interoperable release |
 | Confirming the provisional evidence package format and hosting layout | [D3](#d3), [D4](#d4) | P14.10, P14.11 | Interoperable release |
+| Confirming the provisional carried-log carriers, their media types and the JSON member name (owner request, 9 November 2026) | [D4](#d4) | P7.11–P7.16, P14.14–P14.17 | Interoperable release |
 | Test vectors and fixtures for section 12 | [D4](#d4) | Section 12 | Interoperable release |
 | VH-Log pull requests 2, 3, 8, 9, 10 and 11 and did:vh pull request 3 merging upstream [S19–S25] | [D1](#d1), [D3](#d3), [D4](#d4), [D6](#d6) | P5.9, P5.12, P9.13, P9.14, P9.17 | Any claim of VH-Log or did:vh conformance |
 | VH-Log PR 11, including its editors from a controller, merging upstream [S25] | [D2](#d2) | P5.15–P5.18 | VH-Log conformance of editor entries |
