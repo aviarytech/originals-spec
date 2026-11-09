@@ -198,6 +198,27 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Signer DID log from the old host whose latest version moves the DID and removes a key | Removal applied; moved log sought; freshness not established until found (P7.8, P5.14) |
 | did:btco signer whose named version is known but an earlier inscription on its sat is unread | Unverifiable; not accepted against the older state (P9.15) |
 | Asset log line with whitespace outside JSON strings / with keys in non-JCS order | Rejected / accepted (P14.2) |
+| Original without `anchor` whose later entry adds one; Original with `anchor` whose later entry changes or removes it | Rejected (P9.19) |
+| Original with an EVM `anchor` listing a did:btco alias, or a token alias other than its derived token’s; Original without `anchor` listing a token alias | Rejected (P9.19, P14.19) |
+| `anchor.chain` not `eip155:` with a canonical decimal chain ID / `minter` in mixed case | Rejected (P14.18) |
+| Genesis entry with an `anchor` member while P14.21 pins no contract | Unsupported, not invalid; a writer refuses to write it (P14.21) |
+| Code at the anchor contract address with another runtime code hash, or none | Unsupported; never verified or reported as not anchored (P9.21) |
+| Publication read from a chain other than the one `anchor` names | Not a publication of the Original (P9.20) |
+| Publication in a block above the finalized block | Observed, not accepted; pending (P9.22, P9.27) |
+| Two providers disagree on a publication, on `ownerOf` or on the finalized block | Missing evidence until they agree; the lower finalized block is used (P9.20, P9.22) |
+| A block accepted as finalized is replaced | `authoritative-source-changed` and a finality failure reported (P9.22) |
+| Token minted, no anchoring publication | Not anchored; no owner (P9.23) |
+| Two anchoring entries from different branches published on the token | First in EVM chain order is the anchor; the other a conflicting anchor; uniqueness MAY be reported as established under the chain’s finality (P9.24, P9.16) |
+| Two publications extending the same head in one block | The first by transaction index, then log index, is accepted; at most one per block (P9.13, P9.20) |
+| Publication by an address that is neither the holder nor an approved operator | Reverted by the contract; never emitted (P14.20) |
+| Opened publication never committed | Ignored (P14.20) |
+| Publication whose length prefix exceeds its data, whose metadata and body exceed 350,000 bytes, or whose body digest, size or media type differs from the last entry’s descriptor | Rejected (P14.20, P9.17) |
+| Publication whose `Chunk` events a verifier cannot read, or a provider that pruned the token’s events | Resolution fails with missing evidence (P9.25) |
+| Original with an EVM `anchor` naming a did:btco author or editor | Rejected (P9.26) |
+| did:webvh signer key removed before the publication’s block timestamp | Rejected, as P9.15 with the publication’s inscription time (P9.26) |
+| Token held by a contract account | That contract is the owner (P9.23) |
+| Writer creating an Original with an EVM `anchor` | Author told the choice is permanent, what the chain’s operators can do, that publications depend on event-log retention, and the minter fixed (P9.27) |
+| Report for an Original anchored on an EVM chain | Names the chain, token, finalized block and providers; never called a Bitcoin anchor (P9.27) |
 
 ### Release evidence
 

@@ -1,6 +1,6 @@
 ## Wire format (partly provisional)
 
-This section pins the byte-level choices that independent implementations must share. Owner decisions of 21 October 2026 decide the 350,000-byte inscription limit and the did:btco network prefixes in P14.12, and the limits in P14.13. D4 decides JCS canonicalization (P14.3), as the canonicalization the pinned VH Log version uses; SHA-256 multihashes for resource digests (P14.7, P4.2); the two cryptosuites (P14.8, P5.12); and the parts of P14.2, P14.3, P14.5, P14.8 and P14.10 that it records as decided on 23 October 2026. D3 decides that an asset log has no witness file (P14.2, P9.8). D6 decides the inscription body, metadata and media type in P14.12 (P9.17; owner decision, 1 November 2026), except the JSON-to-CBOR mapping of the metadata, which stays provisional, and that a did:btco signer version is identified by its own metadata alone (P14.12, P5.13). Everything else in this section, including the entry state fields and the evidence package format, is **provisional**: it is taken from the Originals SDK at revision 1b3cabdd [S29], which is the only implementation, and recorded so that it is reviewed as a decision rather than adopted silently (D1, D4). Where the SDK and this section differ, this section says so and the SDK is expected to change. A provisional value may still change before an interoperable release; until then a change keeps the `method` value `originals:1.0`, and Originals written under the earlier value no longer verify (owner decision, 1 November 2026). After an interoperable release, changing a value changes the `method` value.
+This section pins the byte-level choices that independent implementations must share. Owner decisions of 21 October 2026 decide the 350,000-byte inscription limit and the did:btco network prefixes in P14.12, and the limits in P14.13. D4 decides JCS canonicalization (P14.3), as the canonicalization the pinned VH Log version uses; SHA-256 multihashes for resource digests (P14.7, P4.2); the two cryptosuites (P14.8, P5.12); and the parts of P14.2, P14.3, P14.5, P14.8 and P14.10 that it records as decided on 23 October 2026. D3 decides that an asset log has no witness file (P14.2, P9.8). D6 decides the inscription body, metadata and media type in P14.12 (P9.17; owner decision, 1 November 2026), except the JSON-to-CBOR mapping of the metadata, which stays provisional, and that a did:btco signer version is identified by its own metadata alone (P14.12, P5.13). The EVM anchoring values (P14.18–P14.21) are proposed and provisional. Everything else in this section, including the entry state fields and the evidence package format, is **provisional**: it is taken from the Originals SDK at revision 1b3cabdd [S29], which is the only implementation, and recorded so that it is reviewed as a decision rather than adopted silently (D1, D4). Where the SDK and this section differ, this section says so and the SDK is expected to change. A provisional value may still change before an interoperable release; until then a change keeps the `method` value `originals:1.0`, and Originals written under the earlier value no longer verify (owner decision, 1 November 2026). After an interoperable release, changing a value changes the `method` value.
 
 ### Log and parameters
 
@@ -17,7 +17,7 @@ P14.4 An entry’s state MUST have exactly the members `id`, `operation`, `autho
 - `id` is the Original’s did:vh, `did:vh:<SCID>`.
 - `operation` is `create` in the genesis entry and `update` or `deactivate` in every other entry. Anchoring is an `update` (P9.10).
 - `author` and `editor` are each exactly `{did, verificationMethod, versionId}`, all strings (P5.1, P5.16). For a did:btco signer, `versionId` is the inscription id of the version (P5.13).
-- `asset` has the required members `name`, `status`, `resource` and `aliases`, and the optional members `metadata` and `editors`.
+- `asset` has the required members `name`, `status`, `resource` and `aliases`, and the optional members `metadata`, `editors` and `anchor` (P14.18).
 - `transitions` is an array of `{from, to}` with at most one item, where `from` is the previous digest, or null in the genesis entry, and `to` is the new digest. It MUST have one item exactly when the resource’s digest changes: in the genesis entry `{from: null, to}`, and in a later entry that changes the digest `{from, to}`. It is empty in any other entry, including a deactivation (P4.1, P4.2).
 
 P14.5 The members of `asset`:
@@ -25,7 +25,8 @@ P14.5 The members of `asset`:
 - `name`: a string of 1 to 1,024 UTF-16 code units (owner decision, 23 October 2026).
 - `metadata`: a JSON object. When absent, there is no metadata (P4.6).
 - `status`: `active` or `deactivated`, agreeing with the operation and the deactivated parameter (P6.5).
-- `aliases`: an array of DIDs with at most one did:webvh and at most one did:btco. The genesis entry lists none.
+- `aliases`: an array of DIDs with at most one did:webvh and at most one did:btco, or, for an Original with an `anchor` member, at most one did:webvh and at most one token alias (P14.18, P9.19). The genesis entry lists none.
+- `anchor`: the anchor chain and minter, fixed at genesis (P9.19, P14.18). When absent, the anchor chain is Bitcoin.
 - `resource`: the descriptor of the Original’s one resource, at its version in this entry (P4.1).
 - `editors`: an array of 1 to 32 grants, each exactly `{did, name, metadata, resource}`, all but `did` booleans. An empty array MUST NOT be used; absence means no editors (P5.15).
 
@@ -106,4 +107,68 @@ The SDK measures entry size in UTF-16 code units of the re-serialised entry and 
 
 A shared host (P6.7) needs no particular transport. As a guide, the SDK submits `{original, entry, resources, identities}`, where `entry` is the exact line, and the host answers `accepted` or `already-accepted` with the checkpoint and head, or `stale-parent` with the head.
 
-Sources: Originals SDK revision 1b3cabdd [S29].
+### EVM anchoring (proposed)
+
+Everything in this subsection is provisional (D6). The anchor contract has not yet been reviewed, audited or deployed, so P14.21 pins no address or code hash. Until it does:
+
+- a writer MUST NOT write an `anchor` member;
+- a verifier MUST report an Original whose genesis entry has one as unsupported (P3.3), not invalid.
+
+Rule numbers P14.14–P14.17 are reserved for carried logs, which are proposed separately.
+
+P14.18 The `anchor` member of `asset` (P14.5) is exactly `{chain, minter}`, both strings:
+
+- `chain` is a CAIP-2 chain ID in the `eip155` namespace [S31]: `eip155:` followed by the chain ID in decimal with no leading zeros, matching `^eip155:[1-9][0-9]{0,19}$`, with a value below 2<sup>64</sup>.
+- `minter` is an address: `0x` followed by 40 lowercase hexadecimal digits. Mixed-case EIP-55 checksums are not used, so that equal addresses are equal strings.
+
+A token alias is a CAIP-19 asset ID [S32]: `eip155:<chain ID>/erc721:<contract address>/<token ID>`. The chain ID is as in `chain`, the contract address is P14.21’s in lowercase, and the token ID is P14.19’s in decimal with no leading zeros. It is the only alias in `aliases` that is not a DID, and the derived DID document lists it in `alsoKnownAs` like any other alias (P14.9).
+
+P14.19 An Original’s token ID is `uint256(keccak256(abi.encode(keccak256(d), m)))`, where:
+
+- `d` is the UTF-8 bytes of the Original’s did:vh, `did:vh:<SCID>`;
+- `m` is the `minter` address;
+- `abi.encode` is the Solidity ABI encoding of a `bytes32` and an `address`.
+
+The contract’s `mint(bytes32 original)` mints the token whose ID is computed from `original` and the caller’s address, to the caller. It reverts if that token exists. A token minted for the wrong `original`, or by an address other than the minter, has a different ID and is not the Original’s token.
+
+P14.20 The anchor contract implements ERC-721 [S33] and these functions and events:
+
+```solidity
+function mint(bytes32 original) external returns (uint256 tokenId);
+function publish(uint256 tokenId, string calldata mediaType, bytes calldata data) external returns (bytes32 publication);
+function begin(uint256 tokenId) external returns (bytes32 publication);
+function chunk(bytes32 publication, bytes calldata data) external;
+function commit(bytes32 publication, string calldata mediaType) external;
+
+event Chunk(bytes32 indexed publication, uint32 index, bytes data);
+event Published(uint256 indexed tokenId, bytes32 indexed publication, uint32 chunks, string mediaType);
+```
+
+A publication is made in one of two ways:
+
+- **In one transaction:** `publish` emits one `Chunk` with index 0 and then `Published` with `chunks` 1.
+- **In stages, for data larger than a chain accepts in one transaction:**
+  - `begin` opens a publication;
+  - `chunk` emits the next `Chunk`, with indexes from 0 in call order, and only the caller of `begin` can call it;
+  - `commit` emits `Published` with the number of chunks and closes the publication, and only the caller of `begin` can call it, once.
+
+`publish`, `begin` and `commit` revert unless the caller is the token’s holder or an operator approved for it at that moment. A publication ID is never reused. Only `Published` places a publication in chain order, so an opened publication that is never committed is ignored.
+
+A publication’s data is its `Chunk` data concatenated in index order: a 4-byte big-endian length `n`, then `n` bytes of metadata, then the body.
+
+- **Metadata:** the CBOR array of entries that P14.12 defines for inscription metadata, with the same mapping and reader rules. It is not split into pushes.
+- **Body:** the exact bytes of the resource version that the last entry names (P9.17). Its media type is `Published`’s `mediaType`, which MUST equal that version’s `mediaType`.
+
+A reader MUST reject a publication whose length `n` exceeds the data that follows it, whose metadata and body together exceed 350,000 bytes, or whose body’s digest or size differs from the last entry’s descriptor. A writer chooses chunk sizes to fit the chain’s transaction limits. They do not change the publication.
+
+P14.21 The anchor contract is compiled for the EVM version this section will pin, and deployed with CREATE2 through the deterministic deployment proxy at `0x4e59b44847b379578588920ca78fbf26c0b4956c` [S34], with a zero salt, so that it has the same address on every chain that runs the proxy. This section will pin, after review and an external audit:
+
+- the contract’s source;
+- the compiler and its settings;
+- the EVM version;
+- the resulting address;
+- the runtime code hash.
+
+The contract has no owner, administrator, proxy, upgrade, pause or self-destruct path. Its `tokenURI` is open (D6).
+
+Sources: Originals SDK revision 1b3cabdd [S29]; CAIP-2, CAIP-19, ERC-721 and the deterministic deployment proxy [S31–S34]; Ethereum JSON-RPC block tags [S35].
