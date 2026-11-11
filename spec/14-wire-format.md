@@ -25,7 +25,7 @@ P14.5 The members of `asset`:
 - `name`: a string of 1 to 1,024 UTF-16 code units (owner decision, 23 October 2026).
 - `metadata`: a JSON object. When absent, there is no metadata (P4.6).
 - `status`: `active` or `deactivated`, agreeing with the operation and the deactivated parameter (P6.5).
-- `aliases`: an array of DIDs with at most one did:webvh and at most one did:btco, or, in an entry with an `anchor` member, at most one did:webvh and at most one token alias, a did:evm DID (P14.18, P9.19). The genesis entry lists none.
+- `aliases`: an array of DIDs with at most one did:webvh and at most one did:btco, or, in an entry with an `anchor` member, at most one did:webvh and at most one token alias, a did:evm DID (P14.18, P9.19). It holds no DID of any other method and no DID twice, and a verifier MUST reject one that does (P3.9). The genesis entry lists none.
 - `anchor`: the anchor chain and minter, set at genesis and changed only by a move entry (P9.19, P9.28, P14.18). When absent, the anchor chain is Bitcoin.
 - `resource`: the descriptor of the Original’s one resource, at its version in this entry (P4.1).
 - `editors`: an array of 1 to 32 grants, each exactly `{did, name, metadata, resource}`, all but `did` booleans. An empty array MUST NOT be used; absence means no editors (P5.15).

@@ -28,7 +28,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Import then edit without authority | Read succeeds where evidence valid; edit authorization fails |
 | Update after deactivation | Rejected; historical evidence retained |
 | Old valid prefix served as current | Reported valid as of its checkpoint, never current (P7.10) |
-| Divergent valid branches not settled on Bitcoin | Unresolved conflict; every branch reported; none current; no timestamp winner |
+| Divergent valid branches not settled by an anchor | Unresolved conflict; every branch reported; none current; no timestamp winner |
 | Hosted mixed snapshot | Rejected before public result is marked verified |
 | Anchoring sat moved to a new holder | Owner reported as the new holder; author unchanged |
 | After anchoring, author-signed entry not inscribed on the sat | Not current |
@@ -193,7 +193,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | `name` of 1,024 / 1,025 UTF-16 code units, counting a non-BMP character as two | Accepted / rejected (P14.5) |
 | Inscription after the anchor whose signer version is unverifiable but which fails a check not depending on that version | Rejected, not unverifiable (P9.15) |
 | Publication extending an unverifiable inscription | Listed as waiting on it; followed under P9.13 once it is accepted, ignored if it is rejected (P9.15) |
-| Single acceptance check while an unverifiable inscription is listed | Passes only with the list presented beside its result (P9.15) |
+| Single acceptance check while an unverifiable inscription is listed | Passes only with the list presented beside its result (section 7, P9.15) |
 | Inscription after the anchor naming a did:vh or did:webvh version above the P14.13 limit, or after a deactivated version the verifier holds | Rejected (P9.15) |
 | Signer DID log from the old host whose latest version moves the DID and removes a key | Removal applied; moved log sought; freshness not established until found (P7.8, P5.14) |
 | did:btco signer whose named version is known but an earlier inscription on its sat is unread | Unverifiable; not accepted against the older state (P9.15) |
@@ -237,13 +237,13 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Original with an EVM `anchor` listing a did:btco alias, or a token alias other than its derived token’s; Original without `anchor` listing a token alias | Rejected (P9.19, P14.19) |
 | `anchor.chain` not `eip155:` with a canonical decimal chain ID / `minter` in mixed case | Rejected (P14.18) |
 | `anchor.chain` well formed but not in the verifier’s revision of P14.22 | Unsupported, not invalid; a writer refuses to write it (P9.19, P14.22) |
-| Genesis entry with an `anchor` member while P14.21 pins no contract | Unsupported, not invalid; a writer refuses to write it (P14.21) |
+| Genesis entry with an `anchor` member while P14.21 pins no contract | Unsupported, not invalid; a writer refuses to write it (section 14, P14.21) |
 | Provider reporting the listed chain ID whose block 0 has another hash than P14.22 lists | Not that chain; its answers are not evidence (P9.21) |
 | Code at the anchor contract address with another runtime code hash, or none, on a listed chain | Unsupported; never verified or reported as not anchored (P9.21) |
 | The pinned contract deployed on a chain that is not listed | Unsupported (P9.21) |
 | Publication read from a chain other than the one `anchor` names | Not a publication of the Original (P9.20) |
 | Publication record present at the latest block but not in state at the finalized block | Observed, not accepted; pending (P9.22, P9.27) |
-| Two providers report different hashes for the lower of their finalized blocks, or a different record, bytes or `ownerOf` at that block | Missing evidence until they agree (P9.20, P9.22) |
+| Two providers report different hashes for the lower of their finalized blocks, or a different record, bytes or `ownerOf` at that block | Missing evidence until they agree (P9.22) |
 | One provider’s finalized block is N and the other’s is N+1, and they agree on block N’s hash and on the state at it | Verified at block N; a provider that is behind is not a disagreement (P9.22) |
 | A block accepted as finalized is replaced | `authoritative-source-changed` and a finality failure reported (P9.22) |
 | Token minted, no anchoring publication | Not anchored; no owner (P9.23) |
@@ -291,6 +291,21 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Writer asked to inscribe or publish a carried file as a body | The carrier is removed first; the body is the version’s bytes (P7.16, P9.17, P9.25) |
 | Writer making a carried file from an accepted publication’s body and entries | Allowed, as for any accepted checkpoint (P7.16, P7.15) |
 | Writer about to write a carrier for a log with an `anchor` member | User told that the file discloses the chain and the minter’s address (P7.15) |
+| Entry published on an Original’s token, whose did:vh or did:webvh signer later removes the signing key | Remains current, as for an inscribed entry; not reported as historically authorized only, and its ordering not labelled claimed (P7.6, P7.9, P9.20) |
+| Fork of an Original with an EVM `anchor`, then an anchoring entry accepted on its token | Settled by that anchor’s branch (P6.6, P9.20, P9.24) |
+| Move entry’s signing key removed, or its signer DID deactivated, after the departure and before the arrival | Arrival accepted; the move entry’s signer is checked at the departure only (P9.29) |
+| Move entry published as a departure when its signing key is not valid at the departure’s inscription time | Rejected; not departed (P9.15, P9.29) |
+| Complete evidence package of an anchored Original, read without access to the anchor | Missing evidence; at most the entries before the first anchoring entry reported; the package not preferred to the anchor (P7.1, P7.14) |
+| Complete evidence package of an Original with a did:btco signer, read offline | That signer’s history is not in the package; identity evidence incomplete until it is read from Bitcoin (P7.1, P14.10, P5.6) |
+| `aliases` holding a DID of any other method, or the same DID twice | Rejected (P14.5) |
+| Grant naming the Original’s did:webvh alias or its token alias | Rejected (P5.15) |
+| Original that moved to Bitcoin grants a did:btco editor in or after the move entry | Accepted; the same grant in an entry carrying an `anchor` member is rejected (P9.26) |
+| Signer asked to sign input that is not a well-formed Originals entry, or without showing the signer, the Original, the operation and the resource changes | Refused (P5.11) |
+| Exact-checkpoint resolution of a checkpoint the resolver cannot supply | Reports why; the latest checkpoint is not substituted (P3.2) |
+| Report for an anchored Original | States the confirmation depth relied on and whether more than one independent index agreed on the sat’s location (P9.5, P9.11) |
+| Genesis parameters other than exactly `method` and `scid`; a later entry with a non-empty parameters object that is not a deactivation; a null parameter value | Rejected (P14.1) |
+| Plaintext metadata, base64 content or raw storage | Never labelled encrypted (P8.2) |
+| Two entries whose `versionTime` values differ by less than one millisecond, or a `versionTime` with more than three fractional digits | Rejected (P14.2) |
 
 ### Release evidence
 
