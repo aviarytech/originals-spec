@@ -278,7 +278,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Writer moving an Original | Author told the move cannot be reversed, the layers left above the destination, the dependence on the chain left, and what becomes public; refused if the arrival would exceed 350,000 bytes (P9.29) |
 | Writer creating an Original with an EVM `anchor` | Author told the first chain is permanent and the Original can move only upward, that it stays dependent on every chain it was anchored on, the chain’s trust class and what it means, that publications last only while the chain’s state is kept, and the minter fixed (P9.27) |
 | Report for an Original anchored on an EVM chain | Names the chain, its trust class, the token, the finalized block and the providers; never called a Bitcoin anchor (P9.27) |
-| Report for an Original anchored on a `consortium` or `operator` chain | Ordering, ownership and uniqueness described as attested by the chain’s validators or operator, never as proven (P9.27) |
+| Report for an Original anchored on a `consortium` or `operator` chain | Ordering, ownership, uniqueness and the settlement of a fork described as attested by the chain’s validators or operator, never as proven (P9.27) |
 | Entry of 30,000 bytes that does not change the resource, on a chain that accepts 24,000 bytes in one transaction | Uploaded in stages and recorded by `commitSameBody`, referring to the stored body (P14.20) |
 | `aliases` holding the token’s CAIP-19 asset ID, or a did:evm DID with an uppercase address, a leading zero in its chain ID or token ID, or a contract address other than P14.21’s | Rejected (P14.18) |
 | did:evm alias resolved, the log accepted on its token listing it | The Original’s did:vh, state and report, with the chain and its trust class; the document derived, with `alsoKnownAs` the did:vh (P3.9, P14.18) |
@@ -292,7 +292,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Writer making a carried file from an accepted publication’s body and entries | Allowed, as for any accepted checkpoint (P7.16, P7.15) |
 | Writer about to write a carrier for a log with an `anchor` member | User told that the file discloses the chain and the minter’s address (P7.15) |
 | Entry published on an Original’s token, whose did:vh or did:webvh signer later removes the signing key | Remains current, as for an inscribed entry; not reported as historically authorized only, and its ordering not labelled claimed (P7.6, P7.9, P9.20) |
-| Fork of an Original with an EVM `anchor`, then an anchoring entry accepted on its token | Settled by that anchor’s branch (P6.6, P9.20, P9.24) |
+| Fork of an Original with an EVM `anchor`, then an anchoring entry accepted on its token | Settled by that anchor’s branch, under the chain’s finality and trust class; on a `consortium` or `operator` chain the settlement is described as attested, never as proven (P6.6, P9.20, P9.24, P9.27) |
 | Move entry’s signing key removed, or its signer DID deactivated, after the departure and before the arrival | Arrival accepted; the move entry’s signer is checked at the departure only (P9.29) |
 | Move entry published as a departure when its signing key is not valid at the departure’s inscription time | Rejected; not departed (P9.15, P9.29) |
 | Complete evidence package of an anchored Original, read without access to the anchor | Missing evidence; at most the entries before the first anchoring entry reported; the package not preferred to the anchor (P7.1, P7.14) |
