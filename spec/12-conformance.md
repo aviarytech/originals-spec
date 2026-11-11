@@ -200,12 +200,20 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Asset log line with whitespace outside JSON strings / with keys in non-JCS order | Rejected / accepted (P14.2) |
 | Carried file whose bytes, with the carrier removed, are the version its log’s last entry names, signer DIDs resolved | Log verified, version verified, valid as of that checkpoint; never current unless anchored (P7.12, P7.14) |
 | Carried file whose remaining bytes differ by one byte, or by changed line endings | Bytes not verified; MAY report the log it carries only with a statement that the file is not a version of that Original (P7.12) |
+| Carried file opened or previewed without the caller’s opt-in to resolve | No DID resolved; proofs unchecked (P7.13, P8.5) |
 | Carried file read offline, signer DID not resolvable | Proofs unchecked; log and version not reported as verified; identity evidence and author binding incomplete, never a pass (P7.13, P5.6) |
 | Forged log naming a real author DID, appended to bytes matching its last descriptor | Proofs fail once the DID is resolved; offline, nothing reported as verified (P7.13) |
 | Carried log whose last entry names a media type with a different carrier or comment syntax, or none | No valid carrier (P7.12, P14.14) |
 | `mediaType` `image/PNG` / `application/javascript` / `application/pdf` / `application/vc+json` | Trailer / no carrier / no carrier / no carrier (P14.14) |
-| Trailer whose length exceeds 16 MiB or the file size less 24, or whose footer is altered by end-of-line conversion | No trailer (P14.15) |
+| Trailer whose length exceeds the file size less 24, or whose footer is altered by end-of-line conversion | No trailer (P14.15) |
+| Trailer `length` 16,777,192 / 16,777,193 | Trailer / no trailer (P14.14, P14.15) |
+| File of 16–23 bytes ending in the footer magic | No trailer (P14.15) |
+| Trailer entry line of 70,000 bytes whose JCS form is 60,000 bytes | Over the entry limit, as in `did.jsonl` (P14.14, P14.13) |
 | Trailer whose log breaks P14.2 | Trailer found; log invalid (P14.15) |
+| Text block whose last line has no line end | Accepted (P14.16) |
+| Text block with a blank, unprefixed or non-JSON line between the markers, or no entry line | Text block with an invalid log, not content (P14.16) |
+| Text block at the very start of the file, with no line feed before it | No carrier (P14.16) |
+| Writer asked for a text block on YAML ending in a block scalar, or Markdown ending in an unclosed fence | Refused (P14.16) |
 | Text file with an earlier text block followed by content | The earlier block is content, not a carrier (P14.16) |
 | Text block with CR LF line ends, followed by blank lines and spaces | Accepted; the trailing whitespace is part of the carrier (P14.16) |
 | Text block in a CR LF file whose separator is CR LF, not a single LF | The added CR is not part of the version; digest mismatch (P14.16, P7.12) |
@@ -214,14 +222,17 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | JSON member that is the root object’s last, with entries reformatted and keys reordered | Accepted; entries checked over their JCS form (P14.17) |
 | JSON member that is not last, or an earlier root member of the same name, including one spelled with escapes | Not a carrier; MAY report the log only as P7.12 allows (P7.12, P14.17) |
 | JSON document with a 64-bit integer or a nested duplicate key outside the member | The member is still found; only the entries are subject to P14.3 (P14.17) |
-| JSON document whose root is an array, or already has the member | Writer refuses (P7.15, P14.17) |
+| JSON document whose root is an array, or has a root member named `originalLog` anywhere | Writer refuses (P7.15, P14.17) |
+| JSON last root member `originalLog` whose value is `5` or `[1]` | JSON member with an invalid log (P14.17) |
+| JSON document `{"originalLog":[…]}` with a leading byte order mark / with no other member | Member found; the version is the byte order mark and `{}` / `{}` (P14.17) |
+| JSON document nested 1,025 levels outside the entries | No JSON member (P14.17) |
 | Writer asked to carry a draft, a version other than the last entry’s, or, after anchoring, an entry not accepted on the anchor | Refused (P7.15) |
 | Writer about to write a carrier | User told what the file discloses first; a JSON carrier says the data gains a member (P7.15) |
 | Carried file presented by an SDK or UI | Never labelled an evidence package or complete (P7.11) |
 | Carrier added or removed | No entry signed; the version is unchanged (P7.16) |
 | Carried log older than the reader’s local history, or on another branch | Local history kept; a branch reported as a conflict (P7.14, P7.5) |
 | Anchored Original whose carried log disagrees with its anchor | State from the anchor; the carried log is not preferred (P7.14, P9.13) |
-| Anchored Original’s carried log read without access to the anchor | Missing evidence; at most valid as of its checkpoint, never current (P7.14, P3.3) |
+| Anchored Original’s carried log read without access to the anchor | Missing evidence; at most the entries before the anchoring entry valid as of the checkpoint before it; the anchoring entry and later entries not checked against the anchor (P7.14, P3.3, P9.15) |
 
 ### Release evidence
 
