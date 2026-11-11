@@ -12,7 +12,9 @@ The Original gains aliases, listed in its asset state and in the derived `alsoKn
 
 - a did:webvh once it is published on the web. This is a small did:webvh log of its own that points to the did:vh, and its implicit `#files` service maps DID URLs such as `did:webvh:<SCID>:example.com/photo` to files at that host;
 - a did:btco once it is anchored, naming the anchoring sat (P9.10). Once anchored, resolution should go through this alias. Originals inscriptions on that sat carry log entries, not a did:btco DID document, in their metadata (P9.17, P14.12), so the alias is resolved only by a verifier applying this profile (P3.5).
-- proposed: for an Original whose genesis entry names an EVM anchor chain, a token alias instead of a did:btco alias once it is anchored. The alias is a CAIP-19 identifier of the Original’s one token, not a DID (P9.19, P14.18). A move replaces it with the destination’s alias (P9.28).
+- proposed: for an Original whose genesis entry names an EVM anchor chain, a did:evm once it is anchored, instead of a did:btco. This token alias names the Original’s one token on that chain, as a did:btco names a sat, and is resolved by a verifier applying this profile (P3.9, P9.19, P14.18). A move replaces it with the destination’s alias (P9.28); the DID left behind still resolves, to a report that the Original has moved (P3.9).
+
+Every alias is a DID, so at each layer an Original has an identifier that resolves to it (P3.9).
 
 The derived DID document of the did:vh carries a `#files` service built from the resource descriptor, so the did:vh can locate the Original’s files itself.
 
@@ -35,6 +37,8 @@ P3.6 A did:webvh is an alias of an Original only if its DID document points to t
 P3.7 The did:webvh alias log SHOULD be controlled by the author. Whoever controls it can stop it pointing to the did:vh, but cannot change the Original or make another log its history (P3.6).
 
 P3.8 The DID document of an Original’s did:vh MUST be derived from the asset log as section 2 describes, and a resolver MUST derive the same document from the same log. A stored or served DID document for the did:vh, including a did:btco DID document inscribed on the anchoring sat, MUST NOT be used.
+
+P3.9 (proposed) At every layer an Original has a DID that resolves to it (owner direction, 11 November 2026): its did:vh, from a copy of its log, a `src` location or a carried file (P7.11); on the web, its did:webvh alias (P3.6); on an EVM anchor chain, its did:evm alias (P14.18); on Bitcoin, its did:btco alias (P9.10). Every alias in the asset state MUST be a DID. Given any of these DIDs, a resolver applying this profile MUST read the asset log from that layer’s source, verify it under this profile, and return the Original’s did:vh with its state and report, or report why it cannot (P3.3, P3.5). This profile defines the did:evm method, and no generic resolver for it exists. A did:evm DID is an alias of an Original only if it names the token P14.19 derives for that Original and the log accepted on that token lists it; a verifier MUST NOT accept either alone. Its DID document is derived from the accepted log as P14.18 defines, and a stored or served document, including what the token’s `tokenURI` returns, MUST NOT be used (P3.8). A did:evm DID naming a token with no accepted anchoring publication resolves to nothing (P9.23). A did:evm DID naming a token the Original has left (P9.29) still resolves: the resolver MUST report that the Original has moved, name the alias that replaced it, and MUST NOT return the state on that token as current.
 
 ### Identity history and time
 

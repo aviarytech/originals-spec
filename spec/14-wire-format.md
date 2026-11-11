@@ -1,6 +1,6 @@
 ## Wire format (partly provisional)
 
-This section pins the byte-level choices that independent implementations must share. Owner decisions of 21 October 2026 decide the 350,000-byte inscription limit and the did:btco network prefixes in P14.12, and the limits in P14.13. D4 decides JCS canonicalization (P14.3), as the canonicalization the pinned VH Log version uses; SHA-256 multihashes for resource digests (P14.7, P4.2); the two cryptosuites (P14.8, P5.12); and the parts of P14.2, P14.3, P14.5, P14.8 and P14.10 that it records as decided on 23 October 2026. D3 decides that an asset log has no witness file (P14.2, P9.8). D6 decides the inscription body, metadata and media type in P14.12 (P9.17; owner decision, 1 November 2026), except the JSON-to-CBOR mapping of the metadata, which stays provisional, and that a did:btco signer version is identified by its own metadata alone (P14.12, P5.13). The EVM anchoring values (P14.18–P14.22) are proposed and provisional. Everything else in this section, including the entry state fields and the evidence package format, is **provisional**: it is taken from the Originals SDK at revision 1b3cabdd [S29], which is the only implementation, and recorded so that it is reviewed as a decision rather than adopted silently (D1, D4). Where the SDK and this section differ, this section says so and the SDK is expected to change. A provisional value may still change before an interoperable release; until then a change keeps the `method` value `originals:1.0`, and Originals written under the earlier value no longer verify (owner decision, 1 November 2026). After an interoperable release, changing a value changes the `method` value.
+This section pins the byte-level choices that independent implementations must share. Owner decisions of 21 October 2026 decide the 350,000-byte inscription limit and the did:btco network prefixes in P14.12, and the limits in P14.13. D4 decides JCS canonicalization (P14.3), as the canonicalization the pinned VH Log version uses; SHA-256 multihashes for resource digests (P14.7, P4.2); the two cryptosuites (P14.8, P5.12); and the parts of P14.2, P14.3, P14.5, P14.8 and P14.10 that it records as decided on 23 October 2026. D3 decides that an asset log has no witness file (P14.2, P9.8). D6 decides the inscription body, metadata and media type in P14.12 (P9.17; owner decision, 1 November 2026), except the JSON-to-CBOR mapping of the metadata, which stays provisional, and that a did:btco signer version is identified by its own metadata alone (P14.12, P5.13). The carried-log values (P14.14–P14.17) and the EVM anchoring values (P14.18–P14.22) are proposed and provisional. Everything else in this section, including the entry state fields and the evidence package format, is **provisional**: it is taken from the Originals SDK at revision 1b3cabdd [S29], which is the only implementation, and recorded so that it is reviewed as a decision rather than adopted silently (D1, D4). Where the SDK and this section differ, this section says so and the SDK is expected to change. A provisional value may still change before an interoperable release; until then a change keeps the `method` value `originals:1.0`, and Originals written under the earlier value no longer verify (owner decision, 1 November 2026). After an interoperable release, changing a value changes the `method` value.
 
 ### Log and parameters
 
@@ -25,7 +25,7 @@ P14.5 The members of `asset`:
 - `name`: a string of 1 to 1,024 UTF-16 code units (owner decision, 23 October 2026).
 - `metadata`: a JSON object. When absent, there is no metadata (P4.6).
 - `status`: `active` or `deactivated`, agreeing with the operation and the deactivated parameter (P6.5).
-- `aliases`: an array of DIDs with at most one did:webvh and at most one did:btco, or, in an entry with an `anchor` member, at most one did:webvh and at most one token alias (P14.18, P9.19). The genesis entry lists none.
+- `aliases`: an array of DIDs with at most one did:webvh and at most one did:btco, or, in an entry with an `anchor` member, at most one did:webvh and at most one token alias, a did:evm DID (P14.18, P9.19). The genesis entry lists none.
 - `anchor`: the anchor chain and minter, set at genesis and changed only by a move entry (P9.19, P9.28, P14.18). When absent, the anchor chain is Bitcoin.
 - `resource`: the descriptor of the Original’s one resource, at its version in this entry (P4.1).
 - `editors`: an array of 1 to 32 grants, each exactly `{did, name, metadata, resource}`, all but `did` booleans. An empty array MUST NOT be used; absence means no editors (P5.15).
@@ -56,7 +56,7 @@ P14.9 The DID document derived for each version of an Original’s did:vh (P3.8)
 }
 ```
 
-The `#files` service is the resource’s descriptor at that version; where to fetch the bytes comes from a did:webvh alias, a `src` location, an evidence package or, for a version inscribed on the anchoring sat, that inscription’s body (P9.17).
+The `#files` service is the resource’s descriptor at that version; where to fetch the bytes comes from a did:webvh alias, a `src` location, an evidence package, a carried file (P7.11) or, for a version inscribed on the anchoring sat or published on the Original’s token, that inscription’s or publication’s body (P9.17, P9.25).
 
 ### Evidence package
 
@@ -164,7 +164,9 @@ P14.18 The `anchor` member of `asset` (P14.5) is exactly `{chain, minter}`, both
 - `chain` is a CAIP-2 chain ID in the `eip155` namespace [S31]: `eip155:` followed by the chain ID in decimal with no leading zeros, matching `^eip155:[1-9][0-9]{0,19}$`, with a value below 2<sup>64</sup>. A chain that P14.22 does not list is unsupported (P9.19).
 - `minter` is an address: `0x` followed by 40 lowercase hexadecimal digits. Mixed-case EIP-55 checksums are not used, so that equal addresses are equal strings.
 
-A token alias is a CAIP-19 asset ID [S32]: `eip155:<chain ID>/erc721:<contract address>/<token ID>`. The chain ID is as in `chain`, the contract address is P14.21’s in lowercase, and the token ID is P14.19’s in decimal with no leading zeros. It is the only alias in `aliases` that is not a DID, and the derived DID document lists it in `alsoKnownAs` like any other alias (P14.9).
+A token alias is a DID of the did:evm method, which this profile defines (P3.9): `did:evm:<chain ID>:<contract address>:<token ID>`. The chain ID is the decimal chain ID of `chain`, without the `eip155:` prefix; the contract address is P14.21’s in lowercase; and the token ID is P14.19’s in decimal with no leading zeros. A verifier MUST reject any other form. The derived DID document lists it in `alsoKnownAs` like any other alias (P14.9). The token’s CAIP-19 asset ID [S32], `eip155:<chain ID>/erc721:<contract address>/<token ID>`, is derived from the DID for wallets and marketplaces, and is never written in `aliases`. The method name is provisional (D6).
+
+The DID document of a token alias is derived, never stored (P3.9). It is the document P14.9 derives from the state accepted on the token, with the token alias as its `id` and in its service `id`, and with `alsoKnownAs` listing exactly the Original’s did:vh.
 
 P14.19 An Original’s token ID is `uint256(keccak256(abi.encode(keccak256(d), m)))`, where:
 
@@ -185,6 +187,7 @@ function publishSameBody(uint256 tokenId, bytes calldata metadata, uint32 bodyOf
 function begin(uint256 tokenId) external returns (bytes32 upload);
 function append(bytes32 upload, bytes calldata data) external;
 function commit(bytes32 upload, string calldata mediaType, uint32 metadataLength) external returns (uint32 index);
+function commitSameBody(bytes32 upload, uint32 bodyOf) external returns (uint32 index);
 
 function publicationCount(uint256 tokenId) external view returns (uint32);
 function publication(uint256 tokenId, uint32 index) external view
@@ -206,11 +209,12 @@ A publication is recorded in one of three ways:
 - **In stages, for data larger than a chain accepts in one transaction:**
   - `begin` opens an upload;
   - `append` stores the next bytes of the upload, and only the caller of `begin` can call it;
-  - `commit` closes the upload and adds a record: the first `metadataLength` bytes of the upload are the metadata and the rest the body. Only the caller of `begin` can call it, once, and it reverts if `metadataLength` exceeds the upload.
+  - `commit` closes the upload and adds a record: the first `metadataLength` bytes of the upload are the metadata and the rest the body. Only the caller of `begin` can call it, once, and it reverts if `metadataLength` exceeds the upload;
+  - `commitSameBody` closes the upload instead and adds a record whose metadata is the whole upload and whose body is that of record `bodyOf`, on the conditions of `publishSameBody`. An entry can be larger than a chain accepts in one transaction, and without this it would have to store its body again.
 
 **Limits.** The contract enforces the 350,000-byte limit (P9.25). `publish` reverts if its metadata and body together exceed it, `publishSameBody` if its metadata does, and `append` if it would take the upload past it. `publish`, `publishSameBody` and `commit` revert if `mediaType` is longer than 255 bytes. No record, and no upload, therefore holds more than 350,000 bytes.
 
-`publish`, `publishSameBody`, `begin` and `commit` revert unless the caller is the token’s holder or an operator approved for it at that moment. Only a record places a publication in chain order (P9.20), so an upload that is never committed is ignored. The contract judges no signature and no entry: it checks only who may publish (P9.12, P9.23).
+`publish`, `publishSameBody`, `begin`, `commit` and `commitSameBody` revert unless the caller is the token’s holder or an operator approved for it at that moment. Only a record places a publication in chain order (P9.20), so an upload that is never committed is ignored. The contract judges no signature and no entry: it checks only who may publish (P9.12, P9.23).
 
 - **Metadata:** the CBOR array of entries that P14.12 defines for inscription metadata, with the same mapping and reader rules.
 - **Body:** the exact bytes of the resource version that the last entry names (P9.17), under the record’s media type, which MUST equal that version’s `mediaType`.

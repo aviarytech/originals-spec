@@ -258,7 +258,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Publication whose body digest, size or media type differs from the last entry’s descriptor | Rejected (P14.20, P9.17) |
 | Publication that refers to an earlier record’s body, the last entry not changing the resource | Accepted; the body is checked against the descriptor as if stored (P9.25, P14.20) |
 | Publication that refers to an earlier record’s body whose digest differs from the last entry’s descriptor | Rejected (P9.25, P14.20) |
-| `publishSameBody` naming a later record, a record of another token, or a record that itself refers to another | Reverted by the contract; no record (P14.20) |
+| `publishSameBody` or `commitSameBody` naming a later record, a record of another token, or a record that itself refers to another | Reverted by the contract; no record (P14.20) |
 | Publication known only from a `Published` event, or a token whose records or bytes cannot be read from state at the finalized block | Never accepted from the event; resolution fails with missing evidence (P9.25) |
 | Original with an EVM `anchor` naming a did:btco author or editor | Rejected (P9.26) |
 | did:webvh signer key removed before the timestamp the publication’s record holds | Rejected, as P9.15 with the publication’s inscription time (P9.20, P9.26) |
@@ -279,6 +279,18 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Writer creating an Original with an EVM `anchor` | Author told the first chain is permanent and the Original can move only upward, that it stays dependent on every chain it was anchored on, the chain’s trust class and what it means, that publications last only while the chain’s state is kept, and the minter fixed (P9.27) |
 | Report for an Original anchored on an EVM chain | Names the chain, its trust class, the token, the finalized block and the providers; never called a Bitcoin anchor (P9.27) |
 | Report for an Original anchored on a `consortium` or `operator` chain | Ordering, ownership and uniqueness described as attested by the chain’s validators or operator, never as proven (P9.27) |
+| Entry of 30,000 bytes that does not change the resource, on a chain that accepts 24,000 bytes in one transaction | Uploaded in stages and recorded by `commitSameBody`, referring to the stored body (P14.20) |
+| `aliases` holding the token’s CAIP-19 asset ID, or a did:evm DID with an uppercase address, a leading zero in its chain ID or token ID, or a contract address other than P14.21’s | Rejected (P14.18) |
+| did:evm alias resolved, the log accepted on its token listing it | The Original’s did:vh, state and report, with the chain and its trust class; the document derived, with `alsoKnownAs` the did:vh (P3.9, P14.18) |
+| did:evm DID of a token with no accepted anchoring publication, or of a token whose accepted log does not list it | Resolves to nothing; not an alias (P3.9, P9.23) |
+| did:evm DID of a token the Original has left | Reported as moved, naming the alias that replaced it; the state on that token never returned as current (P3.9, P9.29) |
+| Document returned by the token’s `tokenURI`, offered as the did:evm DID document | Not used (P3.9, P3.8) |
+| Carried file of an Original whose log has an `anchor` member, the chain readable | State from the token at the finalized block; the carried log not preferred; the report names the chain and its trust class (P7.14, P9.20, P9.27) |
+| Carried log with an `anchor` member naming a chain the reader’s revision does not list, or read while P14.21 pins no contract | Unsupported, not invalid; nothing reported as verified (P7.14, P9.19, P14.21) |
+| Carried log holding a move entry, read without access to a chain in the path | Missing evidence; at most the entries before the first anchoring entry reported (P7.14, P9.29) |
+| Writer asked to inscribe or publish a carried file as a body | The carrier is removed first; the body is the version’s bytes (P7.16, P9.17, P9.25) |
+| Writer making a carried file from an accepted publication’s body and entries | Allowed, as for any accepted checkpoint (P7.16, P7.15) |
+| Writer about to write a carrier for a log with an `anchor` member | User told that the file discloses the chain and the minter’s address (P7.15) |
 
 ### Release evidence
 

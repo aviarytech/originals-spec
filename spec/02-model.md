@@ -10,7 +10,7 @@
 ~ The Original’s did:vh log under the Originals extension. It is the Original’s only history.
 
 [[def: asset state]]:
-~ The state recorded in full in each asset log entry: the Original’s name, metadata, lifecycle status, resource descriptor, aliases and editor grants. It is not a DID document.
+~ The state recorded in full in each asset log entry: the Original’s name, metadata, lifecycle status, resource descriptor, aliases and editor grants, and, where its genesis entry names one, its EVM anchor chain (P9.19, proposed). It is not a DID document.
 
 [[def: VH entry, VH entries]]:
 ~ Commits a state transition according to the selected VH profile.

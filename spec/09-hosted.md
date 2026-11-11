@@ -60,12 +60,12 @@ An author can choose at genesis to anchor an Original on one of the EVM chains t
 
 P9.19 An Original’s first anchor chain is fixed at genesis. The genesis entry’s asset state MAY carry an `anchor` member naming an EVM chain and a minter address (P14.18). Without it, the anchor chain is Bitcoin. Every later entry MUST carry the previous entry’s `anchor` member unchanged, or carry none if the previous entry had none, unless it is a move entry (P9.28), and a verifier MUST reject any other entry that adds, removes or changes it. No entry adds an `anchor` member to an Original whose genesis entry had none: an Original that starts on the path to Bitcoin stays on it. A writer MUST NOT write an `anchor` member naming a chain that P14.22 does not list. A verifier MUST report an Original whose `anchor` member names a chain its revision of P14.22 does not list as unsupported (P3.3), not invalid, because a later revision can list it. While an Original’s `anchor` member names an EVM chain, it can be anchored only on the one token P14.19 derives from that member, on the chain it names. A verifier MUST reject an entry carrying an `anchor` member that lists a did:btco alias, or a token alias (P14.18) other than that token’s. It MUST also reject an entry of an Original without an `anchor` member that lists a token alias. Layers still move one way (P9.10): from local to web, from either to the Original’s first anchor chain, and from there only upward (P9.28).
 
-P9.20 While an Original’s anchor chain is an EVM chain, P3.5, P7.10 and P9.10–P9.18 apply with these readings, and P9.19–P9.29 add to them. Anchoring on an EVM chain is not terminal, as P9.10 makes anchoring on Bitcoin: the Original can move up (P9.28).
+P9.20 While an Original’s anchor chain is an EVM chain, P3.5, P7.10, P7.14, P7.15 and P9.10–P9.18 apply with these readings, and P9.19–P9.29 add to them. Anchoring on an EVM chain is not terminal, as P9.10 makes anchoring on Bitcoin: the Original can move up (P9.28).
 
 | Where the rules say | Read |
 |---|---|
 | the anchoring sat | the Original’s token (P14.19) |
-| its did:btco alias | its token alias (P14.18) |
+| its did:btco alias | its token alias, a did:evm DID (P14.18) |
 | an inscription on the sat | a publication on the token: a record the anchor contract holds for it (P14.20) |
 | an inscription’s metadata, content type and body | a publication’s metadata, media type and body (P14.20) |
 | chain order | the order of the token’s publication records, by index, which is the order in which the chain executed them |
