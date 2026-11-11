@@ -1,6 +1,6 @@
 ## Wire format (partly provisional)
 
-This section pins the byte-level choices that independent implementations must share. Owner decisions of 21 October 2026 decide the 350,000-byte inscription limit and the did:btco network prefixes in P14.12, and the limits in P14.13. D4 decides JCS canonicalization (P14.3), as the canonicalization the pinned VH Log version uses; SHA-256 multihashes for resource digests (P14.7, P4.2); the two cryptosuites (P14.8, P5.12); and the parts of P14.2, P14.3, P14.5, P14.8 and P14.10 that it records as decided on 23 October 2026. D3 decides that an asset log has no witness file (P14.2, P9.8). D6 decides the inscription body, metadata and media type in P14.12 (P9.17; owner decision, 1 November 2026), except the JSON-to-CBOR mapping of the metadata, which stays provisional, and that a did:btco signer version is identified by its own metadata alone (P14.12, P5.13). Everything else in this section, including the entry state fields and the evidence package format, is **provisional**: it is taken from the Originals SDK at revision 1b3cabdd [S29], which is the only implementation, and recorded so that it is reviewed as a decision rather than adopted silently (D1, D4). Where the SDK and this section differ, this section says so and the SDK is expected to change. A provisional value may still change before an interoperable release; until then a change keeps the `method` value `originals:1.0`, and Originals written under the earlier value no longer verify (owner decision, 1 November 2026). After an interoperable release, changing a value changes the `method` value.
+This section pins the byte-level choices that independent implementations must share. Owner decisions of 21 October 2026 decide the 350,000-byte inscription limit and the did:btco network prefixes in P14.12, and the limits in P14.13. D4 decides JCS canonicalization (P14.3), as the canonicalization the pinned VH Log version uses; SHA-256 multihashes for resource digests (P14.7, P4.2); the two cryptosuites (P14.8, P5.12); and the parts of P14.2, P14.3, P14.5, P14.8 and P14.10 that it records as decided on 23 October 2026. D3 decides that an asset log has no witness file (P14.2, P9.8). D6 decides the inscription body, metadata and media type in P14.12 (P9.17; owner decision, 1 November 2026), except the JSON-to-CBOR mapping of the metadata, which stays provisional, and that a did:btco signer version is identified by its own metadata alone (P14.12, P5.13). The carried-log values (P14.14–P14.17) and the EVM anchoring values (P14.18–P14.22) are proposed and provisional. Everything else in this section, including the entry state fields and the evidence package format, is **provisional**: it is taken from the Originals SDK at revision 1b3cabdd [S29], which is the only implementation, and recorded so that it is reviewed as a decision rather than adopted silently (D1, D4). Where the SDK and this section differ, this section says so and the SDK is expected to change. A provisional value may still change before an interoperable release; until then a change keeps the `method` value `originals:1.0`, and Originals written under the earlier value no longer verify (owner decision, 1 November 2026). After an interoperable release, changing a value changes the `method` value.
 
 ### Log and parameters
 
@@ -17,7 +17,7 @@ P14.4 An entry’s state MUST have exactly the members `id`, `operation`, `autho
 - `id` is the Original’s did:vh, `did:vh:<SCID>`.
 - `operation` is `create` in the genesis entry and `update` or `deactivate` in every other entry. Anchoring is an `update` (P9.10).
 - `author` and `editor` are each exactly `{did, verificationMethod, versionId}`, all strings (P5.1, P5.16). For a did:btco signer, `versionId` is the inscription id of the version (P5.13).
-- `asset` has the required members `name`, `status`, `resource` and `aliases`, and the optional members `metadata` and `editors`.
+- `asset` has the required members `name`, `status`, `resource` and `aliases`, and the optional members `metadata`, `editors` and `anchor` (P14.18).
 - `transitions` is an array of `{from, to}` with at most one item, where `from` is the previous digest, or null in the genesis entry, and `to` is the new digest. It MUST have one item exactly when the resource’s digest changes: in the genesis entry `{from: null, to}`, and in a later entry that changes the digest `{from, to}`. It is empty in any other entry, including a deactivation (P4.1, P4.2).
 
 P14.5 The members of `asset`:
@@ -25,7 +25,8 @@ P14.5 The members of `asset`:
 - `name`: a string of 1 to 1,024 UTF-16 code units (owner decision, 23 October 2026).
 - `metadata`: a JSON object. When absent, there is no metadata (P4.6).
 - `status`: `active` or `deactivated`, agreeing with the operation and the deactivated parameter (P6.5).
-- `aliases`: an array of DIDs with at most one did:webvh and at most one did:btco. The genesis entry lists none.
+- `aliases`: an array of DIDs with at most one did:webvh and at most one did:btco, or, in an entry with an `anchor` member, at most one did:webvh and at most one token alias, a did:evm DID (P14.18, P9.19). The genesis entry lists none.
+- `anchor`: the anchor chain and minter, set at genesis and changed only by a move entry (P9.19, P9.28, P14.18). When absent, the anchor chain is Bitcoin.
 - `resource`: the descriptor of the Original’s one resource, at its version in this entry (P4.1).
 - `editors`: an array of 1 to 32 grants, each exactly `{did, name, metadata, resource}`, all but `did` booleans. An empty array MUST NOT be used; absence means no editors (P5.15).
 
@@ -55,7 +56,7 @@ P14.9 The DID document derived for each version of an Original’s did:vh (P3.8)
 }
 ```
 
-The `#files` service is the resource’s descriptor at that version; where to fetch the bytes comes from a did:webvh alias, a `src` location, an evidence package or, for a version inscribed on the anchoring sat, that inscription’s body (P9.17).
+The `#files` service is the resource’s descriptor at that version; where to fetch the bytes comes from a did:webvh alias, a `src` location, an evidence package, a carried file (P7.11) or, for a version inscribed on the anchoring sat or published on the Original’s token, that inscription’s or publication’s body (P9.17, P9.25).
 
 ### Evidence package
 
@@ -106,4 +107,145 @@ The SDK measures entry size in UTF-16 code units of the re-serialised entry and 
 
 A shared host (P6.7) needs no particular transport. As a guide, the SDK submits `{original, entry, resources, identities}`, where `entry` is the exact line, and the host answers `accepted` or `already-accepted` with the checkpoint and head, or `stale-parent` with the head.
 
-Sources: Originals SDK revision 1b3cabdd [S29].
+### Carried log (proposed)
+
+Everything in this subsection is provisional. The trailer media types were checked only on macOS (Preview, Quick Look, `sips`, `afinfo`) with a 12,000-byte trailer; adding a media type needs the same evidence across the readers it targets.
+
+P14.14 The carrier for a resource version is chosen by the `mediaType` its descriptor names (P14.6), compared ASCII case-insensitively, and no other carrier is valid for it (P7.12):
+
+| Carrier | `mediaType` |
+|---|---|
+| Trailer (P14.15) | `image/png`, `image/jpeg`, `image/gif`, `image/tiff`, `image/heic`, `audio/mp4`, `audio/wav`, `audio/aiff` |
+| Text block (P14.16), with the comment syntax in its table | the media types in P14.16’s table |
+| JSON member (P14.17) | `application/json`, `application/geo+json` |
+
+Any other media type has no carrier, including an alias of a listed type, such as `application/javascript` or `audio/x-wav`; ZIP-based formats such as EPUB and Office documents, whose readers look for their directory only in the last 65,557 bytes; PDF, whose readers may look for `%%EOF` only in the last 1,024 bytes; and other `+json` types, whose own signatures or closed schemas an added member can break.
+
+A carrier is at most 16 MiB (16,777,216 bytes); a larger one is no carrier. In a trailer an entry’s size is measured as its line, as in `did.jsonl` (P14.13); in a text block or JSON member, as its JCS form in UTF-8. In every carrier each entry is checked under P14.3–P14.8, nesting depth counted from the entry. A reader MAY refuse a carried file larger than the resource limit of P14.13 plus 16 MiB.
+
+P14.15 A trailer is the asset log `L`, exactly as P14.2 defines `did.jsonl`, followed by a 24-byte footer: the byte length of `L` as an unsigned 64-bit big-endian integer, then the 16 bytes `89 4F 52 49 47 49 4E 41 4C 4C 4F 47 0D 0A 1A 0A` (`\x89ORIGINALLOG\r\n\x1A\n`). A file has a trailer only if it is at least 24 bytes long, its last 16 bytes are that sequence, and `24 + length`, computed without overflow, is at most 16 MiB (P14.14) and at most the file’s size. A reader can decide this from the footer alone, before reading `L`. The carrier is the last `24 + length` bytes, and the resource version is every byte before it. Like PNG’s signature, the footer is damaged by end-of-line conversion and by stripping the high bit, so a file altered that way has no trailer rather than a wrong one. A trailer whose `L` breaks P14.2 is a trailer with an invalid log.
+
+P14.16 A text block is a single line feed (0x0A), which a writer never precedes with a carriage return of its own, followed by these lines:
+
+- the comment opener, for a block comment;
+- `=====BEGIN ORIGINAL=====`;
+- one line per entry, in order, each the compact JSON of the entry as in P14.2;
+- `=====END ORIGINAL=====`;
+- the comment closer, for a block comment.
+
+For a line comment, each marker and entry line starts with the comment prefix and one space. Each line ends in a line feed, or in CR LF when the resource version’s own lines end that way; a reader MUST accept either. A writer ends the last line too, but a reader MUST also accept a last line with no line end. A writer MUST refuse a text block unless the resource version is valid UTF-8, a leading UTF-8 byte order mark allowed. It MUST also refuse when the version’s syntax would make the appended lines content rather than a comment: among others, a YAML document whose last node is a block scalar, a Markdown or HTML version that ends inside an unclosed code fence, `<pre>`, `<script>` or comment, and a version that ends inside an unterminated string, heredoc or block comment of its language.
+
+Every entry line MUST be ASCII: a writer escapes every other character inside JSON strings with `\u` escapes, and also escapes characters so that no line contains the comment’s closer or, for `<!--` comments, `--`. These escapes do not change the entry’s JCS form (P14.3), and P14.2’s line rules otherwise apply to each entry line once its comment prefix and line end are removed. A reader MUST treat as no carrier a block in which any line contains a character that is not ASCII, a carriage return other than before its line feed, the comment’s closer before the closer line or, for `<!--` comments, `--` outside the opener and closer lines, so that a value un-escaped after signing cannot end the comment early.
+
+A reader finds the block from the end of the file. After removing any spaces, tabs, carriage returns and line feeds at the end, the last line MUST be the comment closer for a block comment, or the `=====END ORIGINAL=====` line otherwise; the block then runs back through entry lines to the nearest `=====BEGIN ORIGINAL=====` line and, for a block comment, the opener line immediately before it. Marker, opener and closer lines match only as whole lines, after their comment prefix and line end are removed. The block is located by these lines alone: a line between the markers that is not a valid entry line, or no entry line at all, makes it a text block with an invalid log, not content. A block whose first line is not preceded by a line feed is no carrier. The carrier runs from the line feed immediately before the block’s first line to the end of the file, including the whitespace after its last line, and the resource version is every byte before it. Any earlier block is content.
+
+| `mediaType` | Comment |
+|---|---|
+| `text/plain` | none: the lines stand alone |
+| `text/markdown`, `text/html`, `application/xhtml+xml`, `image/svg+xml`, `application/xml`, `text/xml` | block, `<!--` and `-->` |
+| `text/css` | block, `/*` and `*/` |
+| `text/javascript`, `application/typescript`, `text/x-c`, `text/x-c++`, `text/x-java-source`, `text/x-go`, `text/x-rust`, `text/x-swift`, `text/x-kotlin` | line, `//` |
+| `text/x-python`, `text/x-shellscript`, `application/yaml`, `application/toml` | line, `#` |
+| `application/sql` | line, `--` |
+
+Other `text/` types, such as `text/csv`, have no carrier, because a trailing line would be read as content; so has `text/x-ruby`, whose `__END__` makes every later line data.
+
+P14.17 A JSON member is the last member of the document’s root object, named `originalLog`, whose value is an array of the entries, in order, each a JSON object. The carrier runs from the first byte after the previous member’s value, or after the root object’s `{` when it is the only member, through the array’s closing `]`, and the resource version is the document with exactly those bytes removed. A document has a JSON member only if its root is an object, the member is that object’s last, and no earlier root member has that name, member names being compared after their escapes are decoded. A last root member of that name is a JSON member whatever its value; a value that is not an array of objects is an invalid log. A reader MUST skip one leading UTF-8 byte order mark, which stays part of the version. A document nested deeper than 1,024 levels outside the entries has no JSON member. A reader needs a parser that reports byte offsets to find the carrier’s bytes exactly. Outside the entries the document need only be JSON [[spec: RFC8259]]; P14.3’s limits apply to the entries only. P14.2’s line format does not apply. Whitespace, key order and string escapes in the entries are therefore free, so a carried log survives reformatting, although the remaining bytes then no longer match the version (P7.12). A writer MUST refuse a document whose root is not an object or that has any root member of that name (P7.15).
+
+### EVM anchoring (proposed)
+
+Everything in this subsection is provisional (D6). The anchor contract has not yet been reviewed, audited or deployed, so P14.21 pins no address or code hash. Until it does:
+
+- a writer MUST NOT write an `anchor` member;
+- a verifier MUST report an Original whose genesis entry has one as unsupported (P3.3), not invalid.
+
+P14.18 The `anchor` member of `asset` (P14.5) is exactly `{chain, minter}`, both strings:
+
+- `chain` is a CAIP-2 chain ID in the `eip155` namespace [S31]: `eip155:` followed by the chain ID in decimal with no leading zeros, matching `^eip155:[1-9][0-9]{0,19}$`, with a value below 2<sup>64</sup>. A chain that P14.22 does not list is unsupported (P9.19).
+- `minter` is an address: `0x` followed by 40 lowercase hexadecimal digits. Mixed-case EIP-55 checksums are not used, so that equal addresses are equal strings.
+
+A token alias is a DID of the did:evm method, which this profile defines (P3.9): `did:evm:<chain ID>:<contract address>:<token ID>`. The chain ID is the decimal chain ID of `chain`, without the `eip155:` prefix; the contract address is P14.21’s in lowercase; and the token ID is P14.19’s in decimal with no leading zeros. A verifier MUST reject any other form. The derived DID document lists it in `alsoKnownAs` like any other alias (P14.9). The token’s CAIP-19 asset ID [S32], `eip155:<chain ID>/erc721:<contract address>/<token ID>`, is derived from the DID for wallets and marketplaces, and is never written in `aliases`. The method name is provisional (D6).
+
+The DID document of a token alias is derived, never stored (P3.9). It is the document P14.9 derives from the state accepted on the token, with the token alias as its `id` and in its service `id`, and with `alsoKnownAs` listing exactly the Original’s did:vh.
+
+P14.19 An Original’s token ID is `uint256(keccak256(abi.encode(keccak256(d), m)))`, where:
+
+- `d` is the UTF-8 bytes of the Original’s did:vh, `did:vh:<SCID>`;
+- `m` is the `minter` address;
+- `abi.encode` is the Solidity ABI encoding of a `bytes32` and an `address`.
+
+The contract’s `mint(bytes32 original)` mints the token whose ID is computed from `original` and the caller’s address, to the caller. It reverts if that token exists. A token minted for the wrong `original`, or by an address other than the minter, has a different ID and is not the Original’s token.
+
+P14.20 The anchor contract implements ERC-721 [S33] and these functions and event:
+
+```solidity
+function mint(bytes32 original) external returns (uint256 tokenId);
+
+function publish(uint256 tokenId, string calldata mediaType, bytes calldata metadata, bytes calldata body) external returns (uint32 index);
+function publishSameBody(uint256 tokenId, bytes calldata metadata, uint32 bodyOf) external returns (uint32 index);
+
+function begin(uint256 tokenId) external returns (bytes32 upload);
+function append(bytes32 upload, bytes calldata data) external;
+function commit(bytes32 upload, string calldata mediaType, uint32 metadataLength) external returns (uint32 index);
+function commitSameBody(bytes32 upload, uint32 bodyOf) external returns (uint32 index);
+
+function publicationCount(uint256 tokenId) external view returns (uint32);
+function publication(uint256 tokenId, uint32 index) external view
+    returns (uint64 timestamp, uint32 metadataLength, uint32 bodyLength, uint32 bodyOf, string memory mediaType);
+function metadata(uint256 tokenId, uint32 index, uint32 offset, uint32 length) external view returns (bytes memory);
+function body(uint256 tokenId, uint32 index, uint32 offset, uint32 length) external view returns (bytes memory);
+
+event Published(uint256 indexed tokenId, uint32 index);
+```
+
+**Records.** The contract keeps, for each token, a list of publication records with indexes from 0 in the order they were recorded. A record holds the timestamp of the block that recorded it, which is the chain’s own (`block.timestamp`), the lengths of its metadata and body, its media type, and `bodyOf`: its own index if the publication stored its body, or the index of the earlier record of the same token whose body it refers to. A record is never changed or removed. A record holds no block number: a contract on an Arbitrum chain sees an approximate block number of its parent chain, not its own [S42], and the record index already orders publications (P9.20).
+
+**Bytes.** The contract stores a publication’s metadata and body in state, as the code of contracts it creates: each holds a zero byte followed by at most 24,575 bytes [S37], and the contract keeps their addresses in its own storage. `metadata` and `body` return the stored bytes from `offset`, at most `length` of them and fewer at the end, so a reader can read a record in ranges that suit its provider; `body` of a record that refers to an earlier one returns that one’s bytes. The contract emits no publication bytes in events. `Published` only helps a reader find records (P9.25).
+
+A publication is recorded in one of three ways:
+
+- **In one transaction:** `publish` stores the metadata and body and adds a record.
+- **Referring to a stored body:** `publishSameBody` stores the metadata and adds a record whose body is that of record `bodyOf`. It reverts unless `bodyOf` is an earlier record of the same token that stored its own body. The new record takes that record’s media type.
+- **In stages, for data larger than a chain accepts in one transaction:**
+  - `begin` opens an upload;
+  - `append` stores the next bytes of the upload, and only the caller of `begin` can call it;
+  - `commit` closes the upload and adds a record: the first `metadataLength` bytes of the upload are the metadata and the rest the body. Only the caller of `begin` can call it, once, and it reverts if `metadataLength` exceeds the upload;
+  - `commitSameBody` closes the upload instead and adds a record whose metadata is the whole upload and whose body is that of record `bodyOf`, on the conditions of `publishSameBody`. An entry can be larger than a chain accepts in one transaction, and without this it would have to store its body again.
+
+**Limits.** The contract enforces the 350,000-byte limit (P9.25). `publish` reverts if its metadata and body together exceed it, `publishSameBody` if its metadata does, and `append` if it would take the upload past it. `publish`, `publishSameBody` and `commit` revert if `mediaType` is longer than 255 bytes. No record, and no upload, therefore holds more than 350,000 bytes.
+
+`publish`, `publishSameBody`, `begin`, `commit` and `commitSameBody` revert unless the caller is the token’s holder or an operator approved for it at that moment. Only a record places a publication in chain order (P9.20), so an upload that is never committed is ignored. The contract judges no signature and no entry: it checks only who may publish (P9.12, P9.23).
+
+- **Metadata:** the CBOR array of entries that P14.12 defines for inscription metadata, with the same mapping and reader rules.
+- **Body:** the exact bytes of the resource version that the last entry names (P9.17), under the record’s media type, which MUST equal that version’s `mediaType`.
+
+A reader MUST reject a record whose metadata and body lengths together exceed 350,000 bytes for a record that stored its body, or whose metadata length does for one that refers to a body, or whose media type is longer than 255 bytes, and MUST do so from the record’s fields without reading its bytes (P9.25). It MUST reject a publication whose body’s digest, size or media type differs from the last entry’s descriptor, whether the record stored the body or refers to it. A writer SHOULD use `publishSameBody` when the bytes are already stored on the token, and chooses how to split an upload to fit the chain’s transaction limits. Neither choice changes the publication.
+
+P14.21 The anchor contract is compiled for the EVM version this section will pin, and deployed with CREATE2 through the deterministic deployment proxy at `0x4e59b44847b379578588920ca78fbf26c0b4956c` [S34], with a zero salt, so that it has the same address on every listed chain. This section will pin, after review and an external audit:
+
+- the contract’s source;
+- the compiler and its settings;
+- the EVM version;
+- the resulting address;
+- the runtime code hash.
+
+The contract has no owner, administrator, proxy, upgrade, pause or self-destruct path. Its `tokenURI` MUST be computed from the contract’s own state and MUST NOT name a location off the chain; its form is open (D6).
+
+P14.22 The supported chains. Each row is provisional, and each class is an assessment on the date given, against the definitions of P9.27:
+
+| Chain | `chain` | Hash of block 0 | Class | Assessed | Basis |
+|---|---|---|---|---|---|
+| Ethereum | `eip155:1` | `0xd4e56740f876aef8c010b86a40d5f56745a118d0906a34e69aec8c0db1cb8fa3` | `consensus` | 11 November 2026 | Open validator set; changes take effect by its validators adopting them |
+| Monad | `eip155:143` | `0x0c47353304f22b1c15706367d739b850cda80b5c87bbc335014fef3d88deaac9` | `consensus` | 11 November 2026 | Its staking contract registers a validator for any caller that supplies valid keys and 100,000 MON, with no approval step, and the 200 validators with the most stake, each with at least 10,000,000 MON, are active [S38]. Upgrades are hard forks its validators adopt; who decides them is not documented (D6) |
+| Base | `eip155:8453` | `0xf712aa9241cc24369b143cf6dce85f0902a9731e70d66818a3a5845b296c73dd` | `exit-protected` | 11 November 2026 | Stage 1 [S36]: its data is on Ethereum, a transaction can be forced in within 12 hours, and anyone can propose state. There is no exit window: its contracts can be upgraded at once, but only by the Base Coordinator Multisig and the Base Security Council together |
+| Arbitrum One | `eip155:42161` | `0x7ee576b35482195fc49205cec9af72ce14f003b9ae69f6ba0faef4514be8b442` | `exit-protected` | 11 November 2026 | Stage 1 [S36]: its data is on Ethereum, a transaction can be forced in within one day, and anyone can propose state. An ordinary upgrade leaves 10 days to exit; its Security Council can upgrade at once |
+| Arc | `eip155:5042` | `0x09944e07412986bb417fd0006c89ffb71ee523d68ce2017ec2dabc944c42edad` | `consortium` | 11 November 2026 | A permissioned validator set of named institutions under proof of authority, which applies sanctions controls [S39]. Circle decides its membership and its upgrades, as summaries of Arc’s white paper report; no Arc page states it (D6) |
+| Tempo | `eip155:4217` | `0x49d7ec7085e77bf5a403d0fcb4cfc42a4084a89dfff60477579c5e09c9e03c54` | `consortium` | 11 November 2026 | A permissioned validator set: only the owner of its validator contract, the Tempo team, adds a validator [S40]. Who decides upgrades is not documented (D6) |
+| Robinhood Chain | `eip155:4663` | `0xaad15f3d702aaea00caf3e9bb56395efe9127bc3b31b24921abf1eee3409305c` | `operator` | 11 November 2026 | Stage 0 [S36]: an authorized filterer can make any transaction fail, including a forced one, without delay; its contracts can be upgraded at once; only two admitted parties can challenge its state |
+| Elysium | `eip155:99901` | `0x14cd46a8e7cfd201c7a79d307c320213f984e7a2b3297cd4e2c4b514538db600` | `operator` | 11 November 2026 | One sequencer and permissioned validation; its transaction data is held by one server that the chain’s infrastructure operator runs, and only a certificate is posted to HyperEVM, the chain it settles to [S41]. Who can upgrade it is not documented (D6) |
+
+A chain of class `operator` or `consortium` is an attested chain, and one of class `exit-protected` or `consensus` a proven chain (P9.28). A revision that changes a chain’s class MUST keep the earlier row, and give the date from which the new class applies, because a move is judged by the classes that applied at its departure (P9.28).
+
+The hashes are those that two public endpoints of each chain reported for block 0 on 10 and 11 November 2026; Monad’s two are under one domain. The Stage 1 and Stage 0 assessments are L2BEAT’s as served on 10 November 2026. A chain is added, removed or reclassified only by a revision of this rule.
+
+Sources: Originals SDK revision 1b3cabdd [S29]; the carried log, the owner request of 9 November 2026; CAIP-2, CAIP-19, ERC-721 and the deterministic deployment proxy [S31–S34]; Ethereum JSON-RPC block tags [S35]; the L2BEAT stages [S36]; the EIP-170 contract code size limit [S37]; the documentation of Monad, Arc, Tempo and Elysium [S38–S41]; Arbitrum’s block numbers and time [S42].
