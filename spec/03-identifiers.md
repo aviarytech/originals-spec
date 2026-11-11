@@ -1,6 +1,6 @@
 ## Identifiers and resolution
 
-Each Original has its own did:vh, used for resolution across private use, web publication and later layers, with identifier mechanics hidden by the SDK (D1). This draft assumes Bitcoin is the later layer, as in the existing SDK, and proposes one of a list of EVM chains, fixed at genesis, as an alternative (P9.19, P14.22).
+Each Original has its own did:vh, used for resolution across private use, web publication and later layers, with identifier mechanics hidden by the SDK (D1). This draft assumes Bitcoin is the later layer, as in the existing SDK, and proposes one of a list of EVM chains, fixed at genesis, as a layer before it or instead of it (P9.19, P9.28, P14.22).
 
 Author identity remains distinct from asset identity. An asset identifier does not authorize an author to edit it. The same Original, identifier and authenticated history should continue across layers.
 
@@ -12,7 +12,7 @@ The Original gains aliases, listed in its asset state and in the derived `alsoKn
 
 - a did:webvh once it is published on the web. This is a small did:webvh log of its own that points to the did:vh, and its implicit `#files` service maps DID URLs such as `did:webvh:<SCID>:example.com/photo` to files at that host;
 - a did:btco once it is anchored, naming the anchoring sat (P9.10). Once anchored, resolution should go through this alias. Originals inscriptions on that sat carry log entries, not a did:btco DID document, in their metadata (P9.17, P14.12), so the alias is resolved only by a verifier applying this profile (P3.5).
-- proposed: for an Original whose genesis entry names an EVM anchor chain, a token alias instead of a did:btco alias once it is anchored. The alias is a CAIP-19 identifier of the Original’s one token, not a DID (P9.19, P14.18).
+- proposed: for an Original whose genesis entry names an EVM anchor chain, a token alias instead of a did:btco alias once it is anchored. The alias is a CAIP-19 identifier of the Original’s one token, not a DID (P9.19, P14.18). A move replaces it with the destination’s alias (P9.28).
 
 The derived DID document of the did:vh carries a `#files` service built from the resource descriptor, so the did:vh can locate the Original’s files itself.
 

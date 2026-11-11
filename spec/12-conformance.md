@@ -198,7 +198,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Signer DID log from the old host whose latest version moves the DID and removes a key | Removal applied; moved log sought; freshness not established until found (P7.8, P5.14) |
 | did:btco signer whose named version is known but an earlier inscription on its sat is unread | Unverifiable; not accepted against the older state (P9.15) |
 | Asset log line with whitespace outside JSON strings / with keys in non-JCS order | Rejected / accepted (P14.2) |
-| Original without `anchor` whose later entry adds one; Original with `anchor` whose later entry changes or removes it | Rejected (P9.19) |
+| Original without `anchor` whose later entry adds one; Original with `anchor` whose later entry, not a move entry, changes or removes it | Rejected (P9.19) |
 | Original with an EVM `anchor` listing a did:btco alias, or a token alias other than its derived token’s; Original without `anchor` listing a token alias | Rejected (P9.19, P14.19) |
 | `anchor.chain` not `eip155:` with a canonical decimal chain ID / `minter` in mixed case | Rejected (P14.18) |
 | `anchor.chain` well formed but not in the verifier’s revision of P14.22 | Unsupported, not invalid; a writer refuses to write it (P9.19, P14.22) |
@@ -228,7 +228,20 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Original with an EVM `anchor` naming a did:btco author or editor | Rejected (P9.26) |
 | did:webvh signer key removed before the timestamp the publication’s record holds | Rejected, as P9.15 with the publication’s inscription time (P9.20, P9.26) |
 | Token held by a contract account | That contract is the owner (P9.23) |
-| Writer creating an Original with an EVM `anchor` | Author told the choice is permanent, the chain’s trust class and what it means, that publications last only while the chain’s state is kept, and the minter fixed (P9.27) |
+| Move entry from an attested chain to a proven chain or to Bitcoin, or from a proven chain to Bitcoin, departed and arrived | Accepted; anchored on the destination; the owner is the holder of the destination token or sat (P9.28, P9.29) |
+| Move entry to a chain in the same layer or a lower one; move entry in an Original anchored on Bitcoin | Rejected (P9.28) |
+| Move entry signed by an editor; move entry before the Original’s anchoring entry; entry that changes `anchor` without listing the destination’s alias | Rejected (P9.28) |
+| Move entry to a chain the verifier’s revision of P14.22 does not list | Unsupported, not invalid (P9.19, P9.28) |
+| Arrival on the destination with no departure accepted on the chain left, as when the author moves alone after a sale | Not accepted; the Original is still anchored where it was (P9.29) |
+| Departure accepted, no arrival yet | Departed, not arrived; the move entry’s state; no owner (P9.29) |
+| Publication on the token left behind, after the departure | Not accepted; reported (P9.29) |
+| Arrival whose log differs from the entries accepted through the departure, or whose last entry is not the move entry | Not an arrival (P9.29) |
+| Moved Original, a chain it left cannot be read | Log verified; move unconfirmed; no owner and not current (P9.29) |
+| A chain the Original left later replaces the block that held the departure | Finality failure there; move unconfirmed (P9.22, P9.29) |
+| Move made to a proven chain that a later revision reclassifies `operator` | Still accepted, judged by the class at the departure record’s timestamp; reported under the current class (P9.28, P14.22) |
+| Report for an Original that moved from an attested chain to a proven chain | Lists both chains with their classes and the entries accepted on each; the earlier stretch described as attested, never as proven (P9.29) |
+| Writer moving an Original | Author told the move cannot be reversed, the layers left above the destination, the dependence on the chain left, and what becomes public; refused if the arrival would exceed 350,000 bytes (P9.29) |
+| Writer creating an Original with an EVM `anchor` | Author told the first chain is permanent and the Original can move only upward, that it stays dependent on every chain it was anchored on, the chain’s trust class and what it means, that publications last only while the chain’s state is kept, and the minter fixed (P9.27) |
 | Report for an Original anchored on an EVM chain | Names the chain, its trust class, the token, the finalized block and the providers; never called a Bitcoin anchor (P9.27) |
 | Report for an Original anchored on a `consortium` or `operator` chain | Ordering, ownership and uniqueness described as attested by the chain’s validators or operator, never as proven (P9.27) |
 

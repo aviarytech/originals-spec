@@ -25,8 +25,8 @@ P14.5 The members of `asset`:
 - `name`: a string of 1 to 1,024 UTF-16 code units (owner decision, 23 October 2026).
 - `metadata`: a JSON object. When absent, there is no metadata (P4.6).
 - `status`: `active` or `deactivated`, agreeing with the operation and the deactivated parameter (P6.5).
-- `aliases`: an array of DIDs with at most one did:webvh and at most one did:btco, or, for an Original with an `anchor` member, at most one did:webvh and at most one token alias (P14.18, P9.19). The genesis entry lists none.
-- `anchor`: the anchor chain and minter, fixed at genesis (P9.19, P14.18). When absent, the anchor chain is Bitcoin.
+- `aliases`: an array of DIDs with at most one did:webvh and at most one did:btco, or, in an entry with an `anchor` member, at most one did:webvh and at most one token alias (P14.18, P9.19). The genesis entry lists none.
+- `anchor`: the anchor chain and minter, set at genesis and changed only by a move entry (P9.19, P9.28, P14.18). When absent, the anchor chain is Bitcoin.
 - `resource`: the descriptor of the Original’s one resource, at its version in this entry (P4.1).
 - `editors`: an array of 1 to 32 grants, each exactly `{did, name, metadata, resource}`, all but `did` booleans. An empty array MUST NOT be used; absence means no editors (P5.15).
 
@@ -196,6 +196,8 @@ P14.22 The supported chains. Each row is provisional, and each class is an asses
 | Tempo | `eip155:4217` | `0x49d7ec7085e77bf5a403d0fcb4cfc42a4084a89dfff60477579c5e09c9e03c54` | `consortium` | 11 November 2026 | A permissioned validator set: only the owner of its validator contract, the Tempo team, adds a validator [S40]. Who decides upgrades is not documented (D6) |
 | Robinhood Chain | `eip155:4663` | `0xaad15f3d702aaea00caf3e9bb56395efe9127bc3b31b24921abf1eee3409305c` | `operator` | 11 November 2026 | Stage 0 [S36]: an authorized filterer can make any transaction fail, including a forced one, without delay; its contracts can be upgraded at once; only two admitted parties can challenge its state |
 | Elysium | `eip155:99901` | `0x14cd46a8e7cfd201c7a79d307c320213f984e7a2b3297cd4e2c4b514538db600` | `operator` | 11 November 2026 | One sequencer and permissioned validation; its transaction data is held by one server that the chain’s infrastructure operator runs, and only a certificate is posted to HyperEVM, the chain it settles to [S41]. Who can upgrade it is not documented (D6) |
+
+A chain of class `operator` or `consortium` is an attested chain, and one of class `exit-protected` or `consensus` a proven chain (P9.28). A revision that changes a chain’s class MUST keep the earlier row, and give the date from which the new class applies, because a move is judged by the classes that applied at its departure (P9.28).
 
 The hashes are those that two public endpoints of each chain reported for block 0 on 10 and 11 November 2026; Monad’s two are under one domain. The Stage 1 and Stage 0 assessments are L2BEAT’s as served on 10 November 2026. A chain is added, removed or reclassified only by a revision of this rule.
 
