@@ -1,6 +1,6 @@
 ## Wire format (partly provisional)
 
-This section pins the byte-level choices that independent implementations must share. Owner decisions of 21 October 2026 decide the 350,000-byte inscription limit and the did:btco network prefixes in P14.12, and the limits in P14.13. D4 decides JCS canonicalization (P14.3), as the canonicalization the pinned VH Log version uses; SHA-256 multihashes for resource digests (P14.7, P4.2); the two cryptosuites (P14.8, P5.12); and the parts of P14.2, P14.3, P14.5, P14.8 and P14.10 that it records as decided on 23 October 2026. D3 decides that an asset log has no witness file (P14.2, P9.8). D6 decides the inscription body, metadata and media type in P14.12 (P9.17; owner decision, 1 November 2026), except the JSON-to-CBOR mapping of the metadata, which stays provisional, and that a did:btco signer version is identified by its own metadata alone (P14.12, P5.13). The EVM anchoring values (P14.18–P14.21) are proposed and provisional. Everything else in this section, including the entry state fields and the evidence package format, is **provisional**: it is taken from the Originals SDK at revision 1b3cabdd [S29], which is the only implementation, and recorded so that it is reviewed as a decision rather than adopted silently (D1, D4). Where the SDK and this section differ, this section says so and the SDK is expected to change. A provisional value may still change before an interoperable release; until then a change keeps the `method` value `originals:1.0`, and Originals written under the earlier value no longer verify (owner decision, 1 November 2026). After an interoperable release, changing a value changes the `method` value.
+This section pins the byte-level choices that independent implementations must share. Owner decisions of 21 October 2026 decide the 350,000-byte inscription limit and the did:btco network prefixes in P14.12, and the limits in P14.13. D4 decides JCS canonicalization (P14.3), as the canonicalization the pinned VH Log version uses; SHA-256 multihashes for resource digests (P14.7, P4.2); the two cryptosuites (P14.8, P5.12); and the parts of P14.2, P14.3, P14.5, P14.8 and P14.10 that it records as decided on 23 October 2026. D3 decides that an asset log has no witness file (P14.2, P9.8). D6 decides the inscription body, metadata and media type in P14.12 (P9.17; owner decision, 1 November 2026), except the JSON-to-CBOR mapping of the metadata, which stays provisional, and that a did:btco signer version is identified by its own metadata alone (P14.12, P5.13). The EVM anchoring values (P14.18–P14.22) are proposed and provisional. Everything else in this section, including the entry state fields and the evidence package format, is **provisional**: it is taken from the Originals SDK at revision 1b3cabdd [S29], which is the only implementation, and recorded so that it is reviewed as a decision rather than adopted silently (D1, D4). Where the SDK and this section differ, this section says so and the SDK is expected to change. A provisional value may still change before an interoperable release; until then a change keeps the `method` value `originals:1.0`, and Originals written under the earlier value no longer verify (owner decision, 1 November 2026). After an interoperable release, changing a value changes the `method` value.
 
 ### Log and parameters
 
@@ -118,7 +118,7 @@ Rule numbers P14.14–P14.17 are reserved for carried logs, which are proposed s
 
 P14.18 The `anchor` member of `asset` (P14.5) is exactly `{chain, minter}`, both strings:
 
-- `chain` is a CAIP-2 chain ID in the `eip155` namespace [S31]: `eip155:` followed by the chain ID in decimal with no leading zeros, matching `^eip155:[1-9][0-9]{0,19}$`, with a value below 2<sup>64</sup>.
+- `chain` is a CAIP-2 chain ID in the `eip155` namespace [S31]: `eip155:` followed by the chain ID in decimal with no leading zeros, matching `^eip155:[1-9][0-9]{0,19}$`, with a value below 2<sup>64</sup>. A chain that P14.22 does not list is unsupported (P9.19).
 - `minter` is an address: `0x` followed by 40 lowercase hexadecimal digits. Mixed-case EIP-55 checksums are not used, so that equal addresses are equal strings.
 
 A token alias is a CAIP-19 asset ID [S32]: `eip155:<chain ID>/erc721:<contract address>/<token ID>`. The chain ID is as in `chain`, the contract address is P14.21’s in lowercase, and the token ID is P14.19’s in decimal with no leading zeros. It is the only alias in `aliases` that is not a DID, and the derived DID document lists it in `alsoKnownAs` like any other alias (P14.9).
@@ -131,37 +131,48 @@ P14.19 An Original’s token ID is `uint256(keccak256(abi.encode(keccak256(d), m
 
 The contract’s `mint(bytes32 original)` mints the token whose ID is computed from `original` and the caller’s address, to the caller. It reverts if that token exists. A token minted for the wrong `original`, or by an address other than the minter, has a different ID and is not the Original’s token.
 
-P14.20 The anchor contract implements ERC-721 [S33] and these functions and events:
+P14.20 The anchor contract implements ERC-721 [S33] and these functions and event:
 
 ```solidity
 function mint(bytes32 original) external returns (uint256 tokenId);
-function publish(uint256 tokenId, string calldata mediaType, bytes calldata data) external returns (bytes32 publication);
-function begin(uint256 tokenId) external returns (bytes32 publication);
-function chunk(bytes32 publication, bytes calldata data) external;
-function commit(bytes32 publication, string calldata mediaType) external;
 
-event Chunk(bytes32 indexed publication, uint32 index, bytes data);
-event Published(uint256 indexed tokenId, bytes32 indexed publication, uint32 chunks, string mediaType);
+function publish(uint256 tokenId, string calldata mediaType, bytes calldata metadata, bytes calldata body) external returns (uint32 index);
+function publishSameBody(uint256 tokenId, bytes calldata metadata, uint32 bodyOf) external returns (uint32 index);
+
+function begin(uint256 tokenId) external returns (bytes32 upload);
+function append(bytes32 upload, bytes calldata data) external;
+function commit(bytes32 upload, string calldata mediaType, uint32 metadataLength) external returns (uint32 index);
+
+function publicationCount(uint256 tokenId) external view returns (uint32);
+function publication(uint256 tokenId, uint32 index) external view
+    returns (uint64 blockNumber, uint64 timestamp, uint32 metadataLength, uint32 bodyLength, uint32 bodyOf, string memory mediaType);
+function metadata(uint256 tokenId, uint32 index) external view returns (bytes memory);
+function body(uint256 tokenId, uint32 index) external view returns (bytes memory);
+
+event Published(uint256 indexed tokenId, uint32 index);
 ```
 
-A publication is made in one of two ways:
+**Records.** The contract keeps, for each token, a list of publication records with indexes from 0 in the order they were recorded. A record holds the number and timestamp of the block that recorded it, the lengths of its metadata and body, its media type, and `bodyOf`: its own index if the publication stored its body, or the index of the earlier record of the same token whose body it refers to. A record is never changed or removed.
 
-- **In one transaction:** `publish` emits one `Chunk` with index 0 and then `Published` with `chunks` 1.
+**Bytes.** The contract stores a publication’s metadata and body in state, as the code of contracts it creates: each holds a zero byte followed by at most 24,575 bytes [S37], and the contract keeps their addresses in its own storage. `metadata` and `body` return the stored bytes; `body` of a record that refers to an earlier one returns that one’s bytes. The contract emits no publication bytes in events. `Published` only helps a reader find records (P9.25).
+
+A publication is recorded in one of three ways:
+
+- **In one transaction:** `publish` stores the metadata and body and adds a record.
+- **Referring to a stored body:** `publishSameBody` stores the metadata and adds a record whose body is that of record `bodyOf`. It reverts unless `bodyOf` is an earlier record of the same token that stored its own body. The new record takes that record’s media type.
 - **In stages, for data larger than a chain accepts in one transaction:**
-  - `begin` opens a publication;
-  - `chunk` emits the next `Chunk`, with indexes from 0 in call order, and only the caller of `begin` can call it;
-  - `commit` emits `Published` with the number of chunks and closes the publication, and only the caller of `begin` can call it, once.
+  - `begin` opens an upload;
+  - `append` stores the next bytes of the upload, and only the caller of `begin` can call it;
+  - `commit` closes the upload and adds a record: the first `metadataLength` bytes of the upload are the metadata and the rest the body. Only the caller of `begin` can call it, once, and it reverts if `metadataLength` exceeds the upload.
 
-`publish`, `begin` and `commit` revert unless the caller is the token’s holder or an operator approved for it at that moment. A publication ID is never reused. Only `Published` places a publication in chain order, so an opened publication that is never committed is ignored.
+`publish`, `publishSameBody`, `begin` and `commit` revert unless the caller is the token’s holder or an operator approved for it at that moment. Only a record places a publication in chain order (P9.20), so an upload that is never committed is ignored. The contract judges no signature and no entry: it checks only who may publish (P9.12, P9.23).
 
-A publication’s data is its `Chunk` data concatenated in index order: a 4-byte big-endian length `n`, then `n` bytes of metadata, then the body.
+- **Metadata:** the CBOR array of entries that P14.12 defines for inscription metadata, with the same mapping and reader rules.
+- **Body:** the exact bytes of the resource version that the last entry names (P9.17), under the record’s media type, which MUST equal that version’s `mediaType`.
 
-- **Metadata:** the CBOR array of entries that P14.12 defines for inscription metadata, with the same mapping and reader rules. It is not split into pushes.
-- **Body:** the exact bytes of the resource version that the last entry names (P9.17). Its media type is `Published`’s `mediaType`, which MUST equal that version’s `mediaType`.
+A reader MUST reject a publication whose stored metadata and body together exceed 350,000 bytes, or whose body’s digest, size or media type differs from the last entry’s descriptor, whether the record stored the body or refers to it. A writer SHOULD use `publishSameBody` when the bytes are already stored on the token, and chooses how to split an upload to fit the chain’s transaction limits. Neither choice changes the publication.
 
-A reader MUST reject a publication whose length `n` exceeds the data that follows it, whose metadata and body together exceed 350,000 bytes, or whose body’s digest or size differs from the last entry’s descriptor. A writer chooses chunk sizes to fit the chain’s transaction limits. They do not change the publication.
-
-P14.21 The anchor contract is compiled for the EVM version this section will pin, and deployed with CREATE2 through the deterministic deployment proxy at `0x4e59b44847b379578588920ca78fbf26c0b4956c` [S34], with a zero salt, so that it has the same address on every chain that runs the proxy. This section will pin, after review and an external audit:
+P14.21 The anchor contract is compiled for the EVM version this section will pin, and deployed with CREATE2 through the deterministic deployment proxy at `0x4e59b44847b379578588920ca78fbf26c0b4956c` [S34], with a zero salt, so that it has the same address on every listed chain. This section will pin, after review and an external audit:
 
 - the contract’s source;
 - the compiler and its settings;
@@ -169,6 +180,21 @@ P14.21 The anchor contract is compiled for the EVM version this section will pin
 - the resulting address;
 - the runtime code hash.
 
-The contract has no owner, administrator, proxy, upgrade, pause or self-destruct path. Its `tokenURI` is open (D6).
+The contract has no owner, administrator, proxy, upgrade, pause or self-destruct path. Its `tokenURI` MUST be computed from the contract’s own state and MUST NOT name a location off the chain; its form is open (D6).
 
-Sources: Originals SDK revision 1b3cabdd [S29]; CAIP-2, CAIP-19, ERC-721 and the deterministic deployment proxy [S31–S34]; Ethereum JSON-RPC block tags [S35].
+P14.22 The supported chains. Each row is provisional, and each class is an assessment on the date given, against the definitions of P9.27:
+
+| Chain | `chain` | Hash of block 0 | Class | Assessed | Basis |
+|---|---|---|---|---|---|
+| Ethereum | `eip155:1` | `0xd4e56740f876aef8c010b86a40d5f56745a118d0906a34e69aec8c0db1cb8fa3` | `consensus` | 10 November 2026 | Open validator set; changes take effect by its validators adopting them |
+| Monad | `eip155:143` | `0x0c47353304f22b1c15706367d739b850cda80b5c87bbc335014fef3d88deaac9` | `consensus` | 10 November 2026 | Validators register through the staking contract with no approval step; upgrades are hard forks its validators adopt. To be confirmed (D6) |
+| Base | `eip155:8453` | `0xf712aa9241cc24369b143cf6dce85f0902a9731e70d66818a3a5845b296c73dd` | `exit-protected` | 10 November 2026 | Stage 1 in the L2BEAT assessment [S36]. To be confirmed against P9.27 (D6) |
+| Arbitrum One | `eip155:42161` | `0x7ee576b35482195fc49205cec9af72ce14f003b9ae69f6ba0faef4514be8b442` | `exit-protected` | 10 November 2026 | Stage 1 in the L2BEAT assessment [S36]. To be confirmed against P9.27 (D6) |
+| Arc | `eip155:5042` | `0x09944e07412986bb417fd0006c89ffb71ee523d68ce2017ec2dabc944c42edad` | `consortium` | 10 November 2026 | Validators are Circle and institutions it admits. To be confirmed (D6) |
+| Tempo | `eip155:4217` | `0x49d7ec7085e77bf5a403d0fcb4cfc42a4084a89dfff60477579c5e09c9e03c54` | `consortium` | 10 November 2026 | Validators are organisations the Tempo team admits. To be confirmed (D6) |
+| Robinhood Chain | `eip155:4663` | `0xaad15f3d702aaea00caf3e9bb56395efe9127bc3b31b24921abf1eee3409305c` | `operator` | 10 November 2026 | Stage 0 in the L2BEAT assessment [S36] |
+| Elysium | `eip155:99901` | `0x14cd46a8e7cfd201c7a79d307c320213f984e7a2b3297cd4e2c4b514538db600` | `operator` | 10 November 2026 | One sequencer and an admitted validator set; its transaction data is held by a committee, not published to the chain it settles to. To be confirmed (D6) |
+
+The hashes are those each chain’s public endpoint reported for block 0 on 10 November 2026. A chain is added, removed or reclassified only by a revision of this rule.
+
+Sources: Originals SDK revision 1b3cabdd [S29]; CAIP-2, CAIP-19, ERC-721 and the deterministic deployment proxy [S31–S34]; Ethereum JSON-RPC block tags [S35]; the L2BEAT stages [S36]; the EIP-170 contract code size limit [S37].

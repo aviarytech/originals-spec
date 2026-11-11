@@ -1,6 +1,6 @@
 ## Identifiers and resolution
 
-Each Original has its own did:vh, used for resolution across private use, web publication and later layers, with identifier mechanics hidden by the SDK (D1). This draft assumes Bitcoin is the later layer, as in the existing SDK, and proposes an EVM chain, fixed at genesis, as an alternative (P9.19).
+Each Original has its own did:vh, used for resolution across private use, web publication and later layers, with identifier mechanics hidden by the SDK (D1). This draft assumes Bitcoin is the later layer, as in the existing SDK, and proposes one of a list of EVM chains, fixed at genesis, as an alternative (P9.19, P14.22).
 
 Author identity remains distinct from asset identity. An asset identifier does not authorize an author to edit it. The same Original, identifier and authenticated history should continue across layers.
 

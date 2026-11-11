@@ -201,24 +201,31 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Original without `anchor` whose later entry adds one; Original with `anchor` whose later entry changes or removes it | Rejected (P9.19) |
 | Original with an EVM `anchor` listing a did:btco alias, or a token alias other than its derived token’s; Original without `anchor` listing a token alias | Rejected (P9.19, P14.19) |
 | `anchor.chain` not `eip155:` with a canonical decimal chain ID / `minter` in mixed case | Rejected (P14.18) |
+| `anchor.chain` well formed but not in the verifier’s revision of P14.22 | Unsupported, not invalid; a writer refuses to write it (P9.19, P14.22) |
 | Genesis entry with an `anchor` member while P14.21 pins no contract | Unsupported, not invalid; a writer refuses to write it (P14.21) |
-| Code at the anchor contract address with another runtime code hash, or none | Unsupported; never verified or reported as not anchored (P9.21) |
+| Provider reporting the listed chain ID whose block 0 has another hash than P14.22 lists | Not that chain; its answers are not evidence (P9.21) |
+| Code at the anchor contract address with another runtime code hash, or none, on a listed chain | Unsupported; never verified or reported as not anchored (P9.21) |
+| The pinned contract deployed on a chain that is not listed | Unsupported (P9.21) |
 | Publication read from a chain other than the one `anchor` names | Not a publication of the Original (P9.20) |
-| Publication in a block above the finalized block | Observed, not accepted; pending (P9.22, P9.27) |
-| Two providers disagree on a publication, on `ownerOf` or on the finalized block | Missing evidence until they agree; the lower finalized block is used (P9.20, P9.22) |
+| Publication record present at the latest block but not in state at the finalized block | Observed, not accepted; pending (P9.22, P9.27) |
+| Two providers disagree on a record, its bytes, `ownerOf` or the finalized block | Missing evidence until they agree; the lower finalized block is used (P9.20, P9.22) |
 | A block accepted as finalized is replaced | `authoritative-source-changed` and a finality failure reported (P9.22) |
 | Token minted, no anchoring publication | Not anchored; no owner (P9.23) |
-| Two anchoring entries from different branches published on the token | First in EVM chain order is the anchor; the other a conflicting anchor; uniqueness MAY be reported as established under the chain’s finality (P9.24, P9.16) |
-| Two publications extending the same head in one block | The first by transaction index, then log index, is accepted; at most one per block (P9.13, P9.20) |
-| Publication by an address that is neither the holder nor an approved operator | Reverted by the contract; never emitted (P14.20) |
-| Opened publication never committed | Ignored (P14.20) |
-| Publication whose length prefix exceeds its data, whose metadata and body exceed 350,000 bytes, or whose body digest, size or media type differs from the last entry’s descriptor | Rejected (P14.20, P9.17) |
-| Publication whose `Chunk` events a verifier cannot read, or a provider that pruned the token’s events | Resolution fails with missing evidence (P9.25) |
+| Two anchoring entries from different branches published on the token | The one with the lower record index is the anchor; the other a conflicting anchor; uniqueness MAY be reported as established under the chain’s finality and class (P9.24, P9.16) |
+| Two publications extending the same head recorded in one block | The one with the lower record index is accepted; at most one per block (P9.13, P9.20) |
+| Publication by an address that is neither the holder nor an approved operator | Reverted by the contract; no record (P14.20) |
+| Upload opened and never committed | Ignored (P14.20) |
+| Publication whose stored metadata and body exceed 350,000 bytes, or whose body digest, size or media type differs from the last entry’s descriptor | Rejected (P14.20, P9.17) |
+| Publication that refers to an earlier record’s body, the last entry not changing the resource | Accepted; the body is checked against the descriptor as if stored (P9.25, P14.20) |
+| Publication that refers to an earlier record’s body whose digest differs from the last entry’s descriptor | Rejected (P9.25, P14.20) |
+| `publishSameBody` naming a later record, a record of another token, or a record that itself refers to another | Reverted by the contract; no record (P14.20) |
+| Publication known only from a `Published` event, or a token whose records or bytes cannot be read from state at the finalized block | Never accepted from the event; resolution fails with missing evidence (P9.25) |
 | Original with an EVM `anchor` naming a did:btco author or editor | Rejected (P9.26) |
-| did:webvh signer key removed before the publication’s block timestamp | Rejected, as P9.15 with the publication’s inscription time (P9.26) |
+| did:webvh signer key removed before the timestamp the publication’s record holds | Rejected, as P9.15 with the publication’s inscription time (P9.20, P9.26) |
 | Token held by a contract account | That contract is the owner (P9.23) |
-| Writer creating an Original with an EVM `anchor` | Author told the choice is permanent, what the chain’s operators can do, that publications depend on event-log retention, and the minter fixed (P9.27) |
-| Report for an Original anchored on an EVM chain | Names the chain, token, finalized block and providers; never called a Bitcoin anchor (P9.27) |
+| Writer creating an Original with an EVM `anchor` | Author told the choice is permanent, the chain’s trust class and what it means, that publications last only while the chain’s state is kept, and the minter fixed (P9.27) |
+| Report for an Original anchored on an EVM chain | Names the chain, its trust class, the token, the finalized block and the providers; never called a Bitcoin anchor (P9.27) |
+| Report for an Original anchored on a `consortium` or `operator` chain | Ordering, ownership and uniqueness described as attested by the chain’s validators or operator, never as proven (P9.27) |
 
 ### Release evidence
 
