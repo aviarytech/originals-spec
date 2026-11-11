@@ -145,16 +145,16 @@ function commit(bytes32 upload, string calldata mediaType, uint32 metadataLength
 
 function publicationCount(uint256 tokenId) external view returns (uint32);
 function publication(uint256 tokenId, uint32 index) external view
-    returns (uint64 blockNumber, uint64 timestamp, uint32 metadataLength, uint32 bodyLength, uint32 bodyOf, string memory mediaType);
-function metadata(uint256 tokenId, uint32 index) external view returns (bytes memory);
-function body(uint256 tokenId, uint32 index) external view returns (bytes memory);
+    returns (uint64 timestamp, uint32 metadataLength, uint32 bodyLength, uint32 bodyOf, string memory mediaType);
+function metadata(uint256 tokenId, uint32 index, uint32 offset, uint32 length) external view returns (bytes memory);
+function body(uint256 tokenId, uint32 index, uint32 offset, uint32 length) external view returns (bytes memory);
 
 event Published(uint256 indexed tokenId, uint32 index);
 ```
 
-**Records.** The contract keeps, for each token, a list of publication records with indexes from 0 in the order they were recorded. A record holds the number and timestamp of the block that recorded it, the lengths of its metadata and body, its media type, and `bodyOf`: its own index if the publication stored its body, or the index of the earlier record of the same token whose body it refers to. A record is never changed or removed.
+**Records.** The contract keeps, for each token, a list of publication records with indexes from 0 in the order they were recorded. A record holds the timestamp of the block that recorded it, which is the chain’s own (`block.timestamp`), the lengths of its metadata and body, its media type, and `bodyOf`: its own index if the publication stored its body, or the index of the earlier record of the same token whose body it refers to. A record is never changed or removed. A record holds no block number: a contract on an Arbitrum chain sees an approximate block number of its parent chain, not its own [S42], and the record index already orders publications (P9.20).
 
-**Bytes.** The contract stores a publication’s metadata and body in state, as the code of contracts it creates: each holds a zero byte followed by at most 24,575 bytes [S37], and the contract keeps their addresses in its own storage. `metadata` and `body` return the stored bytes; `body` of a record that refers to an earlier one returns that one’s bytes. The contract emits no publication bytes in events. `Published` only helps a reader find records (P9.25).
+**Bytes.** The contract stores a publication’s metadata and body in state, as the code of contracts it creates: each holds a zero byte followed by at most 24,575 bytes [S37], and the contract keeps their addresses in its own storage. `metadata` and `body` return the stored bytes from `offset`, at most `length` of them and fewer at the end, so a reader can read a record in ranges that suit its provider; `body` of a record that refers to an earlier one returns that one’s bytes. The contract emits no publication bytes in events. `Published` only helps a reader find records (P9.25).
 
 A publication is recorded in one of three ways:
 
@@ -165,12 +165,14 @@ A publication is recorded in one of three ways:
   - `append` stores the next bytes of the upload, and only the caller of `begin` can call it;
   - `commit` closes the upload and adds a record: the first `metadataLength` bytes of the upload are the metadata and the rest the body. Only the caller of `begin` can call it, once, and it reverts if `metadataLength` exceeds the upload.
 
+**Limits.** The contract enforces the 350,000-byte limit (P9.25). `publish` reverts if its metadata and body together exceed it, `publishSameBody` if its metadata does, and `append` if it would take the upload past it. `publish`, `publishSameBody` and `commit` revert if `mediaType` is longer than 255 bytes. No record, and no upload, therefore holds more than 350,000 bytes.
+
 `publish`, `publishSameBody`, `begin` and `commit` revert unless the caller is the token’s holder or an operator approved for it at that moment. Only a record places a publication in chain order (P9.20), so an upload that is never committed is ignored. The contract judges no signature and no entry: it checks only who may publish (P9.12, P9.23).
 
 - **Metadata:** the CBOR array of entries that P14.12 defines for inscription metadata, with the same mapping and reader rules.
 - **Body:** the exact bytes of the resource version that the last entry names (P9.17), under the record’s media type, which MUST equal that version’s `mediaType`.
 
-A reader MUST reject a publication whose stored metadata and body together exceed 350,000 bytes, or whose body’s digest, size or media type differs from the last entry’s descriptor, whether the record stored the body or refers to it. A writer SHOULD use `publishSameBody` when the bytes are already stored on the token, and chooses how to split an upload to fit the chain’s transaction limits. Neither choice changes the publication.
+A reader MUST reject a record whose metadata and body lengths together exceed 350,000 bytes for a record that stored its body, or whose metadata length does for one that refers to a body, or whose media type is longer than 255 bytes, and MUST do so from the record’s fields without reading its bytes (P9.25). It MUST reject a publication whose body’s digest, size or media type differs from the last entry’s descriptor, whether the record stored the body or refers to it. A writer SHOULD use `publishSameBody` when the bytes are already stored on the token, and chooses how to split an upload to fit the chain’s transaction limits. Neither choice changes the publication.
 
 P14.21 The anchor contract is compiled for the EVM version this section will pin, and deployed with CREATE2 through the deterministic deployment proxy at `0x4e59b44847b379578588920ca78fbf26c0b4956c` [S34], with a zero salt, so that it has the same address on every listed chain. This section will pin, after review and an external audit:
 
@@ -197,4 +199,4 @@ P14.22 The supported chains. Each row is provisional, and each class is an asses
 
 The hashes are those that two public endpoints of each chain reported for block 0 on 10 and 11 November 2026; Monad’s two are under one domain. The Stage 1 and Stage 0 assessments are L2BEAT’s as served on 10 November 2026. A chain is added, removed or reclassified only by a revision of this rule.
 
-Sources: Originals SDK revision 1b3cabdd [S29]; CAIP-2, CAIP-19, ERC-721 and the deterministic deployment proxy [S31–S34]; Ethereum JSON-RPC block tags [S35]; the L2BEAT stages [S36]; the EIP-170 contract code size limit [S37]; the documentation of Monad, Arc, Tempo and Elysium [S38–S41].
+Sources: Originals SDK revision 1b3cabdd [S29]; CAIP-2, CAIP-19, ERC-721 and the deterministic deployment proxy [S31–S34]; Ethereum JSON-RPC block tags [S35]; the L2BEAT stages [S36]; the EIP-170 contract code size limit [S37]; the documentation of Monad, Arc, Tempo and Elysium [S38–S41]; Arbitrum’s block numbers and time [S42].

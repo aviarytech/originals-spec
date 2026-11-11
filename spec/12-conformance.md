@@ -208,14 +208,19 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | The pinned contract deployed on a chain that is not listed | Unsupported (P9.21) |
 | Publication read from a chain other than the one `anchor` names | Not a publication of the Original (P9.20) |
 | Publication record present at the latest block but not in state at the finalized block | Observed, not accepted; pending (P9.22, P9.27) |
-| Two providers disagree on a record, its bytes, `ownerOf` or the finalized block | Missing evidence until they agree; the lower finalized block is used (P9.20, P9.22) |
+| Two providers report different hashes for the lower of their finalized blocks, or a different record, bytes or `ownerOf` at that block | Missing evidence until they agree (P9.20, P9.22) |
+| One provider’s finalized block is N and the other’s is N+1, and they agree on block N’s hash and on the state at it | Verified at block N; a provider that is behind is not a disagreement (P9.22) |
 | A block accepted as finalized is replaced | `authoritative-source-changed` and a finality failure reported (P9.22) |
 | Token minted, no anchoring publication | Not anchored; no owner (P9.23) |
 | Two anchoring entries from different branches published on the token | The one with the lower record index is the anchor; the other a conflicting anchor; uniqueness MAY be reported as established under the chain’s finality and class (P9.24, P9.16) |
-| Two publications extending the same head recorded in one block | The one with the lower record index is accepted; at most one per block (P9.13, P9.20) |
+| Two publications extending the same head, recorded in one block or in different blocks | The one with the lower record index is accepted (P9.13, P9.20) |
+| Two successive publications, the second extending the first, recorded in one block, or in two blocks of a rollup that share one parent-chain block number | Both accepted, in index order (P9.13, P9.20) |
 | Publication by an address that is neither the holder nor an approved operator | Reverted by the contract; no record (P14.20) |
 | Upload opened and never committed | Ignored (P14.20) |
-| Publication whose stored metadata and body exceed 350,000 bytes, or whose body digest, size or media type differs from the last entry’s descriptor | Rejected (P14.20, P9.17) |
+| `publish` or `publishSameBody` whose bytes exceed 350,000, an `append` that would take an upload past 350,000 bytes, or a media type longer than 255 bytes | Reverted by the contract; no record and no stored bytes (P14.20) |
+| Record whose length fields exceed 350,000 bytes, as a provider reports it, after valid earlier records | Rejected from its fields without reading its bytes; the earlier accepted history resolves and evidence is not missing (P9.25) |
+| Record of 350,000 bytes that is no valid publication, after valid earlier records, read from a provider that limits the size of a response | Read in ranges and rejected; the earlier accepted history resolves (P9.25, P14.20) |
+| Publication whose body digest, size or media type differs from the last entry’s descriptor | Rejected (P14.20, P9.17) |
 | Publication that refers to an earlier record’s body, the last entry not changing the resource | Accepted; the body is checked against the descriptor as if stored (P9.25, P14.20) |
 | Publication that refers to an earlier record’s body whose digest differs from the last entry’s descriptor | Rejected (P9.25, P14.20) |
 | `publishSameBody` naming a later record, a record of another token, or a record that itself refers to another | Reverted by the contract; no record (P14.20) |
