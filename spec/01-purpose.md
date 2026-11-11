@@ -34,7 +34,7 @@ Using the rules a did:vh extension may define, Originals:
 - Defines a resource descriptor bound to a SHA-256 digest, exactly one resource per Original, and history-derived versions (P4.1–P4.4).
 - Rejects members that VH Log, did:vh or this extension do not define (P5.7), and requires the deactivated parameter and the lifecycle status to agree (P6.5).
 - Does not use VH witnesses in the asset log, hosted or not; ordering off Bitcoin is claimed only (P9.8, P9.9).
-- Makes Bitcoin the authoritative source after anchoring [S20]: an Original can be anchored with or without having been published on the web, inscriptions on the anchoring sat decide which entries form the log, and they may carry a compact encoding that decodes deterministically to full entries [S23, S24] (P9.10, P9.13, P9.14).
+- Makes Bitcoin the authoritative source after anchoring [S20]: an Original can be anchored with or without having been published on the web, inscriptions on the anchoring sat decide which entries form the log, and they may carry a compact encoding that decodes deterministically to full entries [S23, S24] (P9.10, P9.13, P9.14). Proposed: an author can instead fix one of the EVM chains this profile lists as the first anchor chain at genesis, where a token in a contract with no administrator takes the sat’s place, the contract’s state holds the publications, and every report states the chain’s trust class; the Original can later move up, to a chain in a higher layer or to Bitcoin (P9.19–P9.29).
 
 Originals adds, outside the log:
 

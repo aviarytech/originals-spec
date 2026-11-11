@@ -233,6 +233,52 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Carried log older than the reader’s local history, or on another branch | Local history kept; a branch reported as a conflict (P7.14, P7.5) |
 | Anchored Original whose carried log disagrees with its anchor | State from the anchor; the carried log is not preferred (P7.14, P9.13) |
 | Anchored Original’s carried log read without access to the anchor | Missing evidence; at most the entries before the anchoring entry valid as of the checkpoint before it; the anchoring entry and later entries not checked against the anchor (P7.14, P3.3, P9.15) |
+| Original without `anchor` whose later entry adds one; Original with `anchor` whose later entry, not a move entry, changes or removes it | Rejected (P9.19) |
+| Original with an EVM `anchor` listing a did:btco alias, or a token alias other than its derived token’s; Original without `anchor` listing a token alias | Rejected (P9.19, P14.19) |
+| `anchor.chain` not `eip155:` with a canonical decimal chain ID / `minter` in mixed case | Rejected (P14.18) |
+| `anchor.chain` well formed but not in the verifier’s revision of P14.22 | Unsupported, not invalid; a writer refuses to write it (P9.19, P14.22) |
+| Genesis entry with an `anchor` member while P14.21 pins no contract | Unsupported, not invalid; a writer refuses to write it (P14.21) |
+| Provider reporting the listed chain ID whose block 0 has another hash than P14.22 lists | Not that chain; its answers are not evidence (P9.21) |
+| Code at the anchor contract address with another runtime code hash, or none, on a listed chain | Unsupported; never verified or reported as not anchored (P9.21) |
+| The pinned contract deployed on a chain that is not listed | Unsupported (P9.21) |
+| Publication read from a chain other than the one `anchor` names | Not a publication of the Original (P9.20) |
+| Publication record present at the latest block but not in state at the finalized block | Observed, not accepted; pending (P9.22, P9.27) |
+| Two providers report different hashes for the lower of their finalized blocks, or a different record, bytes or `ownerOf` at that block | Missing evidence until they agree (P9.20, P9.22) |
+| One provider’s finalized block is N and the other’s is N+1, and they agree on block N’s hash and on the state at it | Verified at block N; a provider that is behind is not a disagreement (P9.22) |
+| A block accepted as finalized is replaced | `authoritative-source-changed` and a finality failure reported (P9.22) |
+| Token minted, no anchoring publication | Not anchored; no owner (P9.23) |
+| Two anchoring entries from different branches published on the token | The one with the lower record index is the anchor; the other a conflicting anchor; uniqueness MAY be reported as established under the chain’s finality and class (P9.24, P9.16) |
+| Two publications extending the same head, recorded in one block or in different blocks | The one with the lower record index is accepted (P9.13, P9.20) |
+| Two successive publications, the second extending the first, recorded in one block, or in two blocks of a rollup that share one parent-chain block number | Both accepted, in index order (P9.13, P9.20) |
+| Publication by an address that is neither the holder nor an approved operator | Reverted by the contract; no record (P14.20) |
+| Upload opened and never committed | Ignored (P14.20) |
+| `publish` or `publishSameBody` whose bytes exceed 350,000, an `append` that would take an upload past 350,000 bytes, or a media type longer than 255 bytes | Reverted by the contract; no record and no stored bytes (P14.20) |
+| Record whose length fields exceed 350,000 bytes, as a provider reports it, after valid earlier records | Rejected from its fields without reading its bytes; the earlier accepted history resolves and evidence is not missing (P9.25) |
+| Record of 350,000 bytes that is no valid publication, after valid earlier records, read from a provider that limits the size of a response | Read in ranges and rejected; the earlier accepted history resolves (P9.25, P14.20) |
+| Publication whose body digest, size or media type differs from the last entry’s descriptor | Rejected (P14.20, P9.17) |
+| Publication that refers to an earlier record’s body, the last entry not changing the resource | Accepted; the body is checked against the descriptor as if stored (P9.25, P14.20) |
+| Publication that refers to an earlier record’s body whose digest differs from the last entry’s descriptor | Rejected (P9.25, P14.20) |
+| `publishSameBody` naming a later record, a record of another token, or a record that itself refers to another | Reverted by the contract; no record (P14.20) |
+| Publication known only from a `Published` event, or a token whose records or bytes cannot be read from state at the finalized block | Never accepted from the event; resolution fails with missing evidence (P9.25) |
+| Original with an EVM `anchor` naming a did:btco author or editor | Rejected (P9.26) |
+| did:webvh signer key removed before the timestamp the publication’s record holds | Rejected, as P9.15 with the publication’s inscription time (P9.20, P9.26) |
+| Token held by a contract account | That contract is the owner (P9.23) |
+| Move entry from an attested chain to a proven chain or to Bitcoin, or from a proven chain to Bitcoin, departed and arrived | Accepted; anchored on the destination; the owner is the holder of the destination token or sat (P9.28, P9.29) |
+| Move entry to a chain in the same layer or a lower one; move entry in an Original anchored on Bitcoin | Rejected (P9.28) |
+| Move entry signed by an editor; move entry before the Original’s anchoring entry; entry that changes `anchor` without listing the destination’s alias | Rejected (P9.28) |
+| Move entry to a chain the verifier’s revision of P14.22 does not list | Unsupported, not invalid (P9.19, P9.28) |
+| Arrival on the destination with no departure accepted on the chain left, as when the author moves alone after a sale | Not accepted; the Original is still anchored where it was (P9.29) |
+| Departure accepted, no arrival yet | Departed, not arrived; the move entry’s state; no owner (P9.29) |
+| Publication on the token left behind, after the departure | Not accepted; reported (P9.29) |
+| Arrival whose log differs from the entries accepted through the departure, or whose last entry is not the move entry | Not an arrival (P9.29) |
+| Moved Original, a chain it left cannot be read | Log verified; move unconfirmed; no owner and not current (P9.29) |
+| A chain the Original left later replaces the block that held the departure | Finality failure there; move unconfirmed (P9.22, P9.29) |
+| Move made to a proven chain that a later revision reclassifies `operator` | Still accepted, judged by the class at the departure record’s timestamp; reported under the current class (P9.28, P14.22) |
+| Report for an Original that moved from an attested chain to a proven chain | Lists both chains with their classes and the entries accepted on each; the earlier stretch described as attested, never as proven (P9.29) |
+| Writer moving an Original | Author told the move cannot be reversed, the layers left above the destination, the dependence on the chain left, and what becomes public; refused if the arrival would exceed 350,000 bytes (P9.29) |
+| Writer creating an Original with an EVM `anchor` | Author told the first chain is permanent and the Original can move only upward, that it stays dependent on every chain it was anchored on, the chain’s trust class and what it means, that publications last only while the chain’s state is kept, and the minter fixed (P9.27) |
+| Report for an Original anchored on an EVM chain | Names the chain, its trust class, the token, the finalized block and the providers; never called a Bitcoin anchor (P9.27) |
+| Report for an Original anchored on a `consortium` or `operator` chain | Ordering, ownership and uniqueness described as attested by the chain’s validators or operator, never as proven (P9.27) |
 
 ### Release evidence
 
