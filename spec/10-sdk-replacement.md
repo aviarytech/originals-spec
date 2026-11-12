@@ -43,5 +43,6 @@ No Originals were issued under the CEL 3 format or earlier formats, so the SDK r
 3. Add author DID key rotation, deactivation, incomplete evidence and conflict tests. Keep unresolved freshness claims visible.
 4. Replace the actual hosted and Boop publication paths and run exact-snapshot reader regressions.
 5. Specify and implement the Bitcoin representation and durable-boundary tests.
+6. If EVM anchoring is adopted, prove one path from an EVM chain to Bitcoin end to end before supporting further listed chains. Moving up never upgrades what is said of an earlier stretch or removes the dependence on the chain left (P9.29).
 
 Sources: SDK map [S1, S4–S9, S12–S18]. SDK files were checked at main revision 00fc683 on 15 October 2026.

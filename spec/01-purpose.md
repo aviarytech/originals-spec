@@ -14,7 +14,7 @@ The immediate implementation target is a local vertical slice: create an Origina
 
 ### Scope and non-goals
 
-The working basis is one separate VH history per Original, with one author for its whole life. Each change is signed by the author or by an editor the author has granted permission to change named content (P5.15). The draft covers resource state, author and controller authority, local operations, portable evidence, and boundaries with storage and publication. It does not invent a new DID method, finalize a wire format or proof suite, promise encryption or key recovery, or treat Bitcoin possession as edit authority.
+The working basis is one separate VH history per Original, with one author for its whole life. Each change is signed by the author or by an editor the author has granted permission to change named content (P5.15). The draft covers resource state, author and controller authority, local operations, portable evidence, and boundaries with storage and publication. It does not invent a new DID method, other than the proposed did:evm method for the token alias (P3.9), finalize a wire format or proof suite, promise encryption or key recovery, or treat Bitcoin possession as edit authority.
 
 VH Log and did:vh are pre-drafts. Their algorithms, parameter behavior and resolution semantics remain dependencies to pin and test. The SDK compatibility observations refer to the SDK at main revision 00fc683: the local entry under `packages/sdk/src/v3`, the history engine under `packages/cel/src/v3`, and the full SDK in `packages/sdk/src/core/OriginalsSDK3.ts` that adds hosting and Bitcoin. The SDK is the working reference, not the authority: where this draft departs from it, section 10 says so.
 
@@ -22,11 +22,11 @@ VH Log and did:vh are pre-drafts. Their algorithms, parameter behavior and resol
 
 Originals is a did:vh extension [S19], and therefore a specialisation of VH Log [S2, S3]. Each Original is one did:vh log, its [[ref: asset log]], and its stable identifier is `did:vh:<SCID>`. There is no separate DID log for the Original. The extension defines its own `method` values, provisionally `originals:1.0`, each stating the VH-Log version it implies. A log cannot move between plain did:vh and the extension, and a resolver that does not implement the extension rejects the log by its unrecognised `method` value.
 
-VH Log defines the log mechanism: entry structure, hash chaining, SCID, parameters, updateKeys, witnesses, watchers, resolution, and the rules for publishing and retrieving log files. did:vh defines the identifier, sourcing the log and DID URL handling. This draft does not repeat them. It defines only what is specific to Originals. It also profiles did:webvh and did:btco, which name an Original as aliases, and did:vh, did:webvh and did:btco as author DID methods.
+VH Log defines the log mechanism: entry structure, hash chaining, SCID, parameters, updateKeys, witnesses, watchers, resolution, and the rules for publishing and retrieving log files. did:vh defines the identifier, sourcing the log and DID URL handling. This draft does not repeat them. It defines only what is specific to Originals. It also profiles did:webvh and did:btco, which name an Original as aliases, and did:vh, did:webvh and did:btco as author DID methods. Proposed: it defines did:evm, the alias of an Original anchored on an EVM chain (P3.9).
 
 Using the rules a did:vh extension may define, Originals:
 
-- Defines each entry’s state as the full [[ref: asset state]]: name, metadata, lifecycle, the resource descriptor, aliases and editor grants. State is a full snapshot, never a delta, and never a DID document (section 2).
+- Defines each entry’s state as the full [[ref: asset state]]: name, metadata, lifecycle, the resource descriptor, aliases, editor grants and, where set, the EVM anchor (P9.19). State is a full snapshot, never a delta, and never a DID document (section 2).
 - Derives the DID document for each version deterministically: its `id`, a `controller` equal to the author DID, `alsoKnownAs` from the aliases in the asset state, and a `#files` service built from the resource descriptor. No DID document is stored, and the asset is not placed in it (section 2).
 - Requires signed state fields for the operation, resource transitions, author DID, author verification method and author DID version, and for an editor entry the editor reference (P5.1, P5.16).
 - Takes the log’s controller keys from the author DID [S25], with editor keys limited to the changes their grants allow (P5.16): one proof per entry, using `eddsa-jcs-2022` or `bip340-jcs-2025` [S21], by an assertionMethod key of the author DID at the version the entry names, other than an updateKey of the author DID’s own log. There are no updateKeys, no pre-rotation and no rotation entries (P5.2, P5.3, P5.9, P5.10, P5.12).
@@ -40,7 +40,7 @@ Originals adds, outside the log:
 
 - Author identity, verified against the author DID’s own history (section 5).
 - Resource bytes and evidence packages that verify offline (sections 4 and 7).
-- Ownership as the holder of the anchoring sat, with no authority to change the Original (P9.11, P9.12).
+- Ownership as the holder of the anchoring sat, or of the token of an Original anchored on an EVM chain, with no authority to change the Original (P9.11, P9.12, P9.23).
 - A did:webvh alias, a small did:webvh log of its own that points to the did:vh (P3.6).
 - A verification report that keeps Originals verification distinct from generic resolution (P3.5, section 7).
 
@@ -50,7 +50,7 @@ The VH-Log hooks this relies on are open pull requests: an authoritative source 
 
 1. Specify the asset state schema, the `originals` method values and the DID document derivation.
 2. Confirm the key binding and sat ownership in sections 5 and 9.
-4. Pin the signed entry state and portable evidence format.
+3. Pin the signed entry state and portable evidence format.
 
 These decisions block an interoperable protocol release. They do not block review of the local lifecycle, compatibility requirements or failure behavior in this draft.
 
