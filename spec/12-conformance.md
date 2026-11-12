@@ -146,6 +146,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Host changes or re-signs a submitted entry | Fails verification, or is not by an authorized signer (P6.7) |
 | Submission retried after a lost acknowledgement, including after the head has moved on | Existing checkpoint and current head returned; no second append and no conflict (P6.7) |
 | Refused candidate published elsewhere | Unanchored: fork; unresolved until anchoring. Anchored: not current; ignored (P6.6, P6.8, P9.12, P9.13) |
+| Submission whose entry is historically authorized only under the signer DID evidence the host holds | Refused with the reason; nothing appended; the SDK keeps the refused candidate with the reason and does not resubmit, package or publish it (P6.7, P6.8, P7.9) |
 | Longer branch of a fork, or the branch with more signers | No winner; unresolved conflict (P6.6) |
 | Entry on one branch bringing in content from another | Accepted on its branch as a single-parent entry; fork remains (P6.6) |
 | did:webvh author moved under DID portability, then rotated; new entry signed with the new key naming a version after the move | Accepted; entries before the move still verify against versions before it (P5.14) |
