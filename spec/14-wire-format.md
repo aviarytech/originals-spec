@@ -30,7 +30,7 @@ P14.5 The members of `asset`:
 - `resource`: the descriptor of the Original’s one resource, at its version in this entry (P4.1).
 - `editors`: an array of 1 to 32 grants, each exactly `{did, name, metadata, resource}`, all but `did` booleans. An empty array MUST NOT be used; absence means no editors (P5.15).
 
-P14.6 A resource descriptor is exactly `{mediaType, size, digest}`. `mediaType` is a `type/subtype` media type without parameters. `size` is the byte length, a non-negative integer. `mediaType` and `size` MUST NOT change unless `digest` changes in the same entry.
+P14.6 A resource descriptor is exactly `{mediaType, size, digest}`. `mediaType` is a `type/subtype` media type without parameters, and a verifier MUST reject one that has a parameter. `size` is the byte length, a non-negative integer. `mediaType` and `size` MUST NOT change unless `digest` changes in the same entry.
 
 P14.7 A resource digest is the letter `z` followed by the base58btc encoding of the SHA-256 multihash (code 0x12, length 0x20) of the bytes, so it begins `zQm`. A verifier MUST reject a digest whose encoding is not the one this produces (P4.2). VH-Log’s own hashes, the SCID and entry hashes, are the same multihash without the `z`.
 
@@ -92,7 +92,7 @@ P14.13 A verifier MUST enforce these limits (P7.7, P8.5):
 | Limit | Value |
 |---|---|
 | Entries in an asset log | 10,000 |
-| Bytes in one entry, as its UTF-8 line without the line feed | 65,536 |
+| Bytes in one entry, as its JCS form in UTF-8, in every format | 65,536 |
 | Editor grants | 32 |
 | Versions of one signer DID | 1,000 |
 | Bytes in a fetched log file | 16 MiB |
@@ -101,7 +101,7 @@ P14.13 A verifier MUST enforce these limits (P7.7, P8.5):
 
 The SDK MUST refuse to sign an entry over the entry limit, rather than produce one every verifier rejects. An inscription’s 350,000 bytes (P9.17) hold the resource version and the entries together, so a large resource leaves little room for the log: an Original whose current version is over about 340,000 bytes cannot be anchored, and authors SHOULD anchor early, while the log through the anchoring entry is still short.
 
-The SDK measures entry size in UTF-16 code units of the re-serialised entry and sets no resource-size limit; this section measures UTF-8 bytes of the line as stored and sets 64 MiB, so that implementations in other languages agree.
+The SDK measures entry size in UTF-16 code units of the re-serialised entry and sets no resource-size limit; this section measures the UTF-8 bytes of the entry’s JCS form and sets 64 MiB, so that implementations in other languages agree.
 
 ### Shared-host saves
 
@@ -111,7 +111,7 @@ A shared host (P6.7) needs no particular transport. As a guide, the SDK submits 
 
 Everything in this subsection is provisional. The trailer media types were checked only on macOS (Preview, Quick Look, `sips`, `afinfo`) with a 12,000-byte trailer; adding a media type needs the same evidence across the readers it targets.
 
-P14.14 The carrier for a resource version is chosen by the `mediaType` its descriptor names (P14.6), compared ASCII case-insensitively, and no other carrier is valid for it (P7.12):
+P14.14 The carrier for a resource version is chosen by the `mediaType` its descriptor names (P14.6), compared ASCII case-insensitively, and no other carrier is valid for it (P7.12). A `mediaType` has no parameters (P14.6), so one such as `text/plain; charset=utf-8` is rejected, not matched with its parameter ignored:
 
 | Carrier | `mediaType` |
 |---|---|
@@ -121,7 +121,9 @@ P14.14 The carrier for a resource version is chosen by the `mediaType` its descr
 
 Any other media type has no carrier, including an alias of a listed type, such as `application/javascript` or `audio/x-wav`; ZIP-based formats such as EPUB and Office documents, whose readers look for their directory only in the last 65,557 bytes; PDF, whose readers may look for `%%EOF` only in the last 1,024 bytes; and other `+json` types, whose own signatures or closed schemas an added member can break.
 
-A carrier is at most 16 MiB (16,777,216 bytes); a larger one is no carrier. In a trailer an entry’s size is measured as its line, as in `did.jsonl` (P14.13); in a text block or JSON member, as its JCS form in UTF-8. In every carrier each entry is checked under P14.3–P14.8, nesting depth counted from the entry. A reader MAY refuse a carried file larger than the resource limit of P14.13 plus 16 MiB.
+A carrier is at most 16 MiB (16,777,216 bytes); a larger one is no carrier. In every carrier an entry’s size is measured as its JCS form in UTF-8 (P14.13); the limits on a file, a carrier and a publication are separate from it. In every carrier each entry is checked under P14.3–P14.8, nesting depth counted from the entry. A reader MAY refuse a carried file larger than the resource limit of P14.13 plus 16 MiB.
+
+A reader does not know the media type before it has found the log. It tries each carrier’s detection, and no two carriers can match one file. A file name extension or a declared type MAY decide which it tries first, but is only a hint: when the hint is wrong or absent the reader tries the other carriers. It then verifies the log and checks that the carrier it found is the one this rule assigns to the last entry’s `mediaType` (P7.12).
 
 P14.15 A trailer is the asset log `L`, exactly as P14.2 defines `did.jsonl`, followed by a 24-byte footer: the byte length of `L` as an unsigned 64-bit big-endian integer, then the 16 bytes `89 4F 52 49 47 49 4E 41 4C 4C 4F 47 0D 0A 1A 0A` (`\x89ORIGINALLOG\r\n\x1A\n`). A file has a trailer only if it is at least 24 bytes long, its last 16 bytes are that sequence, and `24 + length`, computed without overflow, is at most 16 MiB (P14.14) and at most the file’s size. A reader can decide this from the footer alone, before reading `L`. The carrier is the last `24 + length` bytes, and the resource version is every byte before it. Like PNG’s signature, the footer is damaged by end-of-line conversion and by stripping the high bit, so a file altered that way has no trailer rather than a wrong one. A trailer whose `L` breaks P14.2 is a trailer with an invalid log.
 
@@ -133,11 +135,20 @@ P14.16 A text block is a single line feed (0x0A), which a writer never precedes 
 - `=====END ORIGINAL=====`;
 - the comment closer, for a block comment.
 
-For a line comment, each marker and entry line starts with the comment prefix and one space. Each line ends in a line feed, or in CR LF when the resource version’s own lines end that way; a reader MUST accept either. A writer ends the last line too, but a reader MUST also accept a last line with no line end. A writer MUST refuse a text block unless the resource version is valid UTF-8, a leading UTF-8 byte order mark allowed. It MUST also refuse when the version’s syntax would make the appended lines content rather than a comment: among others, a YAML document whose last node is a block scalar, a Markdown or HTML version that ends inside an unclosed code fence, `<pre>`, `<script>` or comment, and a version that ends inside an unterminated string, heredoc or block comment of its language.
+For a line comment, each marker and entry line starts with the comment prefix and one space. Each line ends in a line feed, or in CR LF when the resource version’s own lines end that way; a reader MUST accept either. A writer ends the last line too, but a reader MUST also accept a last line with no line end. A writer MUST refuse a text block unless the resource version is valid UTF-8, a leading UTF-8 byte order mark allowed. It MUST also refuse unless the appended block, parsed under the version’s own syntax, is a separate comment and nothing else. The test is the parse of the resulting file, not a search of the version for particular text. The checks known for each type are:
+
+- `text/html` and `application/xhtml+xml`, parsed with an HTML parser, or an XML parser for the latter: refuse a version that ends inside a comment, or inside an element whose content is not parsed as markup, `script`, `style`, `textarea`, `title`, `xmp`, `plaintext` or `noscript`. An unclosed `pre` is not a reason to refuse, because its content is parsed as markup and the block is still a comment.
+- `text/markdown`: refuse a version that ends inside an unclosed code fence, or in one of the HTML contexts above.
+- `image/svg+xml`, `application/xml` and `text/xml`: refuse a version that ends inside a comment or a CDATA section.
+- `text/css`: refuse a version that ends inside an unterminated comment or string.
+- `application/yaml`: refuse a document whose last node is a block scalar.
+- the line-comment types: refuse a version that ends inside an unterminated string, heredoc or block comment of its language, or whose last line ends in a line continuation.
+
+This list is not yet complete and testable for every type in the table. Completing it, or dropping a type for which no reliable check exists, is open (D4).
 
 Every entry line MUST be ASCII: a writer escapes every other character inside JSON strings with `\u` escapes, and also escapes characters so that no line contains the comment’s closer or, for `<!--` comments, `--`. These escapes do not change the entry’s JCS form (P14.3), and P14.2’s line rules otherwise apply to each entry line once its comment prefix and line end are removed. A reader MUST treat as no carrier a block in which any line contains a character that is not ASCII, a carriage return other than before its line feed, the comment’s closer before the closer line or, for `<!--` comments, `--` outside the opener and closer lines, so that a value un-escaped after signing cannot end the comment early.
 
-A reader finds the block from the end of the file. After removing any spaces, tabs, carriage returns and line feeds at the end, the last line MUST be the comment closer for a block comment, or the `=====END ORIGINAL=====` line otherwise; the block then runs back through entry lines to the nearest `=====BEGIN ORIGINAL=====` line and, for a block comment, the opener line immediately before it. Marker, opener and closer lines match only as whole lines, after their comment prefix and line end are removed. The block is located by these lines alone: a line between the markers that is not a valid entry line, or no entry line at all, makes it a text block with an invalid log, not content. A block whose first line is not preceded by a line feed is no carrier. The carrier runs from the line feed immediately before the block’s first line to the end of the file, including the whitespace after its last line, and the resource version is every byte before it. Any earlier block is content.
+A reader finds the block from the end of the file. After removing any spaces, tabs, carriage returns and line feeds at the end, the last line MUST be the comment closer for a block comment, or the `=====END ORIGINAL=====` line otherwise; the block then runs back through entry lines to the nearest `=====BEGIN ORIGINAL=====` line and, for a block comment, the opener line immediately before it. Marker, opener and closer lines match only as whole lines, after their comment prefix and line end are removed. The block is located by these lines alone: a line between the markers that is not a valid entry line, or no entry line at all, makes it a text block with an invalid log, not content. A block whose first line is not preceded by a line feed is no carrier. An incomplete or malformed marker structure is no carrier either: a closer line not directly preceded by the `=====END ORIGINAL=====` line, or, in a block comment, a `=====BEGIN ORIGINAL=====` line not directly preceded by the opener line. Removing a carrier MUST restore the version’s exact bytes. Which line end a writer uses for a version with mixed line ends, and whether the carriage-return rule covers the whitespace after the last line, are open (D4). The carrier runs from the line feed immediately before the block’s first line to the end of the file, including the whitespace after its last line, and the resource version is every byte before it. Any earlier block is content.
 
 | `mediaType` | Comment |
 |---|---|
@@ -150,7 +161,7 @@ A reader finds the block from the end of the file. After removing any spaces, ta
 
 Other `text/` types, such as `text/csv`, have no carrier, because a trailing line would be read as content; so has `text/x-ruby`, whose `__END__` makes every later line data.
 
-P14.17 A JSON member is the last member of the document’s root object, named `originalLog`, whose value is an array of the entries, in order, each a JSON object. The carrier runs from the first byte after the previous member’s value, or after the root object’s `{` when it is the only member, through the array’s closing `]`, and the resource version is the document with exactly those bytes removed. A document has a JSON member only if its root is an object, the member is that object’s last, and no earlier root member has that name, member names being compared after their escapes are decoded. A last root member of that name is a JSON member whatever its value; a value that is not an array of objects is an invalid log. A reader MUST skip one leading UTF-8 byte order mark, which stays part of the version. A document nested deeper than 1,024 levels outside the entries has no JSON member. A reader needs a parser that reports byte offsets to find the carrier’s bytes exactly. Outside the entries the document need only be JSON [[spec: RFC8259]]; P14.3’s limits apply to the entries only. P14.2’s line format does not apply. Whitespace, key order and string escapes in the entries are therefore free, so a carried log survives reformatting, although the remaining bytes then no longer match the version (P7.12). A writer MUST refuse a document whose root is not an object or that has any root member of that name (P7.15).
+P14.17 A JSON member is a member of the document’s root object named `originalLog`, whose value is an array of the entries, in order, each a JSON object. A writer MUST write it as the root object’s last member: immediately after the last existing member’s value, before the whitespace that followed that value, or immediately after the root object’s `{` when the object is empty, leaving every other byte unchanged. When the member is the root object’s last, the carrier runs from the first byte after the previous member’s value, or after the root object’s `{` when it is the only member, through the array’s closing `]`, and the resource version is the document with exactly those bytes removed. A document has a JSON member only if its root is an object with exactly one member of that name, member names being compared after their escapes are decoded. A reader MUST reject a root object with more than one, and does not choose among them; a member of that name nested below the root is not a JSON member. A reader MUST find the member wherever it is in the root object, because tools reorder members. A member that is not the root object’s last still carries its log, which is verified and reported as P7.12 states for a log found where no carrier is defined; how its bytes are removed is open (D4), so the file is not verified as a version. A root member of that name is a JSON member whatever its value; a value that is not an array of objects is an invalid log. A reader MUST skip one leading UTF-8 byte order mark, which stays part of the version. A document nested deeper than 1,024 levels outside the entries, counting the root object as level 1, has no JSON member. A reader needs a parser that reports byte offsets to find the carrier’s bytes exactly. Outside the entries the document need only be JSON [[spec: RFC8259]]; P14.3’s limits apply to the entries only. P14.2’s line format does not apply. Whitespace, key order and string escapes in the entries are therefore free, so a carried log survives reformatting, although the remaining bytes then no longer match the version (P7.12). A writer MUST refuse a document whose root is not an object or that has any root member of that name (P7.15).
 
 ### EVM anchoring (proposed)
 
@@ -164,7 +175,7 @@ P14.18 The `anchor` member of `asset` (P14.5) is exactly `{chain, minter}`, both
 - `chain` is a CAIP-2 chain ID in the `eip155` namespace [S31]: `eip155:` followed by the chain ID in decimal with no leading zeros, matching `^eip155:[1-9][0-9]{0,19}$`, with a value below 2<sup>64</sup>. A chain that P14.22 does not list is unsupported (P9.19).
 - `minter` is an address: `0x` followed by 40 lowercase hexadecimal digits. Mixed-case EIP-55 checksums are not used, so that equal addresses are equal strings.
 
-A token alias is a DID of the did:evm method, which this profile defines (P3.9): `did:evm:<chain ID>:<contract address>:<token ID>`. The chain ID is the decimal chain ID of `chain`, without the `eip155:` prefix; the contract address is P14.21’s in lowercase; and the token ID is P14.19’s in decimal with no leading zeros. A verifier MUST reject any other form. The derived DID document lists it in `alsoKnownAs` like any other alias (P14.9). The token’s CAIP-19 asset ID [S32], `eip155:<chain ID>/erc721:<contract address>/<token ID>`, is derived from the DID for wallets and marketplaces, and is never written in `aliases`. The method name is provisional (D6).
+A token alias is a DID of the did:evm method, which this profile defines (P3.9): `did:evm:<chain ID>:<contract address>:<token ID>`. The chain ID is the decimal chain ID of `chain`, without the `eip155:` prefix; the contract address is the one P14.21 fixes for that chain, in lowercase; and the token ID is P14.19’s in decimal with no leading zeros. A verifier MUST reject any other form. The derived DID document lists it in `alsoKnownAs` like any other alias (P14.9). The token’s CAIP-19 asset ID [S32], `eip155:<chain ID>/erc721:<contract address>/<token ID>`, is derived from the DID for wallets and marketplaces, and is never written in `aliases`. The method name is provisional (D6).
 
 The DID document of a token alias is derived, never stored (P3.9). It is the document P14.9 derives from the state accepted on the token, with the token alias as its `id` and in its service `id`, and with `alsoKnownAs` listing exactly the Original’s did:vh.
 
@@ -176,7 +187,7 @@ P14.19 An Original’s token ID is `uint256(keccak256(abi.encode(keccak256(d), m
 
 The contract’s `mint(bytes32 original)` mints the token whose ID is computed from `original` and the caller’s address, to the caller. It reverts if that token exists. A token minted for the wrong `original`, or by an address other than the minter, has a different ID and is not the Original’s token.
 
-P14.20 The anchor contract implements ERC-721 [S33] and these functions and event:
+P14.20 The anchor contract implements ERC-721 [S33] and these functions and events:
 
 ```solidity
 function mint(bytes32 original) external returns (uint256 tokenId);
@@ -196,17 +207,18 @@ function metadata(uint256 tokenId, uint32 index, uint32 offset, uint32 length) e
 function body(uint256 tokenId, uint32 index, uint32 offset, uint32 length) external view returns (bytes memory);
 
 event Published(uint256 indexed tokenId, uint32 index);
+event UploadBegun(uint256 indexed tokenId, bytes32 upload, address by);
 ```
 
-**Records.** The contract keeps, for each token, a list of publication records with indexes from 0 in the order they were recorded. A record holds the timestamp of the block that recorded it, which is the chain’s own (`block.timestamp`), the lengths of its metadata and body, its media type, and `bodyOf`: its own index if the publication stored its body, or the index of the earlier record of the same token whose body it refers to. A record is never changed or removed. A record holds no block number: a contract on an Arbitrum chain sees an approximate block number of its parent chain, not its own [S42], and the record index already orders publications (P9.20).
+**Records.** The contract keeps, for each token, a list of publication records with indexes from 0 in the order they were recorded. A record holds the timestamp of the block that recorded it, which is the chain’s own (`block.timestamp`), the lengths of its metadata and body, its media type, and `bodyOf`: its own index if the publication stored its body, or the index of the earlier record of the same token whose body it refers to. A record that refers to an earlier body holds that body’s actual length as its `bodyLength`, not zero. Those bytes are not stored again and do not count again toward the 350,000-byte limit: a publication counts the bytes it newly stores. `bodyOf` is an index into the selected token’s own records, so a body stored on another token cannot be referred to. A record is never changed or removed. A record holds no block number: a contract on an Arbitrum chain sees an approximate block number of its parent chain, not its own [S42], and the record index already orders publications (P9.20).
 
-**Bytes.** The contract stores a publication’s metadata and body in state, as the code of contracts it creates: each holds a zero byte followed by at most 24,575 bytes [S37], and the contract keeps their addresses in its own storage. `metadata` and `body` return the stored bytes from `offset`, at most `length` of them and fewer at the end, so a reader can read a record in ranges that suit its provider; `body` of a record that refers to an earlier one returns that one’s bytes. The contract emits no publication bytes in events. `Published` only helps a reader find records (P9.25).
+**Bytes.** The contract stores a publication’s metadata and body in state, as the code of contracts it creates: each holds a zero byte followed by at most 24,575 bytes [S37], and the contract keeps their addresses in its own storage. `metadata` and `body` return the stored bytes from `offset`, at most `length` of them and fewer at the end, so a reader can read a record in ranges that suit its provider; `body` of a record that refers to an earlier one returns that one’s bytes. The contract emits no publication bytes in events. `Published` only helps a reader find records (P9.25). `begin` emits `UploadBegun` with the upload ID, which a transaction receipt does not otherwise return, so that the writer can learn it. Both events are discovery aids: the contract’s state remains the evidence.
 
 A publication is recorded in one of three ways:
 
 - **In one transaction:** `publish` stores the metadata and body and adds a record.
 - **Referring to a stored body:** `publishSameBody` stores the metadata and adds a record whose body is that of record `bodyOf`. It reverts unless `bodyOf` is an earlier record of the same token that stored its own body. The new record takes that record’s media type.
-- **In stages, for data larger than a chain accepts in one transaction:**
+- **In stages, for data larger than a chain accepts in one transaction.** Chains cap a transaction’s gas and size, and storing bytes in state is costly, so on many chains this is the usual path for all but small publications:
   - `begin` opens an upload;
   - `append` stores the next bytes of the upload, and only the caller of `begin` can call it;
   - `commit` closes the upload and adds a record: the first `metadataLength` bytes of the upload are the metadata and the rest the body. Only the caller of `begin` can call it, once, and it reverts if `metadataLength` exceeds the upload;
@@ -214,19 +226,19 @@ A publication is recorded in one of three ways:
 
 **Limits.** The contract enforces the 350,000-byte limit (P9.25). `publish` reverts if its metadata and body together exceed it, `publishSameBody` if its metadata does, and `append` if it would take the upload past it. `publish`, `publishSameBody` and `commit` revert if `mediaType` is longer than 255 bytes. No record, and no upload, therefore holds more than 350,000 bytes.
 
-`publish`, `publishSameBody`, `begin`, `commit` and `commitSameBody` revert unless the caller is the token’s holder or an operator approved for it at that moment. Only a record places a publication in chain order (P9.20), so an upload that is never committed is ignored. The contract judges no signature and no entry: it checks only who may publish (P9.12, P9.23).
+`publish`, `publishSameBody`, `begin`, `commit` and `commitSameBody` revert unless the caller is, at that moment, the token’s holder, the address approved for that token through `approve`, or an operator the holder approved through `setApprovalForAll`. Only a record places a publication in chain order (P9.20), so an upload that is never committed is ignored. The contract judges no signature and no entry: it checks only who may publish (P9.12, P9.23).
 
 - **Metadata:** the CBOR array of entries that P14.12 defines for inscription metadata, with the same mapping and reader rules.
 - **Body:** the exact bytes of the resource version that the last entry names (P9.17), under the record’s media type, which MUST equal that version’s `mediaType`.
 
 A reader MUST reject a record whose metadata and body lengths together exceed 350,000 bytes for a record that stored its body, or whose metadata length does for one that refers to a body, or whose media type is longer than 255 bytes, and MUST do so from the record’s fields without reading its bytes (P9.25). It MUST reject a publication whose body’s digest, size or media type differs from the last entry’s descriptor, whether the record stored the body or refers to it. A writer SHOULD use `publishSameBody` when the bytes are already stored on the token, and chooses how to split an upload to fit the chain’s transaction limits. Neither choice changes the publication.
 
-P14.21 The anchor contract is compiled for the EVM version this section will pin, and deployed with CREATE2 through the deterministic deployment proxy at `0x4e59b44847b379578588920ca78fbf26c0b4956c` [S34], with a zero salt, so that it has the same address on every listed chain. This section will pin, after review and an external audit:
+P14.21 The anchor contract is compiled for the EVM version this section will pin, and deployed with CREATE2 through the deterministic deployment proxy at `0x4e59b44847b379578588920ca78fbf26c0b4956c` [S34], with a zero salt, so that it has the same address on every listed chain where that proxy exists and the pinned bytecode runs. Whether it can be deployed that way is checked for each chain before P14.22 lists the chain with a pin. Where it cannot, this section MAY pin another address for that chain, and a verifier still checks the code at that address against the pinned runtime code hash (P9.21). This section will pin, after review and an external audit:
 
 - the contract’s source;
 - the compiler and its settings;
 - the EVM version;
-- the resulting address;
+- the resulting address, and the address for any chain where it differs;
 - the runtime code hash.
 
 The contract has no owner, administrator, proxy, upgrade, pause or self-destruct path. Its `tokenURI` MUST be computed from the contract’s own state and MUST NOT name a location off the chain; its form is open (D6).

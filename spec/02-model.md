@@ -30,6 +30,12 @@
 [[def: editor entry, editor entries]]:
 ~ An entry signed by an editor, changing only the content its grant allows ([P5.16](#p5.16)).
 
+[[def: anchoring entry, anchoring entries]]:
+~ The signed entry that first adds an anchor alias to the asset state: the did:btco alias of the anchoring sat ([P9.10](#p9.10)) or, for an Original whose `anchor` member names an EVM chain, the alias of the token derived for it ([P9.19](#p9.19)). The Original is anchored only once that entry is validly published on that sat or token and confirmed or final there. A signed entry that is not published, a genesis `anchor` member, or a minted token does not anchor it ([P9.23](#p9.23)).
+
+[[def: arrival, arrivals]]:
+~ The publication on a move’s destination that carries the log through the move entry ([P9.29](#p9.29)). It is distinct from the Original’s first anchor.
+
 [[def: signer]]:
 ~ The identity that signs an entry: the author for an author entry, or the named editor for an editor entry.
 
