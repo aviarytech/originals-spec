@@ -326,6 +326,8 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Genesis parameters other than exactly `method` and `scid`; a later entry with a non-empty parameters object that is not a deactivation; a null parameter value | Rejected (P14.1) |
 | Plaintext metadata, base64 content or raw storage | Never labelled encrypted (P8.2) |
 | Carried file imported, then read again with no separate opt-in to resolve | No resolver request; the import is not an opt-in (P7.13) |
+| Carried file read with the caller’s opt-in to resolve, then read again without one | The first read resolves; the second makes no resolver request (P7.13) |
+| Caller’s opt-in recorded as a standing or default setting for carried files | Not an opt-in; each read needs its own (P7.13) |
 | Carried checkpoint from before the anchoring entry of an Original that is now anchored | Allowed; reported as a historical checkpoint, valid as of it, with no statement about current anchoring (P7.14, P7.15) |
 | Carried file with a wrong or missing file name extension | The extension is only a hint; the other carriers are tried, and the carrier found is checked against the verified descriptor’s `mediaType` (P14.14) |
 | Descriptor `mediaType` with a parameter, such as `text/plain; charset=utf-8` | Rejected; the parameter is not ignored (P14.6, P14.14) |
