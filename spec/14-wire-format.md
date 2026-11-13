@@ -168,7 +168,7 @@ P14.17 A JSON member is a member of the document’s root object named `original
 Everything in this subsection is provisional (D6). The anchor contract has not yet been reviewed, audited or deployed, so P14.21 pins no address or code hash. Until it does:
 
 - a writer MUST NOT write an `anchor` member;
-- a verifier MUST report an Original whose genesis entry has one as unsupported (P3.3), not invalid.
+- a verifier MUST report an Original whose genesis entry has one as unsupported (P3.3), not invalid, whatever source its log comes from, including a carried log with no anchoring entry, which is then not read as a historical checkpoint (P7.14).
 
 P14.18 The `anchor` member of `asset` (P14.5) is exactly `{chain, minter}`, both strings:
 
