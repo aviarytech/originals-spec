@@ -298,7 +298,9 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | did:evm DID of a token the Original has left | Reported as moved, naming the alias that replaced it; the state on that token never returned as current (P3.9, P9.29) |
 | Document returned by the token’s `tokenURI`, offered as the did:evm DID document | Not used (P3.9, P3.8) |
 | Carried file of an Original whose log has an `anchor` member, the chain readable | State from the token at the finalized block; the carried log not preferred; the report names the chain and its trust class (P7.14, P9.20, P9.27) |
-| Carried log with an `anchor` member naming a chain the reader’s revision does not list, or read while P14.21 pins no contract | Unsupported, not invalid; nothing reported as verified (P7.14, P9.19, P14.21) |
+| Carried log with an `anchor` member naming a chain the reader’s revision does not list, or read while P14.21 pins no contract, with or without an anchoring entry | Unsupported, not invalid; nothing reported as verified (P7.14, P9.19, P14.21) |
+| Carried log whose genesis entry has an `anchor` member and that holds no anchoring entry, read while P14.21 pins no contract | Unsupported, not a historical checkpoint; nothing reported as verified (P7.14, section 14) |
+| Carried log with no `anchor` member that holds no anchoring entry | Historical checkpoint, valid as of its last entry; no statement about later anchoring (P7.14) |
 | Carried log holding a move entry, read without access to the chain the Original is anchored on now | Missing evidence; at most the entries before the first anchoring entry reported (P7.14, P9.29) |
 | Carried log holding a move entry, the current chain read and a chain it left unreadable | Reported as P9.29 requires: proofs and hash links checked, move unconfirmed, ordering on the unread chain claimed only (P7.14, P9.29) |
 | Writer asked to inscribe or publish a carried file as a body | The carrier is removed first; the body is the version’s bytes (P7.16, P9.17, P9.25) |
