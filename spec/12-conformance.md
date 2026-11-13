@@ -255,6 +255,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | A block accepted as finalized is replaced | `authoritative-source-changed` and a finality failure reported (P9.22) |
 | Token minted, no anchoring publication | Not anchored; no owner (P9.23) |
 | Two anchoring entries from different branches published on the token | The one with the lower record index is the anchor; the other a conflicting anchor; uniqueness MAY be reported in the terms of the chain’s class: established on a proven chain, attested by the operator or the validators on an attested one (P9.24, P9.16) |
+| Anchor on a chain of any trust class, after a finality failure on that chain | Uniqueness reported as not established, never as established or attested (P9.24, P9.22) |
 | Two publications extending the same head, recorded in one block or in different blocks | The one with the lower record index is accepted (P9.13, P9.20) |
 | Two successive publications, the second extending the first, recorded in one block, or in two blocks of a rollup that share one parent-chain block number | Both accepted, in index order (P9.13, P9.20) |
 | Publication by an address that is not the holder, the address approved for the token through `approve`, or an operator approved through `setApprovalForAll` | Reverted by the contract; no record (P14.20) |
