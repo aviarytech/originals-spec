@@ -280,7 +280,8 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Arrival whose log differs from the entries accepted through the departure, or whose last entry is not the move entry | Not an arrival (P9.29) |
 | Moved Original, a chain it left cannot be read | Log’s proofs and hash links verified from genesis; move unconfirmed; ordering of the stretch on that chain claimed only; no owner and not current (P9.29) |
 | Moved Original with publications after the arrival, a chain it left cannot be read | Those entries verified as part of the log and reported as following an unconfirmed move; none current (P9.29) |
-| Departure final, destination chain cannot be read | Departure reported as finalized, destination as unreachable; missing evidence; no arrival claimed (P9.29) |
+| Departure final, destination chain cannot be read | Departure reported as finalized, destination as unreachable; missing evidence; no arrival claimed, and none denied; at most the entries before the first anchoring entry reported, valid as of the checkpoint before it with claimed ordering; no owner (P9.29, P7.14) |
+| Departure final, destination chain cannot be read, the entries through the move entry accepted on the chain left | Not reported as the Original’s state or as current; the anchoring entry and later entries reported as not checked against the current anchor (P9.29, P7.14) |
 | Verifier that retained the anchor on the token left, then reads a verified move | Reported as a move with its source and destination; not a conflicting anchor or a change of anchor (P9.16, P9.29) |
 | Entries from before the first anchoring entry, in a report for a moved Original | Described as carried, with claimed ordering (P9.29) |
 | A chain the Original left later replaces the block that held the departure | Finality failure there; move unconfirmed (P9.22, P9.29) |
