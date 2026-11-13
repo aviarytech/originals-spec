@@ -331,6 +331,9 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Text block whose closer line is not directly preceded by the END marker, or whose BEGIN marker in a block comment is not directly preceded by the opener | No carrier (P14.16) |
 | HTML version ending inside an open `script`, `style` or `textarea` element / inside an open `pre` element | Writer refuses / writer accepts; the block parses as a separate comment (P14.16) |
 | Shell or C-family version whose last line ends in a line continuation | Writer refuses (P14.16) |
+| HTML version ending inside an open tag, a processing instruction, or an open `iframe`, `noembed` or `noframes` element | Writer refuses; the appended block would not parse as a separate comment (P14.16) |
+| Version of a listed type whose ending its format’s parser leaves outside any comment, string, tag or raw-text context | Writer adds the block; it parses as a separate comment (P14.16) |
+| Writer with no parser for the version’s syntax asked for a text block | Refused (P14.16) |
 | did:evm DID resolved from token reads alone, the token’s first record being junk or another Original’s log | Candidate taken from an anchoring or arrival publication, then verified with its link to the queried token; the junk record does not decide (P3.9) |
 | Token minted by anyone, with a `tokenURI` but no verified history | Not shown to be an Original (P9.23) |
 | Provider that cannot serve state at the finalized block because finality trails its retained state | Not usable; dropped, and the reads of the other usable providers stand; missing evidence only when none remains (P9.22) |
