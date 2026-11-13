@@ -332,7 +332,10 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Provider that cannot serve state at the finalized block because finality trails its retained state | Not usable; dropped, and the reads of the other usable providers stand; missing evidence only when none remains (P9.22) |
 | Provider read at its own, later finalized block, compared with the other provider at the lower block | Not evidence for the comparison (P9.22) |
 | Verification repeated with no evidence of a finality failure | Earlier finalized block hashes need not be read again; when evidence appears, a warning is reported and retained results resting on that block are discarded (P9.22) |
-| Token with many records, verifier holding a checkpoint | MAY resume from the checkpoint and read only later records; no record cap or reader budget (P9.25) |
+| Token with many records, verifier holding a checkpoint and a supplied log whose entry N has the checkpoint’s versionId | MAY resume from the checkpoint and read only the records after its record index; no record cap or reader budget (P9.25) |
+| Checkpoint with a supplied log that ends before the checkpoint’s versionId, or whose entry N has another entry hash | Not resumed from; the token read from its first record (P9.25) |
+| Retained result lacking the head versionId, the chain, the contract address or token ID, the record index, the finalized block’s number or hash, or the trust class at that block | Not a checkpoint; not resumed from (P9.25) |
+| Verification during which a publication waits on an unverifiable entry | No checkpoint made (P9.25, P9.15) |
 | Writer staging an upload | Learns the upload ID from `UploadBegun`; the event is never evidence (P14.20) |
 | Move entry prepared before any departure record exists | Layers judged provisionally by the current classes; by the classes at the departure record’s timestamp once it is read (P9.28) |
 | Signed anchoring entry not published, genesis `anchor` member alone, or token minted with no publication | Not anchored (P9.19, P9.23) |
