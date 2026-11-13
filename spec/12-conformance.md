@@ -245,8 +245,11 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | The pinned contract deployed on a chain that is not listed | Unsupported (P9.21) |
 | Publication read from a chain other than the one `anchor` names | Not a publication of the Original (P9.20) |
 | Publication record present at the latest block but not in state at the finalized block | Observed, not accepted; pending (P9.22, P9.27) |
-| Two providers report different hashes for the lower of their finalized blocks, or a different record, bytes or `ownerOf` at that block | Missing evidence until they agree (P9.22) |
+| Two usable providers report different hashes for the lower of their finalized blocks, or a different record, bytes or `ownerOf` at that block | Missing evidence until they agree; neither is dropped to reach a result (P9.22) |
 | One provider’s finalized block is N and the other’s is N+1, and they agree on block N’s hash and on the state at it | Verified at block N; a provider that is behind is not a disagreement (P9.22) |
+| One provider configured, passing P9.21’s checks and serving the contract’s state at the finalized block | Verified on its read; the report names that provider and marks the read uncorroborated (P9.22) |
+| Two providers configured, one reporting another chain ID or block 0 hash, or unable to serve state at the finalized block | That provider dropped and its answers not evidence; the other’s read stands, named in the report and marked uncorroborated (P9.21, P9.22) |
+| Every configured provider fails P9.21’s checks or cannot serve state at the finalized block | Missing evidence (P9.22, P9.25) |
 | A block accepted as finalized is replaced | `authoritative-source-changed` and a finality failure reported (P9.22) |
 | Token minted, no anchoring publication | Not anchored; no owner (P9.23) |
 | Two anchoring entries from different branches published on the token | The one with the lower record index is the anchor; the other a conflicting anchor; uniqueness MAY be reported in the terms of the chain’s class: established on a proven chain, attested by the operator or the validators on an attested one (P9.24, P9.16) |
@@ -285,7 +288,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Report for an Original that moved from an attested chain to a proven chain | Lists both chains with their classes and the entries accepted on each; the earlier stretch described as attested, never as proven (P9.29) |
 | Writer moving an Original | Author told the move cannot be reversed, the layers left above the destination, the dependence on the chain left, and what becomes public; refused if the arrival would exceed 350,000 bytes (P9.29) |
 | Writer creating an Original with an EVM `anchor` | Author told the first chain is permanent and the Original can move only upward, that it stays dependent on every chain it was anchored on, the chain’s trust class and what it means, that publications last only while the chain’s state is kept, that large publications can need staged transactions and large metadata makes later edits cost more, and the minter fixed (P9.27) |
-| Report for an Original anchored on an EVM chain | Names the chain, its trust class, the token, the finalized block and the providers; never called a Bitcoin anchor (P9.27) |
+| Report for an Original anchored on an EVM chain | Names the chain, its trust class, the token, the finalized block and the providers its read came from, marked uncorroborated when only one answered; never called a Bitcoin anchor (P9.22, P9.27) |
 | Report for an Original anchored on a `consortium` or `operator` chain | Ordering, ownership, uniqueness and the settlement of a fork described as attested by the chain’s validators or operator, never as proven (P9.27) |
 | Entry of 30,000 bytes that does not change the resource, on a chain that accepts 24,000 bytes in one transaction | Uploaded in stages and recorded by `commitSameBody`, referring to the stored body (P14.20) |
 | `aliases` holding the token’s CAIP-19 asset ID, or a did:evm DID with an uppercase address, a leading zero in its chain ID or token ID, or a contract address other than P14.21’s | Rejected (P14.18) |
@@ -323,7 +326,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Shell or C-family version whose last line ends in a line continuation | Writer refuses (P14.16) |
 | did:evm DID resolved from token reads alone, the token’s first record being junk or another Original’s log | Candidate taken from an anchoring or arrival publication, then verified with its link to the queried token; the junk record does not decide (P3.9) |
 | Token minted by anyone, with a `tokenURI` but no verified history | Not shown to be an Original (P9.23) |
-| Provider that cannot serve state at the finalized block because finality trails its retained state | Not usable for that read; missing evidence (P9.22) |
+| Provider that cannot serve state at the finalized block because finality trails its retained state | Not usable; dropped, and the reads of the other usable providers stand; missing evidence only when none remains (P9.22) |
 | Provider read at its own, later finalized block, compared with the other provider at the lower block | Not evidence for the comparison (P9.22) |
 | Verification repeated with no evidence of a finality failure | Earlier finalized block hashes need not be read again; when evidence appears, a warning is reported and retained results resting on that block are discarded (P9.22) |
 | Token with many records, verifier holding a checkpoint | MAY resume from the checkpoint and read only later records; no record cap or reader budget (P9.25) |
