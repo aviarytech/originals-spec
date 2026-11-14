@@ -241,6 +241,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Original with an EVM `anchor` listing a did:btco alias, or a token alias other than its derived token’s; Original without `anchor` listing a token alias | Rejected (P9.19, P14.19) |
 | `anchor.chain` not `eip155:` with a canonical decimal chain ID / `minter` in mixed case | Rejected (P14.18) |
 | `anchor.chain` well formed but not in the verifier’s revision of P14.22 | Unsupported, not invalid; a writer refuses to write it (P9.19, P14.22) |
+| Genesis `anchor` member naming a chain other than Base, such as `eip155:1` or `eip155:4663` | Unsupported, not invalid; a writer refuses to write it (P9.19, P14.22) |
 | Genesis entry with an `anchor` member while P14.21 pins no contract | Unsupported, not invalid; a writer refuses to write it (section 14, P14.21) |
 | Provider reporting the listed chain ID whose block 0 has another hash than P14.22 lists | Not that chain; its answers are not evidence (P9.21) |
 | Code at the anchor contract address with another runtime code hash, or none, on a listed chain | Unsupported; never verified or reported as not anchored (P9.21) |
@@ -273,10 +274,12 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Original with an EVM `anchor` naming a did:btco author or editor | Rejected (P9.26) |
 | did:webvh signer key removed before the timestamp the publication’s record holds | Rejected, as P9.15 with the publication’s inscription time (P9.20, P9.26) |
 | Token held by a contract account | That contract is the owner (P9.23) |
-| Move entry from an attested chain to a proven chain or to Bitcoin, or from a proven chain to Bitcoin, departed and arrived | Accepted; anchored on the destination; the owner is the holder of the destination token or sat (P9.28, P9.29) |
+| Move entry from Base to Bitcoin, departed and arrived; under a revision of P14.22 that lists an attested chain, a move entry from it to a proven chain or to Bitcoin, departed and arrived | Accepted; anchored on the destination; the owner is the holder of the destination token or sat (P9.28, P9.29) |
 | Move entry to a chain in the same layer or a lower one; move entry in an Original anchored on Bitcoin | Rejected (P9.28) |
 | Move entry signed by an editor; move entry before the Original’s anchoring entry; entry that changes `anchor` without listing the destination’s alias | Rejected (P9.28) |
 | Move entry to a chain the verifier’s revision of P14.22 does not list | Unsupported, not invalid (P9.19, P9.28) |
+| Move entry from Base naming Base again, with another minter | Rejected, as a move within the same layer (P9.28) |
+| Move entry from Base naming an EVM chain this revision does not list | Unsupported, not invalid; under this revision an Original anchored on Base moves only to Bitcoin (P9.19, P9.28, P14.22) |
 | Arrival on the destination with no departure accepted on the chain left, as when the author moves alone after a sale | Not accepted; the Original is still anchored where it was (P9.29) |
 | Departure accepted, no arrival yet | Departed, not arrived; the move entry’s state; no owner (P9.29) |
 | Publication on the token left behind, after the departure | Not accepted; reported (P9.29) |
@@ -288,8 +291,8 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Verifier that retained the anchor on the token left, then reads a verified move | Reported as a move with its source and destination; not a conflicting anchor or a change of anchor (P9.16, P9.29) |
 | Entries from before the first anchoring entry, in a report for a moved Original | Described as carried, with claimed ordering (P9.29) |
 | A chain the Original left later replaces the block that held the departure | Finality failure there; move unconfirmed (P9.22, P9.29) |
-| Move made to a proven chain that a later revision reclassifies `operator` | Still accepted, judged by the class at the departure record’s timestamp; reported under the current class (P9.28, P14.22) |
-| Report for an Original that moved from an attested chain to a proven chain | Lists both chains with their classes and the entries accepted on each; the earlier stretch described as attested, never as proven (P9.29) |
+| Under a revision of P14.22 that lists an attested chain, move made from it to a proven chain that a later revision reclassifies `operator` | Still accepted, judged by the class at the departure record’s timestamp; reported under the current class (P9.28, P14.22) |
+| Under a revision of P14.22 that lists an attested chain, report for an Original that moved from it to a proven chain | Lists both chains with their classes and the entries accepted on each; the earlier stretch described as attested, never as proven (P9.29) |
 | Writer moving an Original | Author told the move cannot be reversed, the layers left above the destination, the dependence on the chain left, and what becomes public; refused if the arrival would exceed 350,000 bytes (P9.29) |
 | Writer about to inscribe a Bitcoin arrival, the departure accepted and final on the chain left and the local copy verified through the move entry | Inscribes the arrival (P9.29, P9.18) |
 | Writer about to inscribe a Bitcoin arrival while the departure is not yet accepted or not final on the chain left, or whose local copy does not verify through the move entry | Refuses to inscribe (P9.29, P9.18) |
