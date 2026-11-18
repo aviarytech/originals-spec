@@ -102,8 +102,8 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Inscribed entry naming a did:btco author DID version inscribed earlier in the same block, whose key it holds | Accepted (P5.13) |
 | Entry before the anchor naming a did:btco author DID version inscribed after the anchoring inscription | Rejected (P5.13) |
 | Inscribed entry naming a preceding did:btco version whose key a later preceding version removed | Rejected; the key must hold in the latest preceding version (P5.13) |
-| Anchored Original whose uninscribed resource versions are unavailable | Log verified; those versions reported unavailable; not a verification failure (P7.4, P9.18) |
-| Anchored Original read from Bitcoin alone | Current version’s bytes read from the newest accepted inscription’s body and checked against its descriptor (P9.17, P9.18) |
+| Anchored Original whose resource versions not inscribed in full are unavailable | Log verified; those versions reported unavailable; not a verification failure (P7.4, P9.18) |
+| Anchored Original read from Bitcoin alone, its newest accepted inscription carrying the full version | Current version’s bytes read from that inscription’s body and checked against its descriptor (P9.17, P9.18) |
 | Anchored entry naming a did:vh or did:webvh author DID version, later than its inscription time, that lists again a key removed before that time | Accepted against the named version (P9.15) |
 | Verifier learns of a valid anchoring entry earlier in chain order than the one it reported | Earlier one reported as the anchor, previous one as conflicting, owner change reported; not silent (P9.16) |
 | Anchoring when the log or signer identity evidence through the signed anchoring entry does not verify | SDK refuses to inscribe (P9.18) |
@@ -121,11 +121,31 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Two indexes the verifier uses disagree on which sat an inscription is on | Not accepted; missing evidence reported until they agree (P9.10) |
 | Anchored Original whose did:webvh alias is removed, then added again | Re-adding rejected (P9.10) |
 | Inscription whose metadata and body are exactly 350,000 bytes together | Accepted, if otherwise valid (P9.17) |
-| Inscription whose metadata and body are over 350,000 bytes together, or an Original whose log through the anchoring entry and current version are over it | Rejected; the SDK refuses to anchor or publish (P9.17) |
-| Inscription whose body’s digest or size differs from its last entry’s resource descriptor | Rejected (P9.17) |
-| Inscription whose content type differs from its last entry’s resource `mediaType`, or that has a content encoding | Rejected (P9.17) |
-| SDK about to inscribe an entry | Tells the author the inscribed version, name and metadata become public and permanent, and warns when the version is active content (P9.18) |
-| Inscription after the anchor whose entry changes only the name or metadata | Body is the unchanged current version, inscribed again (P9.17) |
+| Inscription whose metadata and body are over 350,000 bytes together, or an Original whose log through the anchoring entry and the body to be inscribed are over it | Rejected; the SDK refuses to anchor or inscribe (P9.17) |
+| Inscription whose last entry names no preview, with a body whose digest or size differs from that entry’s resource descriptor | Rejected (P9.17) |
+| Inscription whose last entry names no preview, with a body whose content type differs from the resource `mediaType`, or with a content type and no body; any inscription with a content encoding | Rejected (P9.17) |
+| SDK about to inscribe an entry | Tells the author whether the preview, the full version or no body is inscribed; that this body, the name and the metadata become public and permanent; what Bitcoin will not hold; and the cost at the fee rate it will use; warns when the body is active content (P9.18) |
+| Inscription after the anchor whose entry changes only the name or metadata, its parent naming a preview | The entry carries the same preview, or none; the body is that preview again, or, with none, the full version or no body (P9.17, P9.30) |
+| Inscription after the anchor whose entry changes only the name or metadata, its parent naming no preview | The body is the full version again, or no body (P9.17, P9.30) |
+| Inscription whose last entry names a preview, with that preview as its body, by default | Accepted; the sat shows the preview; the log verifies without the version’s bytes, which are reported unavailable unless obtained elsewhere, and never reported verified because the preview matched (P9.17, P9.18, P9.30, P7.4) |
+| Inscription whose last entry names no preview, with the full version as its body | Accepted; the body is checked against the resource descriptor (P9.17) |
+| Inscription whose last entry names no preview, with no body and no content type | Accepted; the entries are in its metadata only; the version is reported unavailable unless obtained elsewhere (P9.17, P7.4) |
+| Writer inscribing a version whose `mediaType` is not an `image/` type, with no preview supplied | Names no preview and inscribes no body, unless the author chooses the full version (P9.30) |
+| Writer inscribing a version whose `mediaType` is an `image/` type | Generates an `image/webp` preview of at most 8,192 bytes and names it in the entry, unless the author chooses the full version (P9.30) |
+| Entry naming a preview of a media type other than `image/webp` for a version whose `mediaType` is an `image/` type | Rejected (P9.30) |
+| Author-supplied preview of any media type for a version that is not an image | Accepted, within 8,192 bytes (P9.30) |
+| Preview of 8,192 / 8,193 bytes | Accepted / the writer refuses to sign an entry naming it, and a verifier rejects such an entry and any inscription carrying it (P9.30, P14.5, P14.13) |
+| Inscription whose last entry names a preview, with a body whose digest, size or content type differs from it, including the full version or no body | Inscription rejected, as a body that does not match always was; its entries not accepted from it; not an anchor if it is the anchoring inscription; state unchanged (P9.17) |
+| `preview` in an entry whose `aliases` list no did:btco DID: an entry of an Original that is not anchored, or an entry before the anchoring entry in an anchoring inscription | Rejected, not ignored; a writer never writes it (P9.30, P14.5) |
+| Entry after anchoring that names a preview, signed but never inscribed | Not current (P9.12); its preview is not shown on Bitcoin (P9.30) |
+| Anchoring entry naming a preview, its parent naming none | Accepted (P9.30) |
+| Entry after the anchor that changes the resource and names a preview of the new version, inscribed with it as its body | Accepted; the sat shows the new preview (P9.17, P9.30) |
+| Entry that changes the resource’s digest and carries its parent’s `preview` unchanged | Rejected; it names a preview of the new version, or none (P9.30) |
+| Entry other than the anchoring entry that does not change the resource and names a preview other than its parent’s, or names one when its parent named none | Rejected (P9.30) |
+| Editor entry whose grant allows the resource, adding a version and naming its preview / editor entry that changes the preview without a grant that allows the resource, or without changing the resource | Accepted / rejected (P5.16, P9.30) |
+| `preview` whose `mediaType` has a parameter, whose digest is not in P14.7’s encoding, or with a member other than `mediaType`, `size` and `digest` | Rejected (P14.5, P14.6, P14.7) |
+| Derived DID document of an entry that names a preview | Same as without it; the preview is not in the document, and does not advance the version (P14.9, P4.4, P9.30) |
+| Writer asked to make a carried file from a preview | Refused; a preview is not a resource version (P7.16, P9.30) |
 | Inscription metadata containing a CBOR tag, byte string, indefinite-length item, non-text map key or duplicate key | Rejected (P14.12) |
 | Entry whose metadata holds a non-integer number, inscribed as a half-, single- or double-precision float | Accepted; hashes and proof checked over its JCS form (P14.3, P14.12) |
 | Inscription metadata holding a NaN, infinite or negative-zero float, or one above P14.3’s bound | Rejected (P14.12) |
@@ -239,7 +259,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Anchored Original’s carried log read without access to the anchor | Missing evidence; at most the entries before the anchoring entry valid as of the checkpoint before it; the anchoring entry and later entries not checked against the anchor (P7.14, P3.3, P9.15) |
 | Carried log that holds no anchoring entry | Historical checkpoint, valid as of its last entry; no statement about later anchoring (P7.14) |
 | Writer asked to inscribe a carried file as a body | The carrier is removed first; the body is the version’s bytes (P7.16, P9.17) |
-| Writer making a carried file from an accepted inscription’s body and entries | Allowed, as for any accepted checkpoint (P7.16, P7.15) |
+| Writer making a carried file from the body and entries of an accepted inscription whose body is the full version | Allowed, as for any accepted checkpoint (P7.16, P7.15) |
 | Complete evidence package of an anchored Original, read without access to the anchor | Missing evidence; at most the entries before the first anchoring entry reported; the package not preferred to the anchor (P7.1, P7.14) |
 | Complete evidence package of an Original with a did:btco signer, read offline | That signer’s history is not in the package; identity evidence incomplete until it is read from Bitcoin (P7.1, P14.10, P5.6) |
 | `aliases` holding a DID of any other method, or the same DID twice | Rejected (P14.5) |
