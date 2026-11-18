@@ -31,7 +31,7 @@
 ~ An entry signed by an editor, changing only the content its grant allows ([P5.16](#p5.16)).
 
 [[def: anchoring entry, anchoring entries]]:
-~ The signed entry that first adds an anchor alias to the asset state: the did:btco alias of the anchoring sat ([P9.10](#p9.10)). The Original is anchored only once that entry is validly inscribed on that sat and confirmed there. A signed entry that is not inscribed does not anchor it ([P9.12](#p9.12)).
+~ The signed entry that first adds a did:btco alias to the asset state, naming the anchoring sat ([P9.10](#p9.10)). The Original is anchored only once that entry is validly inscribed on that sat and confirmed there. A signed entry that is not inscribed does not anchor it ([P9.12](#p9.12)).
 
 [[def: signer]]:
 ~ The identity that signs an entry: the author for an author entry, or the named editor for an editor entry.

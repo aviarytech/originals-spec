@@ -28,7 +28,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Import then edit without authority | Read succeeds where evidence valid; edit authorization fails |
 | Update after deactivation | Rejected; historical evidence retained |
 | Old valid prefix served as current | Reported valid as of its checkpoint, never current (P7.10) |
-| Divergent valid branches not settled by an anchor | Unresolved conflict; every branch reported; none current; no timestamp winner |
+| Divergent valid branches not settled on Bitcoin | Unresolved conflict; every branch reported; none current; no timestamp winner |
 | Hosted mixed snapshot | Rejected before public result is marked verified |
 | Anchoring sat moved to a new holder | Owner reported as the new holder; author unchanged |
 | After anchoring, author-signed entry not inscribed on the sat | Not current |
@@ -107,7 +107,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Anchored entry naming a did:vh or did:webvh author DID version, later than its inscription time, that lists again a key removed before that time | Accepted against the named version (P9.15) |
 | Verifier learns of a valid anchoring entry earlier in chain order than the one it reported | Earlier one reported as the anchor, previous one as conflicting, owner change reported; not silent (P9.16) |
 | Anchoring when the log or signer identity evidence through the signed anchoring entry does not verify | SDK refuses to inscribe (P9.18) |
-| Writer checking its committed log before publishing an entry, the entry not yet on the chain | Verified whole as a local copy, from genesis through that entry; reported as unverified on the chain and never current (P9.18) |
+| Writer checking its committed log before publishing an entry, the entry not yet on Bitcoin | Verified whole as a local copy, from genesis through that entry; reported as unverified on Bitcoin and never current (P9.18) |
 | Local-copy result placed in a report given to a reader, or presented as anchored or current | Never; a local copy is only the writer’s own pre-publication check (P9.18) |
 | Verified anchoring inscription after submission | Submitted, not observed, while the network is not seen to hold it; pending Bitcoin acceptance while in the mempool, or confirmed but not yet verified; once confirmed, reverified and reported anchored, not anchored, or anchored with incomplete identity evidence (P9.18) |
 | Anchoring inscription that does not start at the genesis entry, or whose entries do not verify as one log | Not an anchor (P9.17) |
