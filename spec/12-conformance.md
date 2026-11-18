@@ -131,21 +131,28 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Inscription whose last entry names no preview, with the full version as its body | Accepted; the body is checked against the resource descriptor (P9.17) |
 | Inscription whose last entry names no preview, with no body and no content type | Accepted; the entries are in its metadata only; the version is reported unavailable unless obtained elsewhere (P9.17, P7.4) |
 | Writer inscribing a version whose `mediaType` is not an `image/` type, with no preview supplied | Names no preview and inscribes no body, unless the author chooses the full version (P9.30) |
-| Writer inscribing a version whose `mediaType` is an `image/` type | Generates an `image/webp` preview of at most 8,192 bytes and names it in the entry, unless the author chooses the full version (P9.30) |
-| Entry naming a preview of a media type other than `image/webp` for a version whose `mediaType` is an `image/` type | Rejected (P9.30) |
+| Writer inscribing a version whose `mediaType` is an `image/` type, including `image/svg+xml` and an animated image | Generates an `image/webp` preview of at most 8,192 bytes, rasterising an SVG, and names it in the entry, unless the author chooses the full version (P9.30) |
+| Writer inscribing an `image/` version it cannot decode, or cannot fit in a WebP preview of 8,192 bytes | Tells the author and names no preview; the body is the full version or none (P9.30) |
+| Writer adding a version whose generated preview is byte-identical to its parent’s | Makes another preview or names none; never signs the parent’s `preview` unchanged (P9.30) |
+| Entry naming a preview of a media type other than `image/webp` for a version whose `mediaType` is an `image/` type, including an `image/svg+xml` preview of an `image/svg+xml` version, or one whose type is `Image` in another case | Rejected (P9.30) |
 | Author-supplied preview of any media type for a version that is not an image | Accepted, within 8,192 bytes (P9.30) |
+| Preview of 0 bytes | Rejected; a writer never names one (P9.30, P14.5) |
 | Preview of 8,192 / 8,193 bytes | Accepted / the writer refuses to sign an entry naming it, and a verifier rejects such an entry and any inscription carrying it (P9.30, P14.5, P14.13) |
 | Inscription whose last entry names a preview, with a body whose digest, size or content type differs from it, including the full version or no body | Inscription rejected, as a body that does not match always was; its entries not accepted from it; not an anchor if it is the anchoring inscription; state unchanged (P9.17) |
-| `preview` in an entry whose `aliases` list no did:btco DID: an entry of an Original that is not anchored, or an entry before the anchoring entry in an anchoring inscription | Rejected, not ignored; a writer never writes it (P9.30, P14.5) |
+| `preview` in an entry whose `aliases` list no did:btco DID: an entry of an Original for which no anchoring entry has been signed, or an entry before the anchoring entry in an anchoring inscription | Rejected, not ignored; a writer never writes it (P9.30, P14.5) |
 | Entry after anchoring that names a preview, signed but never inscribed | Not current (P9.12); its preview is not shown on Bitcoin (P9.30) |
 | Anchoring entry naming a preview, its parent naming none | Accepted (P9.30) |
 | Entry after the anchor that changes the resource and names a preview of the new version, inscribed with it as its body | Accepted; the sat shows the new preview (P9.17, P9.30) |
 | Entry that changes the resource’s digest and carries its parent’s `preview` unchanged | Rejected; it names a preview of the new version, or none (P9.30) |
 | Entry other than the anchoring entry that does not change the resource and names a preview other than its parent’s, or names one when its parent named none | Rejected (P9.30) |
-| Editor entry whose grant allows the resource, adding a version and naming its preview / editor entry that changes the preview without a grant that allows the resource, or without changing the resource | Accepted / rejected (P5.16, P9.30) |
+| Editor entry whose grant allows the resource, adding a version and naming its preview / editor entry that changes or removes the preview without a grant that allows the resource, or without changing the resource | Accepted / rejected (P5.16, P9.30) |
 | `preview` whose `mediaType` has a parameter, whose digest is not in P14.7’s encoding, or with a member other than `mediaType`, `size` and `digest` | Rejected (P14.5, P14.6, P14.7) |
 | Derived DID document of an entry that names a preview | Same as without it; the preview is not in the document, and does not advance the version (P14.9, P4.4, P9.30) |
 | Writer asked to make a carried file from a preview | Refused; a preview is not a resource version (P7.16, P9.30) |
+| Deactivation inscribed after the anchor, its parent naming a preview | Accepted carrying that preview, with it as the body, or carrying none, with the full version or no body (P6.5, P9.17, P9.30) |
+| Inscription whose last entry names no preview and whose version’s `size` is 0, with an empty body and that `mediaType` as content type | Accepted; an empty body is a body, not an absent one (P9.17, P14.12) |
+| Originals inscription that names a delegate, with or without a body | Rejected as a whole (P9.17, P14.12) |
+| Evidence package of an anchored Original whose entries name previews | Complete without the previews; a writer puts no preview under `resources/` and lists none in `missing` (P14.10, P9.30) |
 | Inscription metadata containing a CBOR tag, byte string, indefinite-length item, non-text map key or duplicate key | Rejected (P14.12) |
 | Entry whose metadata holds a non-integer number, inscribed as a half-, single- or double-precision float | Accepted; hashes and proof checked over its JCS form (P14.3, P14.12) |
 | Inscription metadata holding a NaN, infinite or negative-zero float, or one above P14.3’s bound | Rejected (P14.12) |

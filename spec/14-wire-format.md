@@ -27,7 +27,7 @@ P14.5 The members of `asset`:
 - `status`: `active` or `deactivated`, agreeing with the operation and the deactivated parameter (P6.5).
 - `aliases`: an array of DIDs with at most one did:webvh and at most one did:btco. It holds no DID of any other method and no DID twice, and a verifier MUST reject one that does (P3.9). The genesis entry lists none.
 - `resource`: the descriptor of the Original’s one resource, at its version in this entry (P4.1).
-- `preview`: exactly `{mediaType, size, digest}`, the preview of the version that `resource` names, for an inscription (P9.30). Each member follows P14.6 and P14.7 as for a resource descriptor, and `size` MUST be at most 8,192. It is allowed only in an entry whose `aliases` list a did:btco DID.
+- `preview`: exactly `{mediaType, size, digest}`, the preview of the version that `resource` names, for an inscription (P9.30). Each member follows P14.6 and P14.7 as for a resource descriptor, and `size` MUST be at least 1 and at most 8,192. It is allowed only in an entry whose `aliases` list a did:btco DID.
 - `editors`: an array of 1 to 32 grants, each exactly `{did, name, metadata, resource}`, all but `did` booleans. An empty array MUST NOT be used; absence means no editors (P5.15).
 
 P14.6 A resource descriptor is exactly `{mediaType, size, digest}`. `mediaType` is a `type/subtype` media type without parameters, and a verifier MUST reject one that has a parameter. `size` is the byte length, a non-negative integer. `mediaType` and `size` MUST NOT change unless `digest` changes in the same entry.
@@ -67,6 +67,8 @@ P14.10 An evidence package is a ZIP archive whose entries are all stored without
 - `signers/<hex SHA-256 of the DID>/did.jsonl`, and `did-witness.json` where that DID method has witnesses, for each did:vh or did:webvh signer; did:btco signers are read from Bitcoin and are not packaged (P9.18);
 - `resources/<digest>`, the bytes of each version of the resource included.
 
+A preview (P9.30) is not a version of the resource: a writer MUST NOT put one under `resources/` or list it in `missing`, and a package without previews can be complete. A preview’s bytes are read from the inscription that carries it, and verifying the log does not need them.
+
 Import MUST apply P7.5, with at most 20,000 archive entries and 512 MiB in total.
 
 The SDK names the signer directory `authors/` and writes an `asset/did-witness.json`; this section uses `signers/` and none, because editors are signers too and asset logs have no witnesses.
@@ -81,7 +83,8 @@ P14.12 An Originals inscription has (P9.17; owner decision, 1 November 2026):
 
 - **Metadata** (ord tag 5): the CBOR encoding of a JSON array of entries, each the parsed JSON of one asset log line. The anchoring inscription’s array holds the entries from genesis through the anchoring entry, in order; every later array holds exactly one entry. The metadata is split into data pushes of at most 520 bytes, which a reader concatenates before decoding.
 - **Content type** (ord tag 1): the `mediaType` of the `preview` in the array’s last entry; when that entry has no `preview`, the `mediaType` of its `resource` if the body is the version, and no content type if there is no body.
-- **Body**: the exact bytes of the preview that the last entry’s `preview` names; when it names none, the exact bytes of the resource version that its `resource` descriptor names, or no body (P9.17, P9.30). A body never has a content encoding.
+- **Body**: the exact bytes of the preview that the last entry’s `preview` names; when it names none, the exact bytes of the resource version that its `resource` descriptor names, or no body (P9.17, P9.30). A body never has a content encoding. An inscription has a body when its envelope has the empty data push that begins ord’s body, even if no bytes follow it, and has no body when it has no such push. An inscription with no body and only fields is valid in ord and is still an inscription.
+- **No delegate** (ord tag 11): an Originals inscription never names a delegate, and a verifier MUST reject one that does (P9.17). This rule is provisional.
 
 The JSON-to-CBOR mapping is provisional; it is the one ord applies to `--json-metadata`: an object is a map with text-string keys in the object’s order, an array an array, a string a text string, an integer an integer in shortest form, any other number a float in the narrowest of half, single and double precision that holds it exactly, `true`, `false` and `null` their simple values. A reader MUST accept a float of any of the three widths, and MUST reject metadata that is not one well-formed CBOR item, or that contains a tag, a byte string, an indefinite-length item, a map key that is not a text string, a duplicate key, an integer outside P14.3’s bound, or a float that is not finite, is negative zero or has a magnitude outside P14.3’s bound. Because each entry is checked over its JCS form, the width of a float and the form of an integer do not change its hashes or proof. It decodes the metadata to JSON values, and each entry is then checked under P14.3–P14.8, its hashes and proof computed over its JCS form; P14.2’s line format does not apply to it. An entry over the entry limit (P14.13) is measured as its JCS form in UTF-8. The metadata and body together MUST NOT exceed 350,000 bytes. An inscription whose metadata does not decode to a JSON array is not an Originals inscription. A did:btco DID matches `^did:btco:((sig|test|reg):)?(0|[1-9][0-9]{0,15})$` with a sat number no greater than 2,099,999,997,689,999 (P9.10). A did:btco signer version is an inscription whose own metadata is a CBOR DID document, in shortest-form encoding, whose `id` is that DID, whatever its body, delegation or content encoding (P5.13).
 
@@ -100,7 +103,7 @@ P14.13 A verifier MUST enforce these limits (P7.7, P8.5):
 | Bytes in one fetched resource | 64 MiB |
 | Time for one fetch | 15 seconds |
 
-The SDK MUST refuse to sign an entry over the entry limit, rather than produce one every verifier rejects. An inscription’s 350,000 bytes (P9.17) hold its body and the entries together. With a preview of at most 8,192 bytes, the log through the anchoring entry has over 340,000 bytes, whatever the size of the resource. A full version leaves little room for the log: a version over about 340,000 bytes cannot be inscribed in full. Either way, authors SHOULD anchor early, while the log through the anchoring entry is still short.
+The SDK MUST refuse to sign an entry over the entry limit, rather than produce one every verifier rejects. An inscription’s 350,000 bytes (P9.17) hold its body and the entries together. With a preview of at most 8,192 bytes, the log through the anchoring entry has room for over 340,000 bytes, whatever the size of the resource. A full version leaves little room for the log: a version over about 340,000 bytes cannot be inscribed in full. Either way, authors SHOULD anchor early, while the log through the anchoring entry is still short.
 
 The SDK measures entry size in UTF-16 code units of the re-serialised entry and sets no resource-size limit; this section measures the UTF-8 bytes of the entry’s JCS form and sets 64 MiB, so that implementations in other languages agree.
 
