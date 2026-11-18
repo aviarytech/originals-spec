@@ -10,7 +10,7 @@ Create prepares the initial asset state, resource descriptor and genesis entry. 
 
 Edit reads an exact verified parent, computes the resource’s new descriptor, if its bytes change (P4.1), has the author or a granted editor sign the next VH entry and verifies it. The current pointer changes only after the signed entry and new bytes are durably stored. For the caller this is one step.
 
-Anchor is an edit whose new asset state adds the did:btco alias of the anchoring sat and changes nothing else that the author does not choose to change. It is inscribed on that sat instead of being committed locally, and becomes current only once accepted there (P9.10, P9.12, P9.17). For an Original whose genesis entry names an EVM anchor chain, the alias is its token alias and the entry is published on that token (P9.19, P9.20). A move is an edit, signed by the author, that changes the `anchor` member and that alias; it is published on the token the Original leaves and then on the destination (P9.28, P9.29).
+Anchor is an edit whose new asset state adds the did:btco alias of the anchoring sat and changes nothing else that the author does not choose to change. It is inscribed on that sat instead of being committed locally, and becomes current only once accepted there (P9.10, P9.12, P9.17).
 
 Packaging collects a selected verified checkpoint and its history into an evidence package. Load/import reconstructs and verifies evidence with no signing key requirement. A loaded Original is readable without becoming writable. Obtaining a signer is an explicit authority step, and eligibility to append is rechecked against the verified parent.
 
