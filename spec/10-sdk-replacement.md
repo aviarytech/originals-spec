@@ -22,7 +22,7 @@ The SDK is what exists, so this draft keeps its behavior unless there is a reaso
 | SDK today | This draft |
 |---|---|
 | An Original has a set of resources fixed at genesis | An Original has exactly one resource, with many versions (P4.1) |
-| Resources are not inscribed | Each inscription carries the current resource version as its body and the log as its metadata (P9.17) |
+| Resources are not inscribed | Each inscription carries a signed preview of the current resource version, or the version itself, as its body, and the log as its metadata (P9.17, P9.30) |
 | Each Original is a CEL 3 log identified by `did:cel` | Each Original is a did:vh log under the Originals extension (section 3) |
 | Each Original is controlled by its own `did:key` | The author signs with a key bound to their DID (P5.3) |
 | Only the author signs | The author and editors it grants, each signing its own entries (P5.15–P5.18) |
@@ -43,6 +43,5 @@ No Originals were issued under the CEL 3 format or earlier formats, so the SDK r
 3. Add author DID key rotation, deactivation, incomplete evidence and conflict tests. Keep unresolved freshness claims visible.
 4. Replace the actual hosted and Boop publication paths and run exact-snapshot reader regressions.
 5. Specify and implement the Bitcoin representation and durable-boundary tests.
-6. If EVM anchoring is adopted, prove the path from Base, the one listed chain, to Bitcoin end to end before a later revision lists further chains. Moving up never upgrades what is said of an earlier stretch or removes the dependence on the chain left (P9.29).
 
 Sources: SDK map [S1, S4–S9, S12–S18]. SDK files were checked at main revision 00fc683 on 15 October 2026.

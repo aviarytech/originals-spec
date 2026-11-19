@@ -28,7 +28,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Import then edit without authority | Read succeeds where evidence valid; edit authorization fails |
 | Update after deactivation | Rejected; historical evidence retained |
 | Old valid prefix served as current | Reported valid as of its checkpoint, never current (P7.10) |
-| Divergent valid branches not settled by an anchor | Unresolved conflict; every branch reported; none current; no timestamp winner |
+| Divergent valid branches not settled on Bitcoin | Unresolved conflict; every branch reported; none current; no timestamp winner |
 | Hosted mixed snapshot | Rejected before public result is marked verified |
 | Anchoring sat moved to a new holder | Owner reported as the new holder; author unchanged |
 | After anchoring, author-signed entry not inscribed on the sat | Not current |
@@ -102,12 +102,12 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Inscribed entry naming a did:btco author DID version inscribed earlier in the same block, whose key it holds | Accepted (P5.13) |
 | Entry before the anchor naming a did:btco author DID version inscribed after the anchoring inscription | Rejected (P5.13) |
 | Inscribed entry naming a preceding did:btco version whose key a later preceding version removed | Rejected; the key must hold in the latest preceding version (P5.13) |
-| Anchored Original whose uninscribed resource versions are unavailable | Log verified; those versions reported unavailable; not a verification failure (P7.4, P9.18) |
-| Anchored Original read from Bitcoin alone | Current version’s bytes read from the newest accepted inscription’s body and checked against its descriptor (P9.17, P9.18) |
+| Anchored Original whose resource versions not inscribed in full are unavailable | Log verified; those versions reported unavailable; not a verification failure (P7.4, P9.18) |
+| Anchored Original read from Bitcoin alone, its newest accepted inscription carrying the full version | Current version’s bytes read from that inscription’s body and checked against its descriptor (P9.17, P9.18) |
 | Anchored entry naming a did:vh or did:webvh author DID version, later than its inscription time, that lists again a key removed before that time | Accepted against the named version (P9.15) |
 | Verifier learns of a valid anchoring entry earlier in chain order than the one it reported | Earlier one reported as the anchor, previous one as conflicting, owner change reported; not silent (P9.16) |
 | Anchoring when the log or signer identity evidence through the signed anchoring entry does not verify | SDK refuses to inscribe (P9.18) |
-| Writer checking its committed log before publishing an entry, the entry not yet on the chain | Verified whole as a local copy, from genesis through that entry; reported as unverified on the chain and never current (P9.18) |
+| Writer checking its committed log before publishing an entry, the entry not yet on Bitcoin | Verified whole as a local copy, from genesis through that entry; reported as unverified on Bitcoin and never current (P9.18) |
 | Local-copy result placed in a report given to a reader, or presented as anchored or current | Never; a local copy is only the writer’s own pre-publication check (P9.18) |
 | Verified anchoring inscription after submission | Submitted, not observed, while the network is not seen to hold it; pending Bitcoin acceptance while in the mempool, or confirmed but not yet verified; once confirmed, reverified and reported anchored, not anchored, or anchored with incomplete identity evidence (P9.18) |
 | Anchoring inscription that does not start at the genesis entry, or whose entries do not verify as one log | Not an anchor (P9.17) |
@@ -121,11 +121,38 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Two indexes the verifier uses disagree on which sat an inscription is on | Not accepted; missing evidence reported until they agree (P9.10) |
 | Anchored Original whose did:webvh alias is removed, then added again | Re-adding rejected (P9.10) |
 | Inscription whose metadata and body are exactly 350,000 bytes together | Accepted, if otherwise valid (P9.17) |
-| Inscription whose metadata and body are over 350,000 bytes together, or an Original whose log through the anchoring entry and current version are over it | Rejected; the SDK refuses to anchor or publish (P9.17) |
-| Inscription whose body’s digest or size differs from its last entry’s resource descriptor | Rejected (P9.17) |
-| Inscription whose content type differs from its last entry’s resource `mediaType`, or that has a content encoding | Rejected (P9.17) |
-| SDK about to inscribe an entry | Tells the author the inscribed version, name and metadata become public and permanent, and warns when the version is active content (P9.18) |
-| Inscription after the anchor whose entry changes only the name or metadata | Body is the unchanged current version, inscribed again (P9.17) |
+| Inscription whose metadata and body are over 350,000 bytes together, or an Original whose log through the anchoring entry and the body to be inscribed are over it | Rejected; the SDK refuses to anchor or inscribe (P9.17) |
+| Inscription whose last entry names no preview, with a body whose digest or size differs from that entry’s resource descriptor | Rejected (P9.17) |
+| Inscription whose last entry names no preview, with a body whose content type differs from the resource `mediaType`, or with a content type and no body; any inscription with a content encoding | Rejected (P9.17) |
+| SDK about to inscribe an entry | Tells the author whether the preview, the full version or no body is inscribed; that this body, the name and the metadata become public and permanent; what Bitcoin will not hold; and the cost at the fee rate it will use; warns when the body is active content (P9.18) |
+| Inscription after the anchor whose entry changes only the name or metadata, its parent naming a preview | The entry carries the same preview, or none; the body is that preview again, or, with none, the full version or no body (P9.17, P9.30) |
+| Inscription after the anchor whose entry changes only the name or metadata, its parent naming no preview | The body is the full version again, or no body (P9.17, P9.30) |
+| Inscription whose last entry names a preview, with that preview as its body, by default | Accepted; the sat shows the preview; the log verifies without the version’s bytes, which are reported unavailable unless obtained elsewhere, and never reported verified because the preview matched (P9.17, P9.18, P9.30, P7.4) |
+| Inscription whose last entry names no preview, with the full version as its body | Accepted; the body is checked against the resource descriptor (P9.17) |
+| Inscription whose last entry names no preview, with no body and no content type | Accepted; the entries are in its metadata only; the version is reported unavailable unless obtained elsewhere (P9.17, P7.4) |
+| Writer inscribing a version whose `mediaType` is not an `image/` type, with no preview supplied | Names no preview and inscribes no body, unless the author chooses the full version (P9.30) |
+| Writer inscribing a version whose `mediaType` is an `image/` type, including `image/svg+xml` and an animated image | Generates an `image/webp` preview of at most 8,192 bytes, rasterising an SVG, and names it in the entry, unless the author chooses the full version (P9.30) |
+| Writer inscribing an `image/` version it cannot decode, or cannot fit in a WebP preview of 8,192 bytes | Tells the author and names no preview; the body is the full version or none (P9.30) |
+| Writer adding a version whose generated preview is byte-identical to its parent’s | Makes another preview or names none; never signs the parent’s `preview` unchanged (P9.30) |
+| Entry naming a preview of a media type other than `image/webp` for a version whose `mediaType` is an `image/` type, including an `image/svg+xml` preview of an `image/svg+xml` version, or one whose type is `Image` in another case | Rejected (P9.30) |
+| Author-supplied preview of any media type for a version that is not an image | Accepted, within 8,192 bytes (P9.30) |
+| Preview of 0 bytes | Rejected; a writer never names one (P9.30, P14.5) |
+| Preview of 8,192 / 8,193 bytes | Accepted / the writer refuses to sign an entry naming it, and a verifier rejects such an entry and any inscription carrying it (P9.30, P14.5, P14.13) |
+| Inscription whose last entry names a preview, with a body whose digest, size or content type differs from it, including the full version or no body | Inscription rejected, as a body that does not match always was; its entries not accepted from it; not an anchor if it is the anchoring inscription; state unchanged (P9.17) |
+| `preview` in an entry whose `aliases` list no did:btco DID: an entry of an Original for which no anchoring entry has been signed, or an entry before the anchoring entry in an anchoring inscription | Rejected, not ignored; a writer never writes it (P9.30, P14.5) |
+| Entry after anchoring that names a preview, signed but never inscribed | Not current (P9.12); its preview is not shown on Bitcoin (P9.30) |
+| Anchoring entry naming a preview, its parent naming none | Accepted (P9.30) |
+| Entry after the anchor that changes the resource and names a preview of the new version, inscribed with it as its body | Accepted; the sat shows the new preview (P9.17, P9.30) |
+| Entry that changes the resource’s digest and carries its parent’s `preview` unchanged | Rejected; it names a preview of the new version, or none (P9.30) |
+| Entry other than the anchoring entry that does not change the resource and names a preview other than its parent’s, or names one when its parent named none | Rejected (P9.30) |
+| Editor entry whose grant allows the resource, adding a version and naming its preview / editor entry that changes or removes the preview without a grant that allows the resource, or without changing the resource | Accepted / rejected (P5.16, P9.30) |
+| `preview` whose `mediaType` has a parameter, whose digest is not in P14.7’s encoding, or with a member other than `mediaType`, `size` and `digest` | Rejected (P14.5, P14.6, P14.7) |
+| Derived DID document of an entry that names a preview | Same as without it; the preview is not in the document, and does not advance the version (P14.9, P4.4, P9.30) |
+| Writer asked to make a carried file from a preview | Refused; a preview is not a resource version (P7.16, P9.30) |
+| Deactivation inscribed after the anchor, its parent naming a preview | Accepted carrying that preview, with it as the body, or carrying none, with the full version or no body (P6.5, P9.17, P9.30) |
+| Inscription whose last entry names no preview and whose version’s `size` is 0, with an empty body and that `mediaType` as content type | Accepted; an empty body is a body, not an absent one (P9.17, P14.12) |
+| Originals inscription that names a delegate, with or without a body | Rejected as a whole (P9.17, P14.12) |
+| Evidence package of an anchored Original whose entries name previews | Complete without the previews; a writer puts no preview under `resources/` and lists none in `missing` (P14.10, P9.30) |
 | Inscription metadata containing a CBOR tag, byte string, indefinite-length item, non-text map key or duplicate key | Rejected (P14.12) |
 | Entry whose metadata holds a non-integer number, inscribed as a half-, single- or double-precision float | Accepted; hashes and proof checked over its JCS form (P14.3, P14.12) |
 | Inscription metadata holding a NaN, infinite or negative-zero float, or one above P14.3’s bound | Rejected (P14.12) |
@@ -168,7 +195,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Resource digest in a non-canonical encoding, or a multihash other than SHA-256 | Rejected (P14.7) |
 | `asset.editors` present as an empty array | Rejected (P14.5) |
 | Resource descriptor whose `size` or `mediaType` changes without its `digest` | Rejected (P14.6) |
-| Entry whose JCS form is 65,536 / 65,537 UTF-8 bytes, in `did.jsonl`, an inscription, a publication or any carrier | Accepted / rejected (P14.13) |
+| Entry whose JCS form is 65,536 / 65,537 UTF-8 bytes, in `did.jsonl`, an inscription or any carrier | Accepted / rejected (P14.13) |
 | Derived DID document compared with section 14’s template | Identical for every resolver (P14.9) |
 | Evidence package built twice from the same contents | Byte-identical archives (P14.10) |
 | Evidence package with a compressed archive entry or a name over 255 bytes | Rejected (P14.10) |
@@ -237,92 +264,13 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Carried log older than the reader’s local history, or on another branch | Local history kept; a branch reported as a conflict (P7.14, P7.5) |
 | Anchored Original whose carried log disagrees with its anchor | State from the anchor; the carried log is not preferred (P7.14, P9.13) |
 | Anchored Original’s carried log read without access to the anchor | Missing evidence; at most the entries before the anchoring entry valid as of the checkpoint before it; the anchoring entry and later entries not checked against the anchor (P7.14, P3.3, P9.15) |
-| Original without `anchor` whose later entry adds one; Original with `anchor` whose later entry, not a move entry, changes or removes it | Rejected (P9.19) |
-| Original with an EVM `anchor` listing a did:btco alias, or a token alias other than its derived token’s; Original without `anchor` listing a token alias | Rejected (P9.19, P14.19) |
-| `anchor.chain` not `eip155:` with a canonical decimal chain ID / `minter` in mixed case | Rejected (P14.18) |
-| `anchor.chain` well formed but not in the verifier’s revision of P14.22 | Unsupported, not invalid; a writer refuses to write it (P9.19, P14.22) |
-| Genesis `anchor` member naming a chain other than Base, such as `eip155:1` or `eip155:4663` | Unsupported, not invalid; a writer refuses to write it (P9.19, P14.22) |
-| Genesis entry with an `anchor` member while P14.21 pins no contract | Unsupported, not invalid; a writer refuses to write it (section 14, P14.21) |
-| Provider reporting the listed chain ID whose block 0 has another hash than P14.22 lists | Not that chain; its answers are not evidence (P9.21) |
-| Code at the anchor contract address with another runtime code hash, or none, on a listed chain | Unsupported; never verified or reported as not anchored (P9.21) |
-| The pinned contract deployed on a chain that is not listed | Unsupported (P9.21) |
-| Publication read from a chain other than the one `anchor` names | Not a publication of the Original (P9.20) |
-| Publication record present at the latest block but not in state at the finalized block | Observed, not accepted; pending (P9.22, P9.27) |
-| Two usable providers report different hashes for the lower of their finalized blocks, or a different record, bytes or `ownerOf` at that block | Missing evidence until they agree; neither is dropped to reach a result (P9.22) |
-| One provider’s finalized block is N and the other’s is N+1, and they agree on block N’s hash and on the state at it | Verified at block N; a provider that is behind is not a disagreement (P9.22) |
-| One provider configured, passing P9.21’s checks and serving the contract’s state at the finalized block | Verified on its read; the report names that provider and marks the read uncorroborated (P9.22) |
-| Two providers configured, one reporting another chain ID or block 0 hash, or unable to serve state at the finalized block | That provider dropped and its answers not evidence; the other’s read stands, named in the report and marked uncorroborated (P9.21, P9.22) |
-| Every configured provider fails P9.21’s checks or cannot serve state at the finalized block | Missing evidence (P9.22, P9.25) |
-| A block accepted as finalized is replaced | `authoritative-source-changed` and a finality failure reported (P9.22) |
-| Token minted, no anchoring publication | Not anchored; no owner (P9.23) |
-| Two anchoring entries from different branches published on the token | The one with the lower record index is the anchor; the other a conflicting anchor; uniqueness MAY be reported in the terms of the chain’s class: established on a proven chain, attested by the operator or the validators on an attested one (P9.24, P9.16) |
-| Anchor on a chain of any trust class, after a finality failure on that chain | Uniqueness reported as not established, never as established or attested (P9.24, P9.22) |
-| Two publications extending the same head, recorded in one block or in different blocks | The one with the lower record index is accepted (P9.13, P9.20) |
-| Two successive publications, the second extending the first, recorded in one block, or in two blocks of a rollup that share one parent-chain block number | Both accepted, in index order (P9.13, P9.20) |
-| Publication by an address that is not the holder, the address approved for the token through `approve`, or an operator approved through `setApprovalForAll` | Reverted by the contract; no record (P14.20) |
-| Upload opened and never committed | Ignored (P14.20) |
-| `publish` or `publishSameBody` whose bytes exceed 350,000, an `append` that would take an upload past 350,000 bytes, or a media type longer than 255 bytes | Reverted by the contract; no record and no stored bytes (P14.20) |
-| Record whose length fields exceed 350,000 bytes, as a provider reports it, after valid earlier records | Rejected from its fields without reading its bytes; the earlier accepted history resolves and evidence is not missing (P9.25) |
-| Record of 350,000 bytes that is no valid publication, after valid earlier records, read from a provider that limits the size of a response | Read in ranges and rejected; the earlier accepted history resolves (P9.25, P14.20) |
-| Publication whose body digest, size or media type differs from the last entry’s descriptor | Rejected (P14.20, P9.17) |
-| Publication that refers to an earlier record’s body, the last entry not changing the resource | Accepted; the body is checked against the descriptor as if stored (P9.25, P14.20) |
-| Publication that refers to an earlier record’s body whose digest differs from the last entry’s descriptor | Rejected (P9.25, P14.20) |
-| `publishSameBody` or `commitSameBody` naming an index that is not an earlier record of the selected token, or a record that itself refers to another | Reverted by the contract; no record (P14.20) |
-| The same record index on two tokens, used in `publishSameBody` on one of them | The body is that of the selected token’s own record; another token’s body cannot be selected (P14.20) |
-| Record that refers to an earlier body | Its `bodyLength` is the referred body’s length; only its metadata counts toward the 350,000-byte limit (P14.20) |
-| Publication known only from a `Published` event, or a token whose records or bytes cannot be read from state at the finalized block | Never accepted from the event; resolution fails with missing evidence (P9.25) |
-| Original with an EVM `anchor` naming a did:btco author or editor | Rejected (P9.26) |
-| did:webvh signer key removed before the timestamp the publication’s record holds | Rejected, as P9.15 with the publication’s inscription time (P9.20, P9.26) |
-| Token held by a contract account | That contract is the owner (P9.23) |
-| Move entry from Base to Bitcoin, departed and arrived; under a revision of P14.22 that lists an attested chain, a move entry from it to a proven chain or to Bitcoin, departed and arrived | Accepted; anchored on the destination; the owner is the holder of the destination token or sat (P9.28, P9.29) |
-| Move entry to a chain in the same layer or a lower one; move entry in an Original anchored on Bitcoin | Rejected (P9.28) |
-| Move entry signed by an editor; move entry before the Original’s anchoring entry; entry that changes `anchor` without listing the destination’s alias | Rejected (P9.28) |
-| Move entry to a chain the verifier’s revision of P14.22 does not list | Unsupported, not invalid (P9.19, P9.28) |
-| Move entry from Base naming Base again, with another minter | Rejected, as a move within the same layer (P9.28) |
-| Move entry from Base naming an EVM chain this revision does not list | Unsupported, not invalid; under this revision an Original anchored on Base moves only to Bitcoin (P9.19, P9.28, P14.22) |
-| Arrival on the destination with no departure accepted on the chain left, as when the author moves alone after a sale | Not accepted; the Original is still anchored where it was (P9.29) |
-| Departure accepted, no arrival yet | Departed, not arrived; the move entry’s state; no owner (P9.29) |
-| Publication on the token left behind, after the departure | Not accepted; reported (P9.29) |
-| Arrival whose log differs from the entries accepted through the departure, or whose last entry is not the move entry | Not an arrival (P9.29) |
-| Moved Original, a chain it left cannot be read | Log’s proofs and hash links verified from genesis; move unconfirmed; ordering of the stretch on that chain claimed only; no owner and not current (P9.29) |
-| Moved Original with publications after the arrival, a chain it left cannot be read | Those entries verified as part of the log and reported as following an unconfirmed move; none current (P9.29) |
-| Departure final, destination chain cannot be read | Departure reported as finalized, destination as unreachable; missing evidence; no arrival claimed, and none denied; at most the entries before the first anchoring entry reported, valid as of the checkpoint before it with claimed ordering; no owner (P9.29, P7.14) |
-| Departure final, destination chain cannot be read, the entries through the move entry accepted on the chain left | Not reported as the Original’s state or as current; the anchoring entry and later entries reported as not checked against the current anchor (P9.29, P7.14) |
-| Verifier that retained the anchor on the token left, then reads a verified move | Reported as a move with its source and destination; not a conflicting anchor or a change of anchor (P9.16, P9.29) |
-| Entries from before the first anchoring entry, in a report for a moved Original | Described as carried, with claimed ordering (P9.29) |
-| A chain the Original left later replaces the block that held the departure | Finality failure there; move unconfirmed (P9.22, P9.29) |
-| Under a revision of P14.22 that lists an attested chain, move made from it to a proven chain that a later revision reclassifies `operator` | Still accepted, judged by the class at the departure record’s timestamp; reported under the current class (P9.28, P14.22) |
-| Under a revision of P14.22 that lists an attested chain, report for an Original that moved from it to a proven chain | Lists both chains with their classes and the entries accepted on each; the earlier stretch described as attested, never as proven (P9.29) |
-| Writer moving an Original | Author told the move cannot be reversed, the layers left above the destination, the dependence on the chain left, and what becomes public; refused if the arrival would exceed 350,000 bytes (P9.29) |
-| Writer about to inscribe a Bitcoin arrival, the departure accepted and final on the chain left and the local copy verified through the move entry | Inscribes the arrival (P9.29, P9.18) |
-| Writer about to inscribe a Bitcoin arrival while the departure is not yet accepted or not final on the chain left, or whose local copy does not verify through the move entry | Refuses to inscribe (P9.29, P9.18) |
-| Writer creating an Original with an EVM `anchor` | Author told the first chain is permanent and the Original can move only upward, that it stays dependent on every chain it was anchored on, the chain’s trust class and what it means, that publications last only while the chain’s state is kept, that large publications can need staged transactions and large metadata makes later edits cost more, and the minter fixed (P9.27) |
-| Report for an Original anchored on an EVM chain | Names the chain, its trust class, the token, the finalized block and the providers its read came from, marked uncorroborated when only one answered; never called a Bitcoin anchor (P9.22, P9.27) |
-| Report for an Original anchored on a `consortium` or `operator` chain | Ordering, ownership, uniqueness and the settlement of a fork described as attested by the chain’s validators or operator, never as proven (P9.27) |
-| Entry of 30,000 bytes that does not change the resource, on a chain that accepts 24,000 bytes in one transaction | Uploaded in stages and recorded by `commitSameBody`, referring to the stored body (P14.20) |
-| `aliases` holding the token’s CAIP-19 asset ID, or a did:evm DID with an uppercase address, a leading zero in its chain ID or token ID, or a contract address other than P14.21’s | Rejected (P14.18) |
-| did:evm alias resolved, the log accepted on its token listing it | The Original’s did:vh, state and report, with the chain and its trust class; the document derived, with `alsoKnownAs` the did:vh (P3.9, P14.18) |
-| did:evm DID of a token with no accepted anchoring publication, or of a token whose accepted log does not list it | Resolves to nothing; not an alias (P3.9, P9.23) |
-| did:evm DID of a token the Original has left | Reported as moved, naming the alias that replaced it; the state on that token never returned as current (P3.9, P9.29) |
-| Document returned by the token’s `tokenURI`, offered as the did:evm DID document | Not used (P3.9, P3.8) |
-| Carried file of an Original whose log has an `anchor` member, the chain readable | State from the token at the finalized block; the carried log not preferred; the report names the chain and its trust class (P7.14, P9.20, P9.27) |
-| Carried log with an `anchor` member naming a chain the reader’s revision does not list, or read while P14.21 pins no contract, with or without an anchoring entry | Unsupported, not invalid; nothing reported as verified (P7.14, P9.19, P14.21) |
-| Carried log whose genesis entry has an `anchor` member and that holds no anchoring entry, read while P14.21 pins no contract | Unsupported, not a historical checkpoint; nothing reported as verified (P7.14, section 14) |
-| Carried log with no `anchor` member that holds no anchoring entry | Historical checkpoint, valid as of its last entry; no statement about later anchoring (P7.14) |
-| Carried log holding a move entry, read without access to the chain the Original is anchored on now | Missing evidence; at most the entries before the first anchoring entry reported (P7.14, P9.29) |
-| Carried log holding a move entry, the current chain read and a chain it left unreadable | Reported as P9.29 requires: proofs and hash links checked, move unconfirmed, ordering on the unread chain claimed only (P7.14, P9.29) |
-| Writer asked to inscribe or publish a carried file as a body | The carrier is removed first; the body is the version’s bytes (P7.16, P9.17, P9.25) |
-| Writer making a carried file from an accepted publication’s body and entries | Allowed, as for any accepted checkpoint (P7.16, P7.15) |
-| Writer about to write a carrier for a log with an `anchor` member | User told that the file discloses the chain and the minter’s address (P7.15) |
-| Entry published on an Original’s token, whose did:vh or did:webvh signer later removes the signing key | Remains current, as for an inscribed entry; not reported as historically authorized only, and its ordering not labelled claimed (P7.6, P7.9, P9.20) |
-| Fork of an Original with an EVM `anchor`, then an anchoring entry accepted on its token | Settled by that anchor’s branch, under the chain’s finality and trust class; on a `consortium` or `operator` chain the settlement is described as attested, never as proven (P6.6, P9.20, P9.24, P9.27) |
-| Move entry’s signing key removed, or its signer DID deactivated, after the departure and before the arrival | Arrival accepted; the move entry’s signer is checked at the departure only (P9.29) |
-| Move entry published as a departure when its signing key is not valid at the departure’s inscription time | Rejected; not departed (P9.15, P9.29) |
+| Carried log that holds no anchoring entry | Historical checkpoint, valid as of its last entry; no statement about later anchoring (P7.14) |
+| Writer asked to inscribe a carried file as a body | The carrier is removed first; the body is the version’s bytes (P7.16, P9.17) |
+| Writer making a carried file from the body and entries of an accepted inscription whose body is the full version | Allowed, as for any accepted checkpoint (P7.16, P7.15) |
 | Complete evidence package of an anchored Original, read without access to the anchor | Missing evidence; at most the entries before the first anchoring entry reported; the package not preferred to the anchor (P7.1, P7.14) |
 | Complete evidence package of an Original with a did:btco signer, read offline | That signer’s history is not in the package; identity evidence incomplete until it is read from Bitcoin (P7.1, P14.10, P5.6) |
 | `aliases` holding a DID of any other method, or the same DID twice | Rejected (P14.5) |
-| Grant naming the Original’s did:webvh alias or its token alias | Rejected (P5.15) |
-| Original that moved to Bitcoin grants a did:btco editor in or after the move entry | Accepted; the same grant in an entry carrying an `anchor` member is rejected (P9.26) |
+| Grant naming the Original’s did:webvh alias | Rejected (P5.15) |
 | Signer asked to sign input that is not a well-formed Originals entry, or without showing the signer, the Original, the operation and the resource changes | Refused (P5.11) |
 | Exact-checkpoint resolution of a checkpoint the resolver cannot supply | Reports why; the latest checkpoint is not substituted (P3.2) |
 | Report for an anchored Original | States the confirmation depth relied on and whether more than one independent index agreed on the sat’s location (P9.5, P9.11) |
@@ -340,18 +288,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | HTML version ending inside an open tag, a processing instruction, or an open `iframe`, `noembed` or `noframes` element | Writer refuses; the appended block would not parse as a separate comment (P14.16) |
 | Version of a listed type whose ending its format’s parser leaves outside any comment, string, tag or raw-text context | Writer adds the block; it parses as a separate comment (P14.16) |
 | Writer with no parser for the version’s syntax asked for a text block | Refused (P14.16) |
-| did:evm DID resolved from token reads alone, the token’s first record being junk or another Original’s log | Candidate taken from an anchoring or arrival publication, then verified with its link to the queried token; the junk record does not decide (P3.9) |
-| Token minted by anyone, with a `tokenURI` but no verified history | Not shown to be an Original (P9.23) |
-| Provider that cannot serve state at the finalized block because finality trails its retained state | Not usable; dropped, and the reads of the other usable providers stand; missing evidence only when none remains (P9.22) |
-| Provider read at its own, later finalized block, compared with the other provider at the lower block | Not evidence for the comparison (P9.22) |
-| Verification repeated with no evidence of a finality failure | Earlier finalized block hashes need not be read again; when evidence appears, a warning is reported and retained results resting on that block are discarded (P9.22) |
-| Token with many records, verifier holding a checkpoint and a supplied log whose entry N has the checkpoint’s versionId | MAY resume from the checkpoint and read only the records after its record index; no record cap or reader budget (P9.25) |
-| Checkpoint with a supplied log that ends before the checkpoint’s versionId, or whose entry N has another entry hash | Not resumed from; the token read from its first record (P9.25) |
-| Retained result lacking the head versionId, the chain, the contract address or token ID, the record index, the finalized block’s number or hash, or the trust class at that block | Not a checkpoint; not resumed from (P9.25) |
-| Verification during which a publication waits on an unverifiable entry | No checkpoint made (P9.25, P9.15) |
-| Writer staging an upload | Learns the upload ID from `UploadBegun`; the event is never evidence (P14.20) |
-| Move entry prepared before any departure record exists | Layers judged provisionally by the current classes; by the classes at the departure record’s timestamp once it is read (P9.28) |
-| Signed anchoring entry not published, genesis `anchor` member alone, or token minted with no publication | Not anchored (P9.19, P9.23) |
+| Signed anchoring entry not inscribed on the sat it names | Not anchored (P9.10, P9.12) |
 | Two entries whose `versionTime` values differ by less than one millisecond, or a `versionTime` with more than three fractional digits | Rejected (P14.2) |
 
 ### Release evidence

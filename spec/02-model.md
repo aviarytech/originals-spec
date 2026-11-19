@@ -10,7 +10,7 @@
 ~ The Original’s did:vh log under the Originals extension. It is the Original’s only history.
 
 [[def: asset state]]:
-~ The state recorded in full in each asset log entry: the Original’s name, metadata, lifecycle status, resource descriptor, aliases and editor grants, and, where its genesis entry names one, its EVM anchor chain (P9.19, proposed). It is not a DID document.
+~ The state recorded in full in each asset log entry: the Original’s name, metadata, lifecycle status, resource descriptor, aliases and editor grants, and, from its anchoring entry on, any preview of the version that an inscription carries (P9.30). It is not a DID document.
 
 [[def: VH entry, VH entries]]:
 ~ Commits a state transition according to the selected VH profile.
@@ -31,10 +31,7 @@
 ~ An entry signed by an editor, changing only the content its grant allows ([P5.16](#p5.16)).
 
 [[def: anchoring entry, anchoring entries]]:
-~ The signed entry that first adds an anchor alias to the asset state: the did:btco alias of the anchoring sat ([P9.10](#p9.10)) or, for an Original whose `anchor` member names an EVM chain, the alias of the token derived for it ([P9.19](#p9.19)). The Original is anchored only once that entry is validly published on that sat or token and confirmed or final there. A signed entry that is not published, a genesis `anchor` member, or a minted token does not anchor it ([P9.23](#p9.23)).
-
-[[def: arrival, arrivals]]:
-~ The publication on a move’s destination that carries the log through the move entry ([P9.29](#p9.29)). It is distinct from the Original’s first anchor.
+~ The signed entry that first adds a did:btco alias to the asset state, naming the anchoring sat ([P9.10](#p9.10)). The Original is anchored only once that entry is validly inscribed on that sat and confirmed there. A signed entry that is not inscribed does not anchor it ([P9.12](#p9.12)).
 
 [[def: signer]]:
 ~ The identity that signs an entry: the author for an author entry, or the named editor for an editor entry.
@@ -43,7 +40,7 @@
 ~ A VH key, expressed as raw Multikey material, that may append the next entry to a log under the previous accepted entry’s rules. An asset log has none: its authorized keys come from the author DID ([P5.9](#p5.9)).
 
 [[def: chain order]]:
-~ The order of Bitcoin inscriptions by block height, then transaction index in the block, then inscription index in the transaction. On one sat it is the order in which the sat’s inscriptions were made. For an Original anchored on an EVM chain, P9.20 reads it as the order of its token’s publication records.
+~ The order of Bitcoin inscriptions by block height, then transaction index in the block, then inscription index in the transaction. On one sat it is the order in which the sat’s inscriptions were made.
 
 [[def: witness, witnesses]]:
 ~ A VH witness that approves entries before they count as current. Originals asset logs do not use witnesses ([P9.8](#p9.8)); an author DID may still use its own DID method’s witnesses.
@@ -60,7 +57,7 @@ Editing authority is narrower. The author can grant an [[ref: editor]] permissio
 
 Storage and publication authority is permission to store bytes or publish a checkpoint. A host, storage adapter, wallet, inscription holder or sat owner does not gain asset-editing authority merely by performing that role. One actor may hold several roles, but verifiers evaluate each role separately.
 
-Ownership is not an authority. Once an Original is anchored, its owner is whoever holds the anchoring sat (P9.11) or, on an EVM chain, its token (P9.23). Only the author, or an editor the author has granted, signs changes, for the Original’s whole life, but on Bitcoin a change also has to be inscribed on the sat, so after a sale neither a signer nor the owner can change the Original alone (P9.12).
+Ownership is not an authority. Once an Original is anchored, its owner is whoever holds the anchoring sat (P9.11). Only the author, or an editor the author has granted, signs changes, for the Original’s whole life, but on Bitcoin a change also has to be inscribed on the sat, so after a sale neither a signer nor the owner can change the Original alone (P9.12).
 
 ### Proposed rules
 
