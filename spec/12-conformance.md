@@ -310,7 +310,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Child editor entry allowed by an inherited grant that the parent Original’s latest verified state later removes or narrows | Valid; historically authorized only (P5.26) |
 | Child entry whose pin is older than its parent entry’s pin, or on another branch of the parent’s log | Rejected (P5.24) |
 | Child Original verified without the parent Original’s log through a pin | Incomplete; parent evidence reported missing; never a pass (P5.25) |
-| Pin naming a versionId absent from the parent’s verified log, which reaches that version number | Rejected (P5.25) |
+| Pin naming a versionId absent from the parent’s verified log, which reaches that version number: parent not anchored / parent anchored, pin outside its accepted history | Incomplete, the pinned parent version reported missing, never a pass / rejected (P5.25) |
 | Child editor entry relying on an inherited grant at a pin that names the parent’s deactivation | Rejected; the parent grants nothing there (P5.25) |
 | Child editor entry authorized only by an inherited grant when the parent Original has divergent valid branches | Historically authorized only (P5.26) |
 | `parent.did` equal to the child’s own did:vh; a later entry that adds or removes `parent` or changes `parent.did` | Rejected (P5.24) |
