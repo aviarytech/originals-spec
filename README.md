@@ -4,7 +4,7 @@
 
 This is the first review draft of the Originals Protocol. It is a protocol and SDK design for review, not a finalized standard or an implementation.
 
-The draft contains 14 sections, a 284-test conformance matrix, and a decision register (D1–D7) recording the choices taken and those still open. Originals history is built on Verifiable History while useful SDK semantics are retained. Each change has one signature: the author, or an editor the author has granted, signs the VH entry with a key bound to their own DID. Asset logs have no witnesses: off Bitcoin an Original’s ordering is claimed only, and anchoring it on Bitcoin orders its entries on the anchoring sat and gives it a provisional owner.
+The draft contains 14 sections, a 324-test conformance matrix, and a decision register (D1–D8) recording the choices taken and those still open. Originals history is built on Verifiable History while useful SDK semantics are retained. Each signer signs the VH entry with a key bound to their own DID: the author, or an editor the author has granted. An Original may instead be governed by a signer set with a threshold, whose author entries carry one signature per signing member, may inherit editor grants from a parent Original, and may narrow a grant with a scope. Asset logs have no witnesses: off Bitcoin an Original’s ordering is claimed only, and anchoring it on Bitcoin orders its entries on the anchoring sat and gives it a provisional owner.
 
 ## Editing
 
