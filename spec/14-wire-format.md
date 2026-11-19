@@ -1,6 +1,6 @@
 ## Wire format (partly provisional)
 
-This section pins the byte-level choices that independent implementations must share. Owner decisions of 21 October 2026 decide the 350,000-byte inscription limit and the did:btco network prefixes in P14.12, and the limits in P14.13. D4 decides JCS canonicalization (P14.3), as the canonicalization the pinned VH Log version uses; SHA-256 multihashes for resource digests (P14.7, P4.2); the two cryptosuites (P14.8, P5.12); and the parts of P14.2, P14.3, P14.5, P14.8 and P14.10 that it records as decided on 23 October 2026. D3 decides that an asset log has no witness file (P14.2, P9.8). D6 decides the inscription body, metadata and media type in P14.12 (P9.17, P9.30; owner decisions, 1 and 18 November 2026), and the 8,192-byte preview limit in P14.13, except the JSON-to-CBOR mapping of the metadata, which stays provisional, and that a did:btco signer version is identified by its own metadata alone (P14.12, P5.13). The carried-log values (P14.14–P14.17) are proposed and provisional. Everything else in this section, including the entry state fields and the evidence package format, is **provisional**: it is taken from the Originals SDK at revision 1b3cabdd [S29], which is the only implementation, and recorded so that it is reviewed as a decision rather than adopted silently (D1, D4). Where the SDK and this section differ, this section says so and the SDK is expected to change. A provisional value may still change before an interoperable release; until then a change keeps the `method` value `originals:1.0`, and Originals written under the earlier value no longer verify (owner decision, 1 November 2026). After an interoperable release, changing a value changes the `method` value.
+This section pins the byte-level choices that independent implementations must share. Owner decisions of 21 October 2026 decide the 350,000-byte inscription limit and the did:btco network prefixes in P14.12, and the limits in P14.13. D4 decides JCS canonicalization (P14.3), as the canonicalization the pinned VH Log version uses; SHA-256 multihashes for resource digests (P14.7, P4.2); the two cryptosuites (P14.8, P5.12); and the parts of P14.2, P14.3, P14.5, P14.8 and P14.10 that it records as decided on 23 October 2026. D3 decides that an asset log has no witness file (P14.2, P9.8). D6 decides the inscription body, metadata and media type in P14.12 (P9.17, P9.30; owner decisions, 1 and 18 November 2026), and the 8,192-byte preview limit in P14.13, except the JSON-to-CBOR mapping of the metadata, which stays provisional, and that a did:btco signer version is identified by its own metadata alone (P14.12, P5.13). The carried-log values (P14.14–P14.17) are proposed and provisional. The owner decided signer sets, parent Originals and scoped grants on 19 November 2026 (D8); the members that carry them (P14.4, P14.5, P14.8–P14.10, P14.23) are provisional, as the other entry state fields are, and so are the three limits P14.13 adds for them. They are an additive change under the same `method` value: an Original without `authors` or `parent`, and a grant without `scope`, are exactly as before. Everything else in this section, including the entry state fields and the evidence package format, is **provisional**: it is taken from the Originals SDK at revision 1b3cabdd [S29], which is the only implementation, and recorded so that it is reviewed as a decision rather than adopted silently (D1, D4). Where the SDK and this section differ, this section says so and the SDK is expected to change. A provisional value may still change before an interoperable release; until then a change keeps the `method` value `originals:1.0`, and Originals written under the earlier value no longer verify (owner decision, 1 November 2026). After an interoperable release, changing a value changes the `method` value.
 
 ### Log and parameters
 
@@ -16,8 +16,9 @@ P14.4 An entry’s state MUST have exactly the members `id`, `operation`, `autho
 
 - `id` is the Original’s did:vh, `did:vh:<SCID>`.
 - `operation` is `create` in the genesis entry and `update` or `deactivate` in every other entry. Anchoring is an `update` (P9.10).
-- `author` and `editor` are each exactly `{did, verificationMethod, versionId}`, all strings (P5.1, P5.16). For a did:btco signer, `versionId` is the inscription id of the version (P5.13).
-- `asset` has the required members `name`, `status`, `resource` and `aliases`, and the optional members `metadata`, `editors` and `preview`.
+- `editor`, and `author` when `asset` has no `authors`, are each a [[ref: signer]] reference, exactly `{did, verificationMethod, versionId}`, all strings (P5.1, P5.16). For a did:btco signer, `versionId` is the inscription id of the version (P5.13).
+- When `asset` has `authors`, `author` is instead an array of 1 to 32 signer references, sorted by `did` in the order of UTF-16 code units, as JCS sorts member names, with no `did` twice (P5.19). A verifier MUST reject an `author` that is an array when `asset` has no `authors`, or an object when it has.
+- `asset` has the required members `name`, `status`, `resource` and `aliases`, and the optional members `metadata`, `editors`, `preview`, `authors` and `parent`.
 - `transitions` is an array of `{from, to}` with at most one item, where `from` is the previous digest, or null in the genesis entry, and `to` is the new digest. It MUST have one item exactly when the resource’s digest changes: in the genesis entry `{from: null, to}`, and in a later entry that changes the digest `{from, to}`. It is empty in any other entry, including a deactivation (P4.1, P4.2).
 
 P14.5 The members of `asset`:
@@ -28,7 +29,9 @@ P14.5 The members of `asset`:
 - `aliases`: an array of DIDs with at most one did:webvh and at most one did:btco. It holds no DID of any other method and no DID twice, and a verifier MUST reject one that does (P3.9). The genesis entry lists none.
 - `resource`: the descriptor of the Original’s one resource, at its version in this entry (P4.1).
 - `preview`: exactly `{mediaType, size, digest}`, the preview of the version that `resource` names, for an inscription (P9.30). Each member follows P14.6 and P14.7 as for a resource descriptor, and `size` MUST be at least 1 and at most 8,192. It is allowed only in an entry whose `aliases` list a did:btco DID.
-- `editors`: an array of 1 to 32 grants, each exactly `{did, name, metadata, resource}`, all but `did` booleans. An empty array MUST NOT be used; absence means no editors (P5.15).
+- `editors`: an array of 1 to 32 grants, each with exactly the members `did`, `name`, `metadata` and `resource`, all but `did` booleans, and optionally `scope`. An empty array MUST NOT be used; absence means no editors (P5.15). `scope` is an object with a string member `type` and the members its scope type defines (P5.28, P14.23); it MUST NOT be present when `resource` is false.
+- `authors`: exactly `{threshold, dids}`, where `dids` is an array of 1 to 32 DIDs, sorted in the order of UTF-16 code units, with no DID twice, and `threshold` is an integer from 1 to the length of `dids` (P5.19). Once present it is never removed.
+- `parent`: exactly `{did, versionId}`, both strings: the parent Original’s did:vh, `did:vh:<SCID>`, and the pin, a versionId of the parent’s asset log (P5.24). It is set only in the genesis entry, and only `versionId` changes.
 
 P14.6 A resource descriptor is exactly `{mediaType, size, digest}`. `mediaType` is a `type/subtype` media type without parameters, and a verifier MUST reject one that has a parameter. `size` is the byte length, a non-negative integer. `mediaType` and `size` MUST NOT change unless `digest` changes in the same entry.
 
@@ -36,7 +39,7 @@ P14.7 A resource digest is the letter `z` followed by the base58btc encoding of 
 
 ### Proofs and keys
 
-P14.8 Each entry has exactly one proof with `type` `DataIntegrityProof`, `proofPurpose` `assertionMethod`, a `cryptosuite` of `eddsa-jcs-2022` or `bip340-jcs-2025` (P5.12), a `verificationMethod` byte-identical to the signer reference’s, and a `proofValue` of `z` followed by the base58btc encoding of the 64-byte signature. Signer keys are Multikeys in base58btc: Ed25519 with prefix 0xed01 and 32 bytes, or secp256k1 with prefix 0xe701 and a 33-byte compressed key. Ed25519 verification MUST reject small-order points. A proof has exactly the members `type`, `cryptosuite`, `verificationMethod`, `proofPurpose` and `proofValue` (P14.4).
+P14.8 Each entry has exactly one proof per signer reference, in the order P5.22 gives: one for an Original without `authors` and for every editor entry, and one per item of `author`, in that array’s order, for an author entry of a set Original. VH-Log’s `proof` is then an array of those proofs; for an entry with one proof it is exactly as before. Each proof has `type` `DataIntegrityProof`, `proofPurpose` `assertionMethod`, a `cryptosuite` of `eddsa-jcs-2022` or `bip340-jcs-2025` (P5.12), a `verificationMethod` byte-identical to the signer reference’s, and a `proofValue` of `z` followed by the base58btc encoding of the 64-byte signature. Each proof is computed over the entry without any proof (P5.22). Signer keys are Multikeys in base58btc: Ed25519 with prefix 0xed01 and 32 bytes, or secp256k1 with prefix 0xe701 and a 33-byte compressed key. Ed25519 verification MUST reject small-order points. A proof has exactly the members `type`, `cryptosuite`, `verificationMethod`, `proofPurpose` and `proofValue` (P14.4).
 
 ### Derived DID document
 
@@ -56,16 +59,17 @@ P14.9 The DID document derived for each version of an Original’s did:vh (P3.8)
 }
 ```
 
-The `#files` service is the resource’s descriptor at that version; where to fetch the bytes comes from a did:webvh alias, a `src` location, an evidence package, a carried file (P7.11) or, for a version inscribed in full on the anchoring sat, that inscription’s body (P9.17). The `preview` member (P14.5) is not in the derived document.
+For a set Original, `controller` is instead the array `authors.dids` at that version, in its order, even for a set of one; for any other Original it is the author DID string, as above. `parent`, the grants and their scopes are not in the derived document. The `#files` service is the resource’s descriptor at that version; where to fetch the bytes comes from a did:webvh alias, a `src` location, an evidence package, a carried file (P7.11) or, for a version inscribed in full on the anchoring sat, that inscription’s body (P9.17). The `preview` member (P14.5) is not in the derived document.
 
 ### Evidence package
 
 P14.10 An evidence package is a ZIP archive whose entries are all stored without compression. Names are at most 255 bytes of UTF-8. A writer MUST produce entries sorted by name, with the date 1980-01-01 00:00, the UTF-8 name flag and Unix mode 0100644, so that the same contents give the same bytes; a reader MAY ignore the order, date and flags, but MUST decode every name as UTF-8, reject a name that is not valid UTF-8, and reject an entry whose mode is not a regular file (P7.5). It contains:
 
-- `originals-evidence.json`, the manifest: exactly `{format, profile, original, checkpoint, head, completeness, missing}`, where `format` is `originals-evidence/0.1`, `profile` is `originals:1.0`, `completeness` is `complete` or `partial` (P7.1), and `missing` lists `{kind: "resource", version, digest, versionId}` and `{kind: "identity", did, role}` items, `role` being `author` or `editor`;
+- `originals-evidence.json`, the manifest: exactly `{format, profile, original, checkpoint, head, completeness, missing}`, where `format` is `originals-evidence/0.1`, `profile` is `originals:1.0`, `completeness` is `complete` or `partial` (P7.1), and `missing` lists `{kind: "resource", version, digest, versionId}`, `{kind: "identity", did, role}`, `{kind: "parent", did, versionId}` and `{kind: "object", digest}` items, `role` being `author`, for the author or a member of a signer set, or `editor`, a `parent` item naming a parent Original whose log through that pin is missing (P5.25), and an `object` item naming bytes that a scope check needs and the package lacks (P5.28);
 - `asset/did.jsonl`, the asset log;
 - `signers/<hex SHA-256 of the DID>/did.jsonl`, and `did-witness.json` where that DID method has witnesses, for each did:vh or did:webvh signer; did:btco signers are read from Bitcoin and are not packaged (P9.18);
-- `resources/<digest>`, the bytes of each version of the resource included.
+- `parents/<hex SHA-256 of the parent Original’s did:vh>/did.jsonl`, the asset log of each parent Original, and of its own parent in turn, through the highest pin that the packaged entries depend on (P5.25); their signers are under `signers/` with the child’s;
+- `resources/<digest>`, the bytes of each version of the resource included, and of each object that a version references and that a scope check needs (P5.29).
 
 A preview (P9.30) is not a version of the resource: a writer MUST NOT put one under `resources/` or list it in `missing`, and a package without previews can be complete. A preview’s bytes are read from the inscription that carries it, and verifying the log does not need them.
 
@@ -97,6 +101,9 @@ P14.13 A verifier MUST enforce these limits (P7.7, P8.5):
 | Entries in an asset log | 10,000 |
 | Bytes in one entry, as its JCS form in UTF-8, in every format | 65,536 |
 | Editor grants | 32 |
+| Members of a signer set, and items of an `author` array (provisional) | 32 |
+| Patterns in a `paths` scope (provisional) | 64 |
+| Nested parent Originals, from a child to its furthest ancestor (provisional) | 8 |
 | Bytes in a preview (P9.30) | 8,192 |
 | Versions of one signer DID | 1,000 |
 | Bytes in a fetched log file | 16 MiB |
@@ -173,5 +180,14 @@ P14.20 Removed (owner decision, 18 November 2026).
 P14.21 Removed (owner decision, 18 November 2026).
 
 P14.22 Removed (owner decision, 18 November 2026).
+
+### Scope types
+
+P14.23 The members of the two scope types that P5.29 defines (provisional, D4):
+
+- `paths`: exactly `{type, paths}`, where `type` is `paths` and `paths` is an array of 1 to 64 patterns, sorted in the order of UTF-16 code units, with no pattern twice. A pattern is one or more segments separated by `/`, with no leading or trailing `/` and no empty segment. A segment is `**`, or a string of one or more characters other than `/` that is not `.` or `..`, in which `*` matches any run of characters, possibly empty, other than `/`. A segment other than `**` MUST NOT contain `**`, so a segment such as `a**` or `***` MUST be rejected. A `**` segment matches zero or more whole segments, except that a final `/**` matches one or more, so `docs/**` matches `docs/a` and `docs/a/b` but not `docs`. Nothing else is special: `?`, `[` and `\` match themselves. Paths in a path view are `/`-separated and relative, with no empty, `.` or `..` segment, and a pattern matches a path only if it matches all of it, comparing code units exactly.
+- `items`: exactly `{type, ops}`, where `type` is `items` and `ops` is an array of 1 to 3 of the strings `add`, `edit` and `remove`, sorted in the order of UTF-16 code units, with no string twice.
+
+A verifier MUST reject a scope of either type that breaks these rules (P5.28). A scope whose `type` is neither is checked as P5.28 says for an unknown type; its other members are not checked here, but P14.3 still applies to them.
 
 Sources: Originals SDK revision 1b3cabdd [S29]; the carried log, the owner request of 9 November 2026.
