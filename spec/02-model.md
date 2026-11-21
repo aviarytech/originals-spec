@@ -10,7 +10,7 @@
 ~ The Original’s did:vh log under the Originals extension. It is the Original’s only history.
 
 [[def: asset state]]:
-~ The state recorded in full in each asset log entry: the Original’s name, metadata, lifecycle status, resource descriptor, aliases and editor grants, and, from its anchoring entry on, any preview of the version that an inscription carries (P9.30). It is not a DID document.
+~ The state recorded in full in each asset log entry: the Original’s name, metadata, lifecycle status, resource descriptor, aliases, editor grants and read grants, and, from its anchoring entry on, any preview of the version that an inscription carries (P9.30). It is not a DID document.
 
 [[def: VH entry, VH entries]]:
 ~ Commits a state transition according to the selected VH profile.
@@ -23,6 +23,9 @@
 
 [[def: editor, editors]]:
 ~ An identity, other than the author or a member of the signer set, that a grant in the asset state, or a grant inherited from a parent Original, permits to change named content of the Original by signing its own entries ([P5.15](#p5.15), [P5.24](#p5.24)).
+
+[[def: read grant, read grants]]:
+~ An entry in the asset state’s `readers` list naming a DID that a host may serve a private Original to. Hosts enforce it; it confers no authority to sign ([P8.6](#p8.6)).
 
 [[def: author entry, author entries]]:
 ~ An entry signed by the author, or, for a set Original, by at least the threshold of its authorizing set ([P5.20](#p5.20)). Only author entries can change grants, the signer set, aliases, lifecycle or parameters ([P5.16](#p5.16)).

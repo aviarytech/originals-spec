@@ -4,6 +4,8 @@
 
 The SDK hosted path publishes two logs: a did:webvh method log (`did.jsonl`) signed separately with Ed25519, and the asset’s own log (`cel.json`). This profile keeps two logs with different roles: the Original’s history is only in its did:vh asset log, and the did:webvh log is a small web alias that points to the did:vh and locates its files through `#files` (section 3). A host serves the selected VH profile and exact resource evidence; the public reader verifies the same checkpoint semantics as the local reader.
 
+A host serves a public Original to anyone. For a private Original it applies the read rules of section 8 to every route by which it serves the log, the resources, packages, carried files and objects by digest, and authorizes each request from the newest verified state it holds (P8.6–P8.11). Once an Original is anchored, those rules cover only what no inscription carries (P8.13).
+
 ### Proposed hosted rules
 
 P9.1 A published snapshot MUST bind its asset state, history checkpoint and resource descriptor. The public reader MUST verify that exact snapshot and MUST NOT combine history from one checkpoint with metadata or bytes presented as another.

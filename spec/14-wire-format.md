@@ -18,7 +18,7 @@ P14.4 An entry’s state MUST have exactly the members `id`, `operation`, `autho
 - `operation` is `create` in the genesis entry and `update` or `deactivate` in every other entry. Anchoring is an `update` (P9.10).
 - `editor`, and `author` when `asset` has no `authors`, are each a [[ref: signer]] reference, exactly `{did, verificationMethod, versionId}`, all strings (P5.1, P5.16). For a did:btco signer, `versionId` is the inscription id of the version (P5.13).
 - When `asset` has `authors`, `author` is instead an array of 1 to 32 signer references, sorted by `did` in the order of UTF-16 code units, as JCS sorts member names, with no `did` twice (P5.19). A verifier MUST reject an `author` that is an array when `asset` has no `authors`, or an object when it has.
-- `asset` has the required members `name`, `status`, `resource` and `aliases`, and the optional members `metadata`, `editors`, `preview`, `authors` and `parent`.
+- `asset` has the required members `name`, `status`, `resource` and `aliases`, and the optional members `metadata`, `editors`, `readers`, `preview`, `authors` and `parent`.
 - `transitions` is an array of `{from, to}` with at most one item, where `from` is the previous digest, or null in the genesis entry, and `to` is the new digest. It MUST have one item exactly when the resource’s digest changes: in the genesis entry `{from: null, to}`, and in a later entry that changes the digest `{from, to}`. It is empty in any other entry, including a deactivation (P4.1, P4.2).
 
 P14.5 The members of `asset`:
@@ -30,6 +30,7 @@ P14.5 The members of `asset`:
 - `resource`: the descriptor of the Original’s one resource, at its version in this entry (P4.1).
 - `preview`: exactly `{mediaType, size, digest}`, the preview of the version that `resource` names, for an inscription (P9.30). Each member follows P14.6 and P14.7 as for a resource descriptor, and `size` MUST be at least 1 and at most 8,192. It is allowed only in an entry whose `aliases` list a did:btco DID.
 - `editors`: an array of 1 to 32 grants, each with exactly the members `did`, `name`, `metadata` and `resource`, all but `did` booleans, and optionally `scope`. An empty array MUST NOT be used; absence means no editors (P5.15). `scope` is an object with a string member `type` and the members its scope type defines (P5.28, P14.23); it MUST NOT be present when `resource` is false.
+- `readers`: an array of 0 to 128 read grants, each exactly `{did}`, a string (P8.6). Absence means the Original is public, unless it has a `parent` (P8.10); an empty array means it is private, readable only by its author, or the members of its signer set, and its editors. A `scope` member, as editor grants have (P5.28), is reserved for read scopes; until a profile defines them a verifier MUST reject a read grant that has one (P8.14).
 - `authors`: exactly `{threshold, dids}`, where `dids` is an array of 1 to 32 DIDs, sorted in the order of UTF-16 code units, with no DID twice, and `threshold` is an integer from 1 to the length of `dids` (P5.19). Once present it is never removed.
 - `parent`: exactly `{did, versionId}`, both strings: the parent Original’s did:vh, `did:vh:<SCID>`, and the pin, a versionId of the parent’s asset log (P5.24). It is set only in the genesis entry, and only `versionId` changes.
 
@@ -105,6 +106,7 @@ P14.13 A verifier MUST enforce these limits (P7.7, P8.5):
 | Patterns in a `paths` scope (provisional) | 64 |
 | Nested parent Originals, from a child to its furthest ancestor (provisional) | 8 |
 | Bytes in a preview (P9.30) | 8,192 |
+| Read grants (provisional) | 128 |
 | Versions of one signer DID | 1,000 |
 | Bytes in a fetched log file | 16 MiB |
 | Bytes in one fetched resource | 64 MiB |
@@ -117,6 +119,18 @@ The SDK measures entry size in UTF-16 code units of the re-serialised entry and 
 ### Shared-host saves
 
 A shared host (P6.7) needs no particular transport. As a guide, the SDK submits `{original, entry, resources, identities}`, where `entry` is the exact line, and the host answers `accepted` or `already-accepted` with the checkpoint and head, or `stale-parent` with the head.
+
+### Read requests (proposed)
+
+P14.24 A read request (P8.9) is exactly `{type, did, proof}`, where `type` is `OriginalsReadRequest`, `did` is the requester’s DID and `proof` is a Data Integrity proof over the request without `proof`, canonicalized as P14.3 requires. The proof is exactly `{type, cryptosuite, proofPurpose, verificationMethod, created, expires, domain, challenge, proofValue}`:
+
+- `type` is `DataIntegrityProof`, `cryptosuite` is `eddsa-jcs-2022` or `bip340-jcs-2025`, and `proofValue` is encoded as in P14.8;
+- `proofPurpose` is `authentication`, and `verificationMethod` is the absolute id of a key that the `authentication` relationship of `did` lists;
+- `created` and `expires` are UTC times in the form P14.2 requires of `versionTime`; `expires` MUST be later than `created` by at most five minutes, and a host MAY allow 60 seconds of clock difference when it compares them with its own clock;
+- `domain` is the host’s origin, serialized as an ASCII origin such as `https://host.example`, with no path;
+- `challenge` is the value the host issued, a string of at least 22 base64url characters encoding at least 128 random bits.
+
+A host needs no particular transport. As a guide, a requester sends the base64url encoding of the request’s JCS form in an `Authorization` header with the scheme `OriginalsRead`, and a host issues challenges and session credentials at a location it publishes.
 
 ### Carried log (proposed)
 
