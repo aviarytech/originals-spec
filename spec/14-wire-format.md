@@ -1,6 +1,6 @@
 ## Wire format (partly provisional)
 
-This section pins the byte-level choices that independent implementations must share. Owner decisions of 21 October 2026 decide the 350,000-byte inscription limit and the did:btco network prefixes in P14.12, and the limits in P14.13. D4 decides JCS canonicalization (P14.3), as the canonicalization the pinned VH Log version uses; SHA-256 multihashes for resource digests (P14.7, P4.2); the two cryptosuites (P14.8, P5.12); and the parts of P14.2, P14.3, P14.5, P14.8 and P14.10 that it records as decided on 23 October 2026. D3 decides that an asset log has no witness file (P14.2, P9.8). D6 decides the inscription body, metadata and media type in P14.12 (P9.17, P9.30; owner decisions, 1 and 18 November 2026), and the 8,192-byte preview limit in P14.13, except the JSON-to-CBOR mapping of the metadata, which stays provisional, and that a did:btco signer version is identified by its own metadata alone (P14.12, P5.13). The carried-log values (P14.14–P14.17) are proposed and provisional. The owner decided signer sets, parent Originals and scoped grants on 19 November 2026 (D8); the members that carry them (P14.4, P14.5, P14.8–P14.10, P14.23) are provisional, as the other entry state fields are, and so are the three limits P14.13 adds for them. They are an additive change under the same `method` value: an Original without `authors` or `parent`, and a grant without `scope`, are exactly as before. Everything else in this section, including the entry state fields and the evidence package format, is **provisional**: it is taken from the Originals SDK at revision 1b3cabdd [S29], which is the only implementation, and recorded so that it is reviewed as a decision rather than adopted silently (D1, D4). Where the SDK and this section differ, this section says so and the SDK is expected to change. A provisional value may still change before an interoperable release; until then a change keeps the `method` value `originals:1.0`, and Originals written under the earlier value no longer verify (owner decision, 1 November 2026). After an interoperable release, changing a value changes the `method` value.
+This section pins the byte-level choices that independent implementations must share. D6 decides the 350,000-byte inscription limit and the did:btco network prefixes in P14.12, and D4 the limits in P14.13. D4 decides JCS canonicalization (P14.3), as the canonicalization the pinned VH Log version uses; SHA-256 multihashes for resource digests (P14.7, P4.2); the two cryptosuites (P14.8, P5.12); and the parts of P14.2, P14.3, P14.5, P14.8 and P14.10 that it records as decided. D3 decides that an asset log has no witness file (P14.2, P9.8). D6 decides the inscription body, metadata and media type in P14.12 (P9.17, P9.30), and the 8,192-byte preview limit in P14.13, except the JSON-to-CBOR mapping of the metadata, which stays provisional, and that a did:btco signer version is identified by its own metadata alone (P14.12, P5.13). The carried-log values (P14.14–P14.17) are proposed and provisional. D8 decides signer sets, parent Originals and scoped grants; the members that carry them (P14.4, P14.5, P14.8–P14.10, P14.23) are provisional, as the other entry state fields are, and so are the three limits P14.13 adds for them. They are an additive change under the same `method` value: an Original without `authors` or `parent`, and a grant without `scope`, are exactly as before. Everything else in this section, including the entry state fields and the evidence package format, is **provisional**: it is taken from the Originals SDK at revision 1b3cabdd [S29], which is the only implementation, and recorded so that it is reviewed as a decision rather than adopted silently (D1, D4). Where the SDK and this section differ, this section says so and the SDK is expected to change. A provisional value may still change before an interoperable release; until then a change keeps the `method` value `originals:1.0`, and Originals written under an earlier provisional value no longer verify. After an interoperable release, changing a value changes the `method` value.
 
 ### Log and parameters
 
@@ -23,7 +23,7 @@ P14.4 An entry’s state MUST have exactly the members `id`, `operation`, `autho
 
 P14.5 The members of `asset`:
 
-- `name`: a string of 1 to 1,024 UTF-16 code units (owner decision, 23 October 2026).
+- `name`: a string of 1 to 1,024 UTF-16 code units.
 - `metadata`: a JSON object. When absent, there is no metadata (P4.6).
 - `status`: `active` or `deactivated`, agreeing with the operation and the deactivated parameter (P6.5).
 - `aliases`: an array of DIDs with at most one did:webvh and at most one did:btco. It holds no DID of any other method and no DID twice, and a verifier MUST reject one that does (P3.9). The genesis entry lists none.
@@ -83,7 +83,7 @@ P14.11 A did:webvh alias is a did:webvh log of its own whose DID document lists 
 
 ### Bitcoin
 
-P14.12 An Originals inscription has (P9.17; owner decision, 1 November 2026):
+P14.12 An Originals inscription has (P9.17):
 
 - **Metadata** (ord tag 5): the CBOR encoding of a JSON array of entries, each the parsed JSON of one asset log line. The anchoring inscription’s array holds the entries from genesis through the anchoring entry, in order; every later array holds exactly one entry. The metadata is split into data pushes of at most 520 bytes, which a reader concatenates before decoding.
 - **Content type** (ord tag 1): the `mediaType` of the `preview` in the array’s last entry; when that entry has no `preview`, the `mediaType` of its `resource` if the body is the version, and no content type if there is no body.
@@ -146,7 +146,7 @@ P14.16 A text block is a single line feed (0x0A), which a writer never precedes 
 - `=====END ORIGINAL=====`;
 - the comment closer, for a block comment.
 
-For a line comment, each marker and entry line starts with the comment prefix and one space. Each line ends in a line feed, or in CR LF when the resource version’s own lines end that way; a reader MUST accept either. A writer ends the last line too, but a reader MUST also accept a last line with no line end. A writer MUST refuse a text block unless the resource version is valid UTF-8, a leading UTF-8 byte order mark allowed. A writer MUST place the block only where the host format’s parser reads it as a comment: parsed under the version’s own syntax, the appended block MUST be a separate comment and nothing else, and a writer MUST refuse otherwise, or when it has no parser for that syntax (owner decision, 13 November 2026). `text/plain` has no comment and no such check. The test is the parse of the resulting file, not a search of the version for particular text, and no list of refusals stands in for it.
+For a line comment, each marker and entry line starts with the comment prefix and one space. Each line ends in a line feed, or in CR LF when the resource version’s own lines end that way; a reader MUST accept either. A writer ends the last line too, but a reader MUST also accept a last line with no line end. A writer MUST refuse a text block unless the resource version is valid UTF-8, a leading UTF-8 byte order mark allowed. A writer MUST place the block only where the host format’s parser reads it as a comment: parsed under the version’s own syntax, the appended block MUST be a separate comment and nothing else, and a writer MUST refuse otherwise, or when it has no parser for that syntax. `text/plain` has no comment and no such check. The test is the parse of the resulting file, not a search of the version for particular text, and no list of refusals stands in for it.
 
 For example, and not normatively, a writer refuses: an HTML version that ends inside a comment, an open tag, a processing instruction, or an element whose content is not parsed as markup, such as `script`, `style`, `iframe`, `noembed`, `noframes`, `textarea`, `title`, `xmp`, `plaintext` or `noscript`; a Markdown version that ends inside an unclosed code fence, or in one of those HTML contexts; an XML version, including XHTML and SVG, that ends inside a comment, a CDATA section, a processing instruction or an open tag; a CSS version that ends inside an unterminated comment or string; a YAML document whose last node is a block scalar; and a version of a line-comment type that ends inside an unterminated string, heredoc or block comment, or whose last line ends in a line continuation. An unclosed HTML `pre` is no reason to refuse: its content is parsed as markup, so the block is still a comment.
 
@@ -167,19 +167,9 @@ Other `text/` types, such as `text/csv`, have no carrier, because a trailing lin
 
 P14.17 A JSON member is a member of the document’s root object named `originalLog`, whose value is an array of the entries, in order, each a JSON object. A writer MUST write it as the root object’s last member: immediately after the last existing member’s value, before the whitespace that followed that value, or immediately after the root object’s `{` when the object is empty, leaving every other byte unchanged. When the member is the root object’s last, the carrier runs from the first byte after the previous member’s value, or after the root object’s `{` when it is the only member, through the array’s closing `]`, and the resource version is the document with exactly those bytes removed. A document has a JSON member only if its root is an object with exactly one member of that name, member names being compared after their escapes are decoded. A reader MUST reject a root object with more than one, and does not choose among them; a member of that name nested below the root is not a JSON member. A reader MUST find the member wherever it is in the root object, because tools reorder members. A member that is not the root object’s last still carries its log, which is verified and reported as P7.12 states for a log found where no carrier is defined; how its bytes are removed is open (D4), so the file is not verified as a version. A root member of that name is a JSON member whatever its value; a value that is not an array of objects is an invalid log. A reader MUST skip one leading UTF-8 byte order mark, which stays part of the version. A document nested deeper than 1,024 levels outside the entries, counting the root object as level 1, has no JSON member. A reader needs a parser that reports byte offsets to find the carrier’s bytes exactly. Outside the entries the document need only be JSON [[spec: RFC8259]]; P14.3’s limits apply to the entries only. P14.2’s line format does not apply. Whitespace, key order and string escapes in the entries are therefore free, so a carried log survives reformatting, although the remaining bytes then no longer match the version (P7.12). A writer MUST refuse a document whose root is not an object or that has any root member of that name (P7.15).
 
-### Withdrawn rules
+### Unused rule numbers
 
-These numbers belonged to rules withdrawn by owner decision of 18 November 2026, when Bitcoin became the only anchor; D6 records what they were and why. They are not reused.
-
-P14.18 Removed (owner decision, 18 November 2026).
-
-P14.19 Removed (owner decision, 18 November 2026).
-
-P14.20 Removed (owner decision, 18 November 2026).
-
-P14.21 Removed (owner decision, 18 November 2026).
-
-P14.22 Removed (owner decision, 18 November 2026).
+Rule numbers P14.18–P14.22 are not used. They held encodings for anchoring on an EVM chain, withdrawn when Bitcoin became the only anchor (D6), and are not reused.
 
 ### Scope types
 
@@ -190,4 +180,4 @@ P14.23 The members of the two scope types that P5.29 defines (provisional, D4):
 
 A verifier MUST reject a scope of either type that breaks these rules (P5.28). A scope whose `type` is neither is checked as P5.28 says for an unknown type; its other members are not checked here, but P14.3 still applies to them.
 
-Sources: Originals SDK revision 1b3cabdd [S29]; the carried log, the owner request of 9 November 2026.
+Sources: Originals SDK revision 1b3cabdd [S29].

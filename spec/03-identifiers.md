@@ -37,7 +37,7 @@ P3.7 The did:webvh alias log SHOULD be controlled by the author. Whoever control
 
 P3.8 The DID document of an Original’s did:vh MUST be derived from the asset log as section 2 describes, and a resolver MUST derive the same document from the same log. A stored or served DID document for the did:vh, including a did:btco DID document inscribed on the anchoring sat, MUST NOT be used.
 
-P3.9 (proposed) At every layer an Original has a DID that resolves to it (owner direction, 11 November 2026): its did:vh, from a copy of its log, a `src` location or a carried file (P7.11); on the web, its did:webvh alias (P3.6); on Bitcoin, its did:btco alias (P9.10). Every alias in the asset state MUST be a DID. Given any of these DIDs, a resolver applying this profile MUST read the asset log from that layer’s source, verify it under this profile, and return the Original’s did:vh with its state and report, or report why it cannot (P3.3, P3.5).
+P3.9 (proposed) At every layer an Original has a DID that resolves to it: its did:vh, from a copy of its log, a `src` location or a carried file (P7.11); on the web, its did:webvh alias (P3.6); on Bitcoin, its did:btco alias (P9.10). Every alias in the asset state MUST be a DID. Given any of these DIDs, a resolver applying this profile MUST read the asset log from that layer’s source, verify it under this profile, and return the Original’s did:vh with its state and report, or report why it cannot (P3.3, P3.5).
 
 ### Identity history and time
 
