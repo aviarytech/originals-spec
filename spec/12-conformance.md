@@ -170,6 +170,32 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Editor entry after the author DID is deactivated | Unanchored: not current. Anchored: rejected if its inscription time is at or after the author DID deactivation’s versionTime, or for a did:btco author DID if the deactivation precedes it in chain order (P9.15, P5.18) |
 | Editor entry inscribed on the anchoring sat by the owner | Accepted (P9.12) |
 | Editor DID history missing for an editor entry | In the accepted state: incomplete identity evidence, not reported as current (P7.1, P5.6). An inscription after the anchor: unverifiable; accepted state stays current; later publications from that head wait (P9.15) |
+| Original whose state has no `readers` list, requested without a read request | Served (P8.6) |
+| Private Original’s log, entries, resource versions, package or carried file, requested without an accepted read request, including through `#files` or by digest | Refused; a resolver or verifier reports missing evidence, not invalid evidence (P8.7, P3.3) |
+| Private Original with an empty `readers` list, requested by its author or an editor with an accepted read request / by any other DID | Served / refused (P8.6) |
+| Private set Original requested by any member of its signer set with an accepted read request | Served (P8.6, P5.30) |
+| Private Original requested by a DID in `readers` with an accepted read request | Served (P8.6, P8.9) |
+| `readers` naming the author DID, a member of the signer set, an editor DID, a DID twice, a DID of a method P5.8 does not list such as did:key, the Original’s did:vh, one of its aliases, or a did:btco DID of the anchoring sat | Rejected (P8.6) |
+| Editor entry that adds, changes or removes `readers` | Rejected (P8.6, P5.16) |
+| `readers` with 128 / 129 read grants, or a read grant with a member other than `did`, including a `paths` or `items` scope | Accepted / rejected (P14.5, P14.13, P8.14) |
+| Read request whose `domain` is another origin, whose challenge the host did not issue or already accepted, that has expired, or whose `expires` is more than five minutes after `created` | Refused (P8.9, P14.24) |
+| Read request signed with a key listed only under `assertionMethod`, or with a key that the newest version of the DID that the host holds no longer lists | Refused (P8.9) |
+| Requester submitting a DID history older than the newest the host has seen for that DID | Refused (P8.9) |
+| Requester whose read grant an author entry removes, using a session issued before the host accepted that entry | Refused from the moment the host accepts it (P8.8) |
+| Host holding two valid branches of an unanchored Original, one of whose heads no longer permits the requester | Refused (P8.8) |
+| Host holding no verified state of a private Original | Refuses every requester (P8.8) |
+| Host’s decision that a requester may read | Never reported as showing that a grant is current (P8.8, P7.10) |
+| Child Original, requested by a DID the parent permits / whose read grant the parent has since revoked, though the child’s entries pin an earlier parent version | Served / refused (P8.10) |
+| Child editor entry relying on an inherited grant that the parent has since revoked | Still valid, historically authorized only (P5.26); reads under that editor’s DID follow P8.10 |
+| Requester permitted to read a child but not its parent | Served the parent’s log through the child’s highest pin; refused the parent’s resource versions and later entries (P8.10, P5.25) |
+| Child Original whose state has `readers` | Rejected (P8.10) |
+| Child Original whose parent’s state the host does not hold | Served only to the child’s author or signer set members and its editors (P8.10) |
+| Digest named only by private Originals the requester may not read / also named by a public Original | Answered exactly as a digest the host does not hold / served (P8.11) |
+| Session credential sent automatically by a browser to an origin that serves active content | Not permitted (P8.9, P9.7) |
+| Writing an evidence package or carried file of a private Original for sharing | User told that the recipient can read all of it and that no host’s read grants apply (P8.12) |
+| Revoking a read grant after a package was shared | Package still readable; the SDK does not describe the revocation as withdrawing it (P8.12) |
+| Anchoring a private Original | Author told that the whole log, its grants and the inscribed body become public permanently; not signed without explicit confirmation (P8.13) |
+| Resource version of an anchored private Original that no inscription carries | Served only under P8.7 (P8.13) |
 | Two submissions with the same parent at a shared host | One accepted; the other refused with a stale-parent conflict returning the new head; refused candidate kept by the SDK, not published (P6.7, P6.8) |
 | Reconciled candidate signed by an authorized signer against the new head | Accepted (P6.8) |
 | Host changes or re-signs a submitted entry | Fails verification, or is not by an authorized signer (P6.7) |
