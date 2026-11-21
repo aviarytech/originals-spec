@@ -1,6 +1,8 @@
 ## SDK replacement
 
-### Proposed replacement map
+This section is not normative. It maps the existing Originals SDK, at revision 00fc683, onto this profile.
+
+### Replacement map
 
 | Area | Retain | Replace or specify |
 |---|---|---|
@@ -11,15 +13,14 @@
 | StorageAdapter | Byte storage abstraction for hosting | Durable local commit contract and diagnostics |
 | Hosted adapters | Exact snapshot delivery; did:webvh alias log beside the asset log | Separate Ed25519 signing of the did:webvh log; alias binding (P3.6) |
 | Bitcoin adapters | Durable boundary, retry intent, one-way layer order, block-height gate, ownership snapshot | Current payloads and metadata format |
-| Boop publish path | Local editing and public reader | Per-asset local signing path |
 
-This is a semantic mapping, not a final API diff. Existing callers may need explicit profile, identity-evidence or authorization arguments. Avoid new product concepts unless required by the VH/identity boundary. The current history implementation is removed, including its types, codecs, genesis/identifier derivation, replay verification, publication paths and tests.
+This is a semantic mapping, not a final API diff. Existing callers may need explicit profile, identity-evidence or authorization arguments. The SDK’s current history implementation is replaced whole, including its types, codecs, genesis/identifier derivation, replay verification, publication paths and tests.
 
 ### Deliberate departures from the SDK
 
-The SDK is what exists, so this draft keeps its behavior unless there is a reason not to. These are the places it does not:
+This profile keeps the SDK’s behavior unless there is a reason not to. These are the places it does not:
 
-| SDK today | This draft |
+| SDK at 00fc683 | This profile |
 |---|---|
 | An Original has a set of resources fixed at genesis | An Original has exactly one resource, with many versions (P4.1) |
 | Resources are not inscribed | Each inscription carries a signed preview of the current resource version, or the version itself, as its body, and the log as its metadata (P9.17, P9.30) |
@@ -36,12 +37,4 @@ The SDK is what exists, so this draft keeps its behavior unless there is a reaso
 
 No Originals were issued under the CEL 3 format or earlier formats, so the SDK replaces them outright: there is no conversion, migration or legacy verification path ([D7](#d7)).
 
-### Delivery sequence
-
-1. Pin upstream pre-drafts and choose enough of the application profile to implement a local experimental slice with its provisional choices clearly identified.
-2. Implement create, edit, evidence packages and fresh verification. Test without private keys in the reader and without network dependencies for a complete offline package.
-3. Add author DID key rotation, deactivation, incomplete evidence and conflict tests. Keep unresolved freshness claims visible.
-4. Replace the actual hosted and Boop publication paths and run exact-snapshot reader regressions.
-5. Specify and implement the Bitcoin representation and durable-boundary tests.
-
-Sources: SDK map [S1, S4–S9, S12–S18]. SDK files were checked at main revision 00fc683 on 15 October 2026.
+Sources: SDK map [S1, S4–S9, S12–S18]. SDK files are cited at revision 00fc683.

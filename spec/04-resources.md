@@ -2,7 +2,7 @@
 
 ### Retained SDK behavior
 
-An Original is exactly one resource, which can have many versions (owner decision, 1 November 2026, replacing the resource sets of 21 October 2026). Each version is a mediaType and an exact-byte digest. The resource is never added, removed or replaced by another; a change to its bytes is its next version (P4.1). Descriptive values such as a title or style belong in the asset state’s `metadata`, not in a second resource. An update binds the prior digest, and resource versions are derived from verified history rather than accepted from a caller’s counter.
+An Original is exactly one resource, which can have many versions. Each version is a mediaType and an exact-byte digest. The resource is never added, removed or replaced by another; a change to its bytes is its next version (P4.1). Descriptive values such as a title or style belong in the asset state’s `metadata`, not in a second resource. An update binds the prior digest, and resource versions are derived from verified history rather than accepted from a caller’s counter.
 
 For the existing update behavior, a supplied name or metadata value replaces that field. An omitted field remains unchanged. The new profile preserves this distinction without turning omission into deletion or introducing an implicit metadata merge.
 
@@ -10,7 +10,7 @@ Two changes from the SDK: it rejects null, so metadata can only be cleared by re
 
 ### Proposed rules
 
-P4.1 An Original MUST have exactly one resource, from genesis for its whole history (owner decision, 1 November 2026). Genesis MUST establish its first version. No entry may add a second resource or remove the resource; a verifier MUST reject an entry whose state has no resource or more than one. A change to the resource’s bytes or mediaType is a new version of the same resource, and earlier versions stay verifiable in history (P8.3).
+P4.1 An Original MUST have exactly one resource, from genesis for its whole history. Genesis MUST establish its first version. No entry may add a second resource or remove the resource; a verifier MUST reject an entry whose state has no resource or more than one. A change to the resource’s bytes or mediaType is a new version of the same resource, and earlier versions stay verifiable in history (P8.3).
 
 P4.2 Each accepted resource update MUST bind the prior digest and new descriptor. The resulting descriptor MUST bind the exact bytes and mediaType. The digest MUST be a SHA-256 multihash, and the baseline profile’s closed set of digest algorithms contains only SHA-256. The algorithm identifier MUST be part of the signed descriptor, and a verifier MUST reject any algorithm outside the pinned set. The multibase encoding of the digest is pinned with the rest of the entry format (D4).
 
