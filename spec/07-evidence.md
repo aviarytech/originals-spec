@@ -59,7 +59,7 @@ P7.18 A report gives one value for each of these axes, from the closed list for 
 | Axis | Values | Meaning |
 |---|---|---|
 | `outcome` | `verified`, `incomplete`, `invalid`, `unsupported` | `unsupported`: the profile or method value is not one the verifier implements (P3.3). `invalid`: `history` is `invalid`, or `binding` is `unbound`, or `identity` is `failed`. `incomplete`: none of these, but `identity` is `incomplete`, `bitcoin` is `missing-evidence` or `undetermined`, or `state` is `none` because the evidence set lacks the target checkpoint or holds no entry, with a `target-missing` diagnostic (P3.2). `verified`: otherwise. |
-| `binding` | `bound`, `unbound` | Whether the genesis entry and SCID bind the `did:og` (P3.1–P3.5). |
+| `binding` | `bound`, `unbound` | Whether the genesis entry and SCID bind the `did:og` (P3.1–P3.5). With no log entry in the evidence set, nothing contradicts the binding: `binding` is `bound`, and the `target-missing` diagnostic carries the gap (P3.2). |
 | `history` | `valid`, `limit-exceeded`, `invalid` | Whether the entries through the reported checkpoint chain and transition validly; `limit-exceeded` as P7.7 states. |
 | `identity` | `complete`, `incomplete`, `failed` | Whether every entry's signer binding was checked: `incomplete` when an entry is `unchecked` (P7.19) or a signer history is missing (P5.6); `failed` when a check failed. |
 | `authority` | `current`, `historical` | `historical` when any entry through the checkpoint is labelled `key-removed-since` or `did-deactivated-since` and is not `endorsed` (P7.19, P7.20); `current` otherwise. |

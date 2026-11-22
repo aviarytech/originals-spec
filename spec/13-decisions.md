@@ -86,6 +86,7 @@ Rulings on the SDK build's findings (22 November 2026). Each adopts the choice t
 - A shared host refuses a submission whose parent is the head but which does not verify as `{result: "rejected", rule, reason}`; over HTTP the four answers are 201, 200, 409 and 422 (P6.7, section 14 “Shared-host saves”; T6-029, T6-030; F12).
 - An evidence set's Bitcoin reads are `sat-read` and `inscription` inputs of a defined form, and the `bitcoin/` vector's index reads are now in its evidence set; there is no prior-result input (P7.17, P14.25; T14-099, T14-100, T14-102; F13, F15).
 - Each diagnostic code carries one fixed rule (P14.25; T14-101; F14).
+- With no log entry in the evidence set, `binding` is `bound`, since nothing contradicts it, and the `target-missing` diagnostic carries the gap, so such a report's `outcome` is `incomplete`, not `invalid` (P7.18; T7-076; F16).
 
 ### Release blockers
 

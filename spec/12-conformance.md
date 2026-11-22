@@ -228,7 +228,7 @@ Rows that concern only the experimental additions are in their own document, wit
 | T7-073 | verifier | Anchoring publication with 6 or more confirmations, and a later publication that extends the reported head with fewer than 6 | An `insufficient-depth` diagnostic for the later publication; the transfer check fails | P7.22, P14.13 |
 | T7-074 | verifier, SDK | Anchoring publication and every publication the head depends on have 6 or more confirmations at the evidence set’s tip; the sat was then moved to a new address by a transaction with 1 confirmation at that tip | Holder is the new address; no `insufficient-depth` diagnostic; the transfer check passes. The SDK describes the check as one on the publication history, never as 6 confirmations of the sat transfer | P7.22, P9.5, P9.11, P14.13 |
 | T7-075 | verifier | Two divergent valid branches from entry 2 that nothing settles | `state` `conflict`; `checkpoint` is entry 2, the fork point | P7.18, P14.25 |
-| T7-076 | verifier | Evidence set with the `did:og` and no log entry | `state` `none`; `outcome` `incomplete`; one `target-missing` diagnostic, rule `P3.2`, item the `did:og` | P7.18, P14.25 |
+| T7-076 | verifier | Evidence set with the `did:og` and no log entry | `binding` `bound`; `state` `none`; `outcome` `incomplete`; one `target-missing` diagnostic, rule `P3.2`, item the `did:og` | P7.18, P14.25 |
 
 #### Private use and fetching (§8)
 
