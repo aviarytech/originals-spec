@@ -273,24 +273,39 @@ const missingDiag = (bytes, e) => ({
   put('bitcoin/inscriptions/part-2.envelope.bin', env2);
   const tx1 = synthHash('reveal part 1'), tx2 = synthHash('reveal part 2');
   const tip = { height: 110, hash: synthHash('tip') };
+  // What the index read at the tip, as a `sat-read` input (P14.25): the
+  // inscriptions' positions and confirmations and the holder are in the
+  // evidence set, not only in the fixture (SDK finding F13).
+  const satRead = {
+    network: 'regtest', sat: SAT, tip, complete: true,
+    holder: { address: 'bcrt1p' + synthHash('holder').slice(0, 58) },
+    inscriptions: [
+      { id: `${tx1}i0`, height: 101, txIndex: 1, inscriptionIndex: 0, confirmations: tip.height - 101 + 1 },
+      { id: `${tx2}i0`, height: 102, txIndex: 1, inscriptionIndex: 0, confirmations: tip.height - 102 + 1 },
+    ],
+  };
+  put('bitcoin/sat-read.json', json(satRead));
+  // The fixture only says where each inscription's envelope bytes are.
   const chain = {
     synthetic: true,
-    note: 'Synthetic chain fixture: no real regtest chain produced these transactions. Hashes are SHA-256 of labels. The index reads below are what a verifier is given (P7.17, P9.31).',
-    network: 'regtest', ordRelease: '0.29.1', tip, depth: 1,
-    sat: SAT, holder: { address: 'bcrt1p' + synthHash('holder').slice(0, 58) },
+    note: 'Synthetic chain fixture: no real regtest chain produced these transactions. Hashes are SHA-256 of labels. What a verifier is given is evidence-set.json: sat-read.json and the envelopes as inscription inputs (P7.17, P14.25).',
+    network: 'regtest', ordRelease: '0.29.1',
     inscriptions: [
-      { id: `${tx1}i0`, sat: SAT, block: 101, txIndex: 1, inscriptionIndex: 0, envelope: 'inscriptions/part-1.envelope.bin', confirmations: 10 },
-      { id: `${tx2}i0`, sat: SAT, block: 102, txIndex: 1, inscriptionIndex: 0, envelope: 'inscriptions/part-2.envelope.bin', confirmations: 9 },
+      { id: `${tx1}i0`, envelope: 'inscriptions/part-1.envelope.bin' },
+      { id: `${tx2}i0`, envelope: 'inscriptions/part-2.envelope.bin' },
     ],
   };
   // The transfer depth (P7.22, P14.13): the publication's final part, in block
   // 102, has tip − 102 + 1 confirmations, at least 6, so no insufficient-depth diagnostic.
   if (tip.height - 102 + 1 < 6) throw new Error('bitcoin vector below the transfer depth');
   put('bitcoin/chain.json', json(chain));
-  const inputs = chain.inscriptions.map((x) => ({ kind: 'inscription', source: `index:${x.id}`, digest: digest(files[`bitcoin/${x.envelope}`]) }));
+  const inputs = [
+    { kind: 'sat-read', source: 'bitcoin/sat-read.json', digest: digest(files['bitcoin/sat-read.json']) },
+    ...chain.inscriptions.map((x) => ({ kind: 'inscription', source: `index:${x.id}`, digest: digest(files[`bitcoin/${x.envelope}`]) })),
+  ];
   put('bitcoin/evidence-set.json', json({
     original: OG, checkpoint: null, inputs, signerHistories: [], network: 'regtest', tip, depth: 1,
-    note: 'Exactly the P9.18 evidence set: the anchoring sat\'s inscriptions at the stated network and tip, and nothing else.',
+    note: 'Exactly the P9.18 evidence set: the index read of the anchoring sat and its inscriptions at the stated network and tip, and nothing else.',
   }));
   put('bitcoin/expected-report.json', json({
     type: 'OriginalsVerificationReport', profile: PROFILE, original: OG, checkpoint: vid(e4),
@@ -302,7 +317,7 @@ const missingDiag = (bytes, e) => ({
     entries: all.map((e, i, a) => entryLabel(e, i, a, i < 3 ? { ordering: 'existed-by-block', block: 102 } : { ordering: 'chain-ordered', block: 102 })),
     signers: [{ did: AUTHOR, role: 'author', latestVersionId: vid(author.entry), source: `inscribed:${tx1}i0`, freshness: 'established' }],
     diagnostics: [missingDiag(v1, e1)],
-    bitcoin: { sat: BTCO, holder: { address: chain.holder.address, uniqueness: 'provisional' }, conflictingAnchors: [], unverifiable: [], waiting: [] },
+    bitcoin: { sat: BTCO, holder: { address: satRead.holder.address, uniqueness: 'provisional' }, conflictingAnchors: [], unverifiable: [], waiting: [] },
   }));
 }
 
@@ -316,11 +331,10 @@ const missingDiag = (bytes, e) => ({
   put('anchor-absent/resources/v1.md', v1);
   put('anchor-absent/resources/v2.md', v2);
   const tip = { height: 111, hash: synthHash('anchor-absent tip') };
-  const satRead = {
-    synthetic: true,
-    note: 'Synthetic: the index reads the anchoring sat in full at this tip and lists no inscription on it, as after a reorganization from block 101 removed the anchoring publication (P9.5, P9.31, P9.35).',
-    network: 'regtest', ordRelease: '0.29.1', sat: SAT, tip, inscriptions: [],
-  };
+  // Synthetic: the index reads the anchoring sat in full at this tip and lists
+  // no inscription on it, as after a reorganization from block 101 removed the
+  // anchoring publication (P9.5, P9.31, P9.35). Form: P14.25.
+  const satRead = { network: 'regtest', sat: SAT, tip, complete: true, holder: null, inscriptions: [] };
   put('anchor-absent/sat-read.json', json(satRead));
   const inputs = [
     { kind: 'log', source: 'anchor-absent/did.jsonl', digest: digest(utf8(logOf(e1, e2, e3, e4))) },

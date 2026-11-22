@@ -11,29 +11,33 @@ import {
   checkOgLog, checkWebvh, parseEnvelope, resourceDigest, stats,
 } from '../tools/verify-lib.mjs';
 import {
-  TRANSFER_DEPTH, confirmations, insufficientDepth, missingResources, offlineFrom, sortDiagnostics,
+  TRANSFER_DEPTH, confirmations, insufficientDepth, missingResources, offlineFrom, satReadProblems, sortDiagnostics, unreadInscriptions,
 } from '../tools/report-lib.mjs';
 
 const PROFILE = 'og:1.0-draft.1';
 const NETWORK_PREFIX = { mainnet: '', signet: 'sig:', testnet: 'test:', regtest: 'reg:' };
 
 // evidence = {
-//   network, tip: { height, hash }, depth, sat,
-//   inscriptions: [{ id, envelope: Uint8Array, height, txIndex, inscriptionIndex,
-//                    sat, metaprotocol, contentType, holder }],
+//   network, tip: { height, hash }, depth,
+//   satRead: { source, bytes: Uint8Array },   // the `sat-read` input (P14.25)
+//   inscriptions: [{ id, envelope: Uint8Array, metaprotocol, contentType }],  // `inscription` inputs
 // }
+// The sat, the inscriptions' positions and confirmations and the holder come
+// from the sat-read input alone (P7.17, P14.25), never from elsewhere.
 export async function computeReport(evidence) {
   const before = stats().failures;
   const problems = [];
   const fail = (msg) => problems.push(msg);
 
-  // Chain order (P9.13): block height, transaction index, inscription index.
-  const ins = [...evidence.inscriptions].sort((a, b) =>
-    a.height - b.height || a.txIndex - b.txIndex || a.inscriptionIndex - b.inscriptionIndex);
-  for (const x of ins) {
-    if (x.sat !== evidence.sat) fail(`${x.id}: not on the anchoring sat`);
-    if (x.metaprotocol !== 'og') fail(`${x.id}: index reports metaprotocol ${x.metaprotocol}, not og (P9.31)`);
-  }
+  const read = JSON.parse(new TextDecoder().decode(evidence.satRead.bytes));
+  for (const q of satReadProblems(read, evidence.network, evidence.tip)) fail(`sat-read: ${q} (P14.25)`);
+  if (read.complete !== true) fail('the anchoring sat is not read in full (P9.35)');
+  const byId = new Map(evidence.inscriptions.map((x) => [x.id, x]));
+  for (const id of unreadInscriptions(read, new Set(byId.keys()))) fail(`${id}: listed by the sat-read with no inscription input, so unread (P14.25)`);
+  for (const x of evidence.inscriptions) if (!read.inscriptions.some((y) => y.id === x.id)) fail(`${x.id}: an inscription input the sat-read does not list`);
+  // Chain order (P9.13) as the sat-read gives it: height, transaction index, inscription index.
+  const ins = read.inscriptions.filter((y) => byId.has(y.id)).map((y) => ({ ...byId.get(y.id), ...y }));
+  for (const x of ins) if (x.metaprotocol !== 'og') fail(`${x.id}: index reports metaprotocol ${x.metaprotocol}, not og (P9.31)`);
   const parts = ins.map((x) => ({ x, p: parseEnvelope(x.envelope) }));
   for (const { x, p } of parts) if ((p.contentType ?? null) !== (x.contentType ?? null)) fail(`${x.id}: index content type differs from the envelope`);
 
@@ -65,7 +69,7 @@ export async function computeReport(evidence) {
   const { did } = authorDoc ? checkOgLog(entries, authorDoc, resources, 'regtest') : { did: null };
 
   // Binding to the sat and network (P9.10, P9.34).
-  const btco = `did:btco:${NETWORK_PREFIX[evidence.network]}${evidence.sat}`;
+  const btco = `did:btco:${NETWORK_PREFIX[evidence.network]}${read.sat}`;
   if (entries[0].state.asset.network !== evidence.network) fail('genesis network is not the evidence network');
   const anchorIndex = entries.findIndex((e) => e.state.asset.aliases.includes(btco));
   if (anchorIndex !== entries.length - 1) fail('anchoring entry is not the last entry of the anchoring publication');
@@ -87,7 +91,10 @@ export async function computeReport(evidence) {
   return {
     type: 'OriginalsVerificationReport', profile: PROFILE, original: did, checkpoint: anchor.versionId,
     evidence: {
-      inputs: ins.map((x) => ({ kind: 'inscription', source: `index:${x.id}`, digest: resourceDigest(x.envelope) })),
+      inputs: [
+        { kind: 'sat-read', source: evidence.satRead.source, digest: resourceDigest(evidence.satRead.bytes) },
+        ...ins.map((x) => ({ kind: 'inscription', source: `index:${x.id}`, digest: resourceDigest(x.envelope) })),
+      ],
       network: evidence.network, tip: evidence.tip, depth: evidence.depth,
     },
     axes: failed
@@ -107,7 +114,7 @@ export async function computeReport(evidence) {
     }] : [],
     diagnostics,
     bitcoin: {
-      sat: btco, holder: { address: final.x.holder, uniqueness: 'provisional' },
+      sat: btco, holder: { address: read.holder?.address ?? null, uniqueness: 'provisional' },
       conflictingAnchors: [], unverifiable: [], waiting: [],
     },
   };

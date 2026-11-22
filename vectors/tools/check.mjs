@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import {
   ASSET_OPT, ASSET_REQ, J, STATE, bytesEq, checkChain, checkOgLog, checkPackage, checkWebvh, counts, decodeCbor, decodeMultikey, eq, multihash, ok, parseEnvelope, parseLines, readZip, resourceDigest, sha, stats, td, te, verifyProof,
 } from './verify-lib.mjs';
-import { CODES, TRANSFER_DEPTH, anchorAbsentReport, canonicalLog, defaultCheck, offChainReport, sameReport, transferCheck, unsupportedReport } from './report-lib.mjs';
+import { CODES, TRANSFER_DEPTH, anchorAbsentReport, canonicalLog, defaultCheck, offChainReport, sameReport, satReadProblems, transferCheck, unreadInscriptions, unsupportedReport } from './report-lib.mjs';
 // Whole-report comparison (P14.25): equal as JSON values, ignoring each diagnostic's reason.
 const sameAs = (derived, expected, msg) => ok(sameReport(derived, expected), `${msg}: ${JSON.stringify(derived)} != ${JSON.stringify(expected)}`);
 // P14.25 shape: diagnostics; no manifest-style missing or dependencies, and no
@@ -82,6 +82,35 @@ ok(hp.log[1].versionId === head, 'hosted: initial head is entry 2');
 // bitcoin
 const chain = readJSON('bitcoin/chain.json');
 ok(chain.synthetic === true && chain.network === 'regtest', 'bitcoin: synthetic regtest fixture');
+// The index reads are in the evidence set, as a sat-read input (P14.25; T14-102):
+// the fixture holds only where each envelope's bytes are.
+ok(chain.inscriptions.every((x) => Object.keys(x).sort().join() === 'envelope,id') && !('holder' in chain) && !('tip' in chain), 'bitcoin: chain.json holds no index reads, only envelope locations (T14-102)');
+const bev = readJSON('bitcoin/evidence-set.json');
+const bsrInput = bev.inputs.find((x) => x.kind === 'sat-read');
+const bsrBytes = read(bsrInput.source);
+const bsr = JSON.parse(td.decode(bsrBytes));
+eq(satReadProblems(bsr, bev.network, bev.tip), [], 'bitcoin: sat-read input has the P14.25 form');
+eq(bev.inputs.filter((x) => x.kind === 'inscription').map((x) => x.source), bsr.inscriptions.map((x) => `index:${x.id}`), 'bitcoin: one inscription input per inscription the sat-read lists, in chain order');
+const envOf = Object.fromEntries(chain.inscriptions.map((x) => [x.id, read(`bitcoin/${x.envelope}`)]));
+// The verifier's evidence, from evidence-set inputs only. A different tip
+// re-derives each inscription's confirmations, as P14.25 fixes them.
+const btcEvidence = ({ tip = bev.tip, envelopes = envOf } = {}) => {
+  let bytes = bsrBytes;
+  if (tip !== bev.tip) bytes = te.encode(JSON.stringify({ ...bsr, tip, inscriptions: bsr.inscriptions.map((x) => ({ ...x, confirmations: tip.height - x.height + 1 })) }));
+  return {
+    network: bev.network, tip, depth: bev.depth, satRead: { source: bsrInput.source, bytes },
+    inscriptions: bsr.inscriptions.map((x) => ({ id: x.id, envelope: envelopes[x.id], metaprotocol: 'og', contentType: parseEnvelope(envelopes[x.id]).contentType })),
+  };
+};
+{
+  // T14-099: confirmations that disagree with the tip make the read unusable.
+  const bad = { ...bsr, inscriptions: bsr.inscriptions.map((x, k) => (k ? x : { ...x, confirmations: x.confirmations + 1 })) };
+  ok(satReadProblems(bad, bev.network, bev.tip).some((q) => q.includes('confirmations')), 'sat-read: wrong confirmations are caught (T14-099)');
+  ok(satReadProblems({ ...bsr, extra: 1 }, bev.network, bev.tip).length > 0, 'sat-read: an extra member is caught (P14.25)');
+  ok(satReadProblems(bsr, 'mainnet', bev.tip).length > 0, 'sat-read: another network is caught (P14.25)');
+  // T14-100: a listed inscription with no inscription input is unread.
+  eq(unreadInscriptions(bsr, new Set([bsr.inscriptions[0].id])), [bsr.inscriptions[1].id], 'sat-read: a listed inscription with no envelope input is unread (T14-100)');
+}
 const parts = chain.inscriptions.map((x) => parseEnvelope(read(`bitcoin/${x.envelope}`)));
 parts.forEach((p, k) => {
   eq(p.metadata.part, [k + 1, parts.length], `bitcoin part ${k + 1}: part member`);
@@ -95,7 +124,7 @@ const last = inscribed[inscribed.length - 1];
 ok(last.state.asset.body === 'full' && parts[1].contentType === last.state.asset.resource.mediaType, 'bitcoin: body mode full and content type (P9.17)');
 ok(resourceDigest(parts[1].body) === last.state.asset.resource.digest, 'bitcoin: body is the exact resource version');
 ok(inscribed.findIndex((e) => e.state.asset.aliases.some((a) => a.startsWith('did:btco:'))) === inscribed.length - 1, 'bitcoin: anchoring entry is the last of the anchoring publication');
-ok(last.state.asset.aliases.includes(`did:btco:reg:${chain.sat}`), 'bitcoin: anchoring alias names the sat');
+ok(last.state.asset.aliases.includes(`did:btco:reg:${bsr.sat}`), 'bitcoin: anchoring alias names the sat');
 const sh = parts[0].metadata.signers;
 ok(sh.length === 1 && sh[0].did === last.state.author.did, 'bitcoin: inscribed signer history for the author (P9.33)');
 await checkWebvh(sh[0].log, 'inscribed signer history');
@@ -103,18 +132,12 @@ ok(sh[0].log.some((e) => e.versionId === last.state.author.versionId), 'bitcoin:
 const total = parts.reduce((n, p) => n + p.metadataBytes, 0);
 ok(total + parts[1].body.length > 350000, 'bitcoin: one inscription would exceed 350,000 bytes, so parts are justified');
 const br = readJSON('bitcoin/expected-report.json');
-chain.inscriptions.forEach((x, k) => ok(br.evidence.inputs[k].digest === resourceDigest(read(`bitcoin/${x.envelope}`)), `bitcoin report: input digest ${k + 1}`));
+ok(br.evidence.inputs[0].kind === 'sat-read' && br.evidence.inputs[0].digest === resourceDigest(bsrBytes), 'bitcoin report: sat-read input digest');
+chain.inscriptions.forEach((x, k) => ok(br.evidence.inputs[k + 1].digest === resourceDigest(read(`bitcoin/${x.envelope}`)), `bitcoin report: input digest ${k + 1}`));
 {
-  // The whole report, derived from the index reads of the chain fixture only
-  // (P9.18), with the same verifier the regtest gate runs against ord.
-  const bev = readJSON('bitcoin/evidence-set.json');
-  const derived = await computeReport({
-    network: chain.network, tip: chain.tip, depth: chain.depth, sat: chain.sat,
-    inscriptions: chain.inscriptions.map((x) => {
-      const envelope = read(`bitcoin/${x.envelope}`); const p = parseEnvelope(envelope);
-      return { id: x.id, envelope, height: x.block, txIndex: x.txIndex, inscriptionIndex: x.inscriptionIndex, sat: x.sat, metaprotocol: 'og', contentType: p.contentType, holder: chain.holder.address };
-    }),
-  });
+  // The whole report, derived from the evidence set's inputs only (P9.18,
+  // P14.25; T14-102), with the same verifier the regtest gate runs against ord.
+  const derived = await computeReport(btcEvidence());
   eq(derived.evidence, { inputs: bev.inputs, network: bev.network, tip: bev.tip, depth: bev.depth }, 'bitcoin report: evidence matches the evidence set');
   sameAs(derived, br, 'bitcoin report: whole report derived from the evidence set (P14.25)'); shape(br, 'bitcoin report'); noPrior(bev, 'bitcoin');
   ok(defaultCheck(br) && transferCheck(br), 'bitcoin report: default and transfer checks pass at 9 confirmations (P7.22)');
@@ -123,17 +146,11 @@ chain.inscriptions.forEach((x, k) => ok(br.evidence.inputs[k].digest === resourc
 // Transfer depth (P7.22, P14.13; T7-071, T7-072): the same reads at a tip that
 // gives the publication 5, then 6, confirmations. Derived only, not a vector.
 {
-  const finalBlock = chain.inscriptions[chain.inscriptions.length - 1].block;
-  const at = async (confs) => computeReport({
-    network: chain.network, tip: { height: finalBlock + confs - 1, hash: chain.tip.hash }, depth: chain.depth, sat: chain.sat,
-    inscriptions: chain.inscriptions.map((x) => {
-      const envelope = read(`bitcoin/${x.envelope}`); const p = parseEnvelope(envelope);
-      return { id: x.id, envelope, height: x.block, txIndex: x.txIndex, inscriptionIndex: x.inscriptionIndex, sat: x.sat, metaprotocol: 'og', contentType: p.contentType, holder: chain.holder.address };
-    }),
-  });
+  const finalBlock = bsr.inscriptions[bsr.inscriptions.length - 1].height;
+  const at = async (confs) => computeReport(btcEvidence({ tip: { height: finalBlock + confs - 1, hash: bev.tip.hash } }));
   const shallow = await at(TRANSFER_DEPTH - 1);
   const deep = shallow.diagnostics.filter((d) => d.code === 'insufficient-depth');
-  ok(deep.length === 1 && deep[0].item.kind === 'inscription' && deep[0].item.id === chain.inscriptions[0].id && deep[0].rule === 'P7.22', 'depth: 5 confirmations give one insufficient-depth diagnostic naming the first inscription (T7-071)');
+  ok(deep.length === 1 && deep[0].item.kind === 'inscription' && deep[0].item.id === bsr.inscriptions[0].id && deep[0].rule === 'P7.22', 'depth: 5 confirmations give one insufficient-depth diagnostic naming the first inscription (T7-071)');
   ok(defaultCheck(shallow) && !transferCheck(shallow), 'depth: at 5 confirmations the default check passes and the transfer check fails (T7-071)');
   const enough = await at(TRANSFER_DEPTH);
   ok(!enough.diagnostics.some((d) => d.code === 'insufficient-depth') && transferCheck(enough), 'depth: at exactly 6 confirmations the transfer check passes (T7-072)');
@@ -176,10 +193,7 @@ chain.inscriptions.forEach((x, k) => ok(br.evidence.inputs[k].digest === resourc
     ok(envelopes.some((e, k) => !bytesEq(e, read(`bitcoin/${chain.inscriptions[k].envelope}`))), `cbor order ${name}: the re-encoded envelopes differ from the fixture's bytes`);
     const decoded = envelopes.map(parseEnvelope);
     decoded.forEach((p, k) => ok(td.decode(J(p.metadata)) === td.decode(J(fixture[k].metadata)), `cbor order ${name}: part ${k + 1} decodes to the same JSON values (T14-097)`));
-    const derived = await computeReport({
-      network: chain.network, tip: chain.tip, depth: chain.depth, sat: chain.sat,
-      inscriptions: chain.inscriptions.map((x, k) => ({ id: x.id, envelope: envelopes[k], height: x.block, txIndex: x.txIndex, inscriptionIndex: x.inscriptionIndex, sat: x.sat, metaprotocol: 'og', contentType: decoded[k].contentType, holder: chain.holder.address })),
-    });
+    const derived = await computeReport(btcEvidence({ envelopes: Object.fromEntries(chain.inscriptions.map((x, k) => [x.id, envelopes[k]])) }));
     sameAs(strip(derived), strip(br), `cbor order ${name}: the same report apart from the inputs' digests (T14-097, T14-098)`);
   }
 }
@@ -295,7 +309,8 @@ chain.inscriptions.forEach((x, k) => ok(br.evidence.inputs[k].digest === resourc
   ok(aev.inputs.every((x) => x.digest === resourceDigest(read(x.source))), 'anchor-absent: evidence-set digests');
   const input = (kind) => read(aev.inputs.find((x) => x.kind === kind).source);
   const satRead = JSON.parse(td.decode(input('sat-read')));
-  ok(satRead.sat === chain.sat && satRead.network === 'regtest' && satRead.inscriptions.length === 0, 'anchor-absent: the sat is read in full with no inscription');
+  ok(satRead.sat === bsr.sat && satRead.complete === true && satRead.inscriptions.length === 0, 'anchor-absent: the sat is read in full with no inscription');
+  eq(satReadProblems(satRead, aev.network, aev.tip), [], 'anchor-absent: sat-read input has the P14.25 form');
   const res = Object.fromEntries(aev.inputs.filter((x) => x.kind === 'resource').map((x) => { const b = read(x.source); return [resourceDigest(b), b]; }));
   const log = parseLines(input('log'), 'anchor-absent log');
   eq(log.map((e) => e.versionId), inscribed.map((e) => e.versionId), 'anchor-absent: the copy is the anchored log');
@@ -307,4 +322,17 @@ chain.inscriptions.forEach((x, k) => ok(br.evidence.inputs[k].digest === resourc
   ok(!('bitcoin' in ar) && ar.axes.bitcoin === 'not-anchored' && ar.entries[ar.entries.length - 1].status === 'ignored', 'anchor-absent: not anchored, the anchoring entry ignored, no bitcoin member');
 }
 for (const v of ['genesis', 'local', 'missing-resource']) noPrior(readJSON(`${v}/evidence-set.json`), v);
+// T14-101: each diagnostic code carries the one rule P14.25 fixes for it.
+{
+  const RULE = {
+    'target-missing': ['P3.2'], 'resource-missing': ['P7.4'], 'resource-mismatch': ['P7.4'], 'signer-history-missing': ['P5.6'],
+    'signer-version-missing': ['P7.8'], 'proof-unchecked': ['P7.19'], 'anchoring-sat-not-read': ['P7.14', 'P9.17', 'P9.10'],
+    'signer-sat-not-read': ['P9.35'], 'inscription-unverifiable': ['P9.15'], 'publication-waiting': ['P9.36'],
+    'input-unusable': ['P7.17'], 'insufficient-depth': ['P7.22'],
+  };
+  eq(Object.keys(RULE).sort(), CODES.filter((c) => c !== 'entry-rejected').sort(), 'diagnostics: every code but entry-rejected has a fixed rule (P14.25)');
+  for (const v of ['genesis', 'local', 'missing-resource', 'bitcoin', 'anchor-absent']) {
+    for (const d of readJSON(`${v}/expected-report.json`).diagnostics) if (d.code !== 'entry-rejected') ok(RULE[d.code].includes(d.rule), `${v}: ${d.code} carries rule ${d.rule}, the one P14.25 fixes (T14-101)`);
+  }
+}
 { const { checks, failures } = stats(); console.log(`${checks} checks, ${failures} failures`); process.exit(failures ? 1 : 0); }
