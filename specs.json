@@ -29,6 +29,30 @@
       "plugins": [
         "./plugins/originals.mjs"
       ]
+    },
+    {
+      "title": "Originals Protocol: experimental additions",
+      "spec_directory": "./spec/additions",
+      "output_path": "./docs/additions",
+      "markdown_paths": [
+        "00-header.md",
+        "01-terms.md",
+        "02-signer-sets.md",
+        "03-parent-originals.md",
+        "04-scoped-grants.md",
+        "05-read-authorization.md",
+        "06-conformance.md",
+        "07-decisions.md",
+        "08-amended-core-rules.md"
+      ],
+      "source": {
+        "host": "github",
+        "account": "aviarytech",
+        "repo": "originals-spec"
+      },
+      "plugins": [
+        "./plugins/originals.mjs"
+      ]
     }
   ]
 }

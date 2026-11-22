@@ -4,11 +4,13 @@
 
 This is a review draft of the Originals Protocol. It is a protocol and SDK design for review, not a finalized standard or an implementation.
 
-The draft contains 14 sections, a 324-test conformance matrix, and a decision register (D1–D9) recording the choices taken and those still open. Originals history is built on Verifiable History while useful SDK semantics are retained. Each signer signs the VH entry with a key bound to their own DID: the author, or an editor the author has granted. An Original may instead be governed by a signer set with a threshold, whose author entries carry one signature per signing member, may inherit editor grants from a parent Original, and may narrow a grant with a scope. Asset logs have no witnesses: off Bitcoin an Original’s ordering is claimed only, and anchoring it on Bitcoin orders its entries on the anchoring sat and gives it a provisional owner.
+The draft contains 14 sections, a 284-test conformance matrix, and a decision register recording the choices taken and those still open. Each Original is a `did:og`, the Originals DID method, defined as a specialisation of the Verifiable History Log (VH-Log), while useful SDK semantics are retained. Each signer signs the VH entry with a key bound to their own DID: the Original’s one author, or an editor the author has granted. Asset logs have no witnesses: off Bitcoin an Original’s ordering is claimed only, and anchoring it on Bitcoin orders its entries on the anchoring sat and gives it a provisional owner.
 
 ## Editing
 
 The spec is written in [Spec-Up](https://github.com/decentralized-identity/spec-up) markdown under `spec/`, one file per section. It renders to `docs/index.html`, and pushes to master publish it to GitHub Pages.
+
+Signer sets, parent Originals, scoped grants and read authorization are not part of `did:og` 1.0. They are kept as an experimental additions document under `spec/additions/`, which renders to `docs/additions/index.html`, with its own 66 conformance tests; open review findings against it are tracked as GitHub issues.
 
 ```sh
 npm install

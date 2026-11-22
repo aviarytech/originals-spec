@@ -10,14 +10,18 @@ Originals Protocol
 
 Depends On:
 ~ [VH-Log](https://swcurran.github.io/VH-Log/next/), the Verifiable History Log mechanism ([source](https://github.com/swcurran/VH-Log))
-~ [did:vh](https://swcurran.github.io/didvh-old/next/), the VH-Log-based pre-draft: each Original is a did:vh log under the Originals extension, which relies on the proposed [did:vh extension mechanism](https://github.com/swcurran/didvh-old/pull/3) ([source](https://github.com/swcurran/didvh-old))
+
+Defines:
+~ `did:og`, the Originals DID method: each Original is a `did:og:<SCID>` whose log is a VH-Log specialisation defined here
 
 Profiles:
 ~ [did:webvh](https://github.com/decentralized-identity/didwebvh), for an Original’s web alias and for author DIDs
 ~ did:btco, for an anchored Original’s Bitcoin alias and for author DIDs
+~ [did:vh](https://swcurran.github.io/didvh-old/next/), the VH-Log-based pre-draft, for author and editor DIDs only
 
 Related Specifications:
 ~ [Experimental did:webvh on VH-Log](https://github.com/decentralized-identity/didwebvh/pull/302)
+~ [Experimental additions](additions/index.html): signer sets, parent Originals, scoped grants and read authorization, which are not part of `did:og` 1.0
 
 Editors:
 ~ Brian Richter ([Aviary Tech](https://aviary.tech))
@@ -32,6 +36,6 @@ Participate:
 
 Originals preserves the identifiable, signed history of one digital resource, such as a photograph or a document, and its versions, and lets its author create, edit, verify and publish it. That history is built on Verifiable History (VH).
 
-Each signer signs the VH entry with a key bound to their own DID: the author, or an editor the author has granted. An Original may instead be governed by a signer set with a threshold, whose author entries carry one signature per signing member, and may inherit editor grants from a parent Original. Asset logs have no witnesses: off Bitcoin an Original’s ordering is claimed only, and anchoring it on Bitcoin orders its entries on the anchoring sat and gives it a provisional owner. The anchoring sat carries the complete log, so Bitcoin alone verifies it, and each inscription’s body is, by default, a small preview of the Original’s resource at that version, signed in the entry it carries, or the version itself, so the sat shows the current version or its preview; versions not inscribed in full are not needed for that, and only the DID history of a did:vh or did:webvh signer, author or editor, is still fetched from elsewhere. Bitcoin does not prove that no competing anchor exists on another sat.
+Each signer signs the VH entry with a key bound to their own DID: the author, or an editor the author has granted. Asset logs have no witnesses: off Bitcoin an Original’s ordering is claimed only, and anchoring it on Bitcoin orders its entries on the anchoring sat and gives it a provisional owner. The anchoring sat carries the complete log, so Bitcoin alone verifies it, and each inscription’s body is, by default, a small preview of the Original’s resource at that version, signed in the entry it carries, or the version itself, so the sat shows the current version or its preview; versions not inscribed in full are not needed for that, and only the DID history of a did:vh or did:webvh signer, author or editor, is still fetched from elsewhere. Bitcoin does not prove that no competing anchor exists on another sat.
 
-This is a protocol and SDK design for review, not a finalized standard or an implementation. Numbered rules such as [P5.3](#p5.3) are proposed requirements; [D1](#d1)–[D9](#d9) record decisions, taken and open.
+This is a protocol and SDK design for review, not a finalized standard or an implementation. Each Original is a `did:og`, its own DID method, built as a VH-Log specialisation; the method value is `og:1.0-draft.1` (P14.1). Numbered rules such as [P5.3](#p5.3) are proposed requirements; [D1](#d1)–[D9](#d9) record decisions, taken and open.
