@@ -4,7 +4,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 
 ### Proposed minimum test matrix
 
-The matrix has 426 rows, grouped by the section of the first rule each tests. Every row has:
+The matrix has 427 rows, grouped by the section of the first rule each tests. Every row has:
 
 - an **ID**, `T<section>-<number>`. IDs are stable: a row keeps its ID when rows are added or moved, a new row takes the next unused number in its section, and the number of a removed row is never reused. Fixtures and reports cite rows by ID. Retired IDs: T9-110, T9-137, T9-138 and T9-139 (22 November 2026, when comparison against a prior result was removed);
 - an **actor**: a *verifier* (including a resolver or reader), a *writer* (the part of the SDK that makes entries, packages, carriers and inscriptions), a *host* (P6.7, P9.7, P14.11) or the *SDK* as a whole, including its signing display and storage;
@@ -219,6 +219,7 @@ Rows that concern only the experimental additions are in their own document, wit
 | T7-071 | verifier | Anchored Original whose anchoring publication has 5 confirmations at the evidence set’s tip, otherwise as the `bitcoin/` vector | One `insufficient-depth` diagnostic naming the publication’s first inscription; the transfer check fails; the default acceptance check passes | P7.22, P14.13, P14.25 |
 | T7-072 | verifier | As T7-071 with exactly 6 confirmations | No `insufficient-depth` diagnostic; the transfer check passes | P7.22, P14.13 |
 | T7-073 | verifier | Anchoring publication with 6 or more confirmations, and a later publication that extends the reported head with fewer than 6 | An `insufficient-depth` diagnostic for the later publication; the transfer check fails | P7.22, P14.13 |
+| T7-074 | verifier, SDK | Anchoring publication and every publication the head depends on have 6 or more confirmations at the evidence set’s tip; the sat was then moved to a new address by a transaction with 1 confirmation at that tip | Holder is the new address; no `insufficient-depth` diagnostic; the transfer check passes. The SDK describes the check as one on the publication history, never as 6 confirmations of the sat transfer | P7.22, P9.5, P9.11, P14.13 |
 
 #### Private use and fetching (§8)
 
@@ -489,10 +490,10 @@ Each core rule and the number of rows that test it. Every core rule has at least
 - Section 4: P4.1 (2), P4.2 (2), P4.3 (1), P4.4 (5), P4.5 (1), P4.6 (2).
 - Section 5: P5.1 (2), P5.2 (2), P5.3 (9), P5.4 (2), P5.5 (2), P5.6 (3), P5.7 (3), P5.8 (4), P5.9 (2), P5.10 (2), P5.11 (3), P5.12 (2), P5.13 (19), P5.14 (9), P5.15 (6), P5.16 (9), P5.17 (3), P5.18 (8).
 - Section 6: P6.1 (1), P6.2 (1), P6.3 (1), P6.4 (1), P6.5 (7), P6.6 (6), P6.7 (4), P6.8 (3), P6.9 (13).
-- Section 7: P7.1 (4), P7.2 (1), P7.3 (1), P7.4 (7), P7.5 (8), P7.6 (1), P7.7 (4), P7.8 (7), P7.9 (4), P7.10 (2), P7.11 (1), P7.12 (5), P7.13 (6), P7.14 (8), P7.15 (6), P7.16 (4), P7.17 (10), P7.18 (6), P7.19 (9), P7.20 (11), P7.21 (9), P7.22 (12), P7.23 (1).
+- Section 7: P7.1 (4), P7.2 (1), P7.3 (1), P7.4 (7), P7.5 (8), P7.6 (1), P7.7 (4), P7.8 (7), P7.9 (4), P7.10 (2), P7.11 (1), P7.12 (5), P7.13 (6), P7.14 (8), P7.15 (6), P7.16 (4), P7.17 (10), P7.18 (6), P7.19 (9), P7.20 (11), P7.21 (9), P7.22 (13), P7.23 (1).
 - Section 8: P8.1 (1), P8.2 (1), P8.3 (2), P8.4 (2), P8.5 (14).
-- Section 9: P9.1 (1), P9.2 (2), P9.3 (1), P9.4 (1), P9.5 (6), P9.6 (3), P9.7 (3), P9.8 (1), P9.9 (1), P9.10 (15), P9.11 (3), P9.12 (8), P9.13 (9), P9.14 (1), P9.15 (39), P9.16 (10), P9.17 (25), P9.18 (13), P9.30 (27), P9.31 (10), P9.32 (6), P9.33 (14), P9.34 (5), P9.35 (4), P9.36 (4).
-- Section 14: P14.1 (12), P14.2 (4), P14.3 (10), P14.4 (9), P14.5 (11), P14.6 (6), P14.7 (3), P14.8 (8), P14.9 (3), P14.10 (11), P14.11 (2), P14.12 (17), P14.13 (17), P14.14 (6), P14.15 (4), P14.16 (15), P14.17 (9), P14.25 (14), P14.26 (6), P14.27 (3), P14.28 (3), P14.29 (3).
+- Section 9: P9.1 (1), P9.2 (2), P9.3 (1), P9.4 (1), P9.5 (7), P9.6 (3), P9.7 (3), P9.8 (1), P9.9 (1), P9.10 (15), P9.11 (4), P9.12 (8), P9.13 (9), P9.14 (1), P9.15 (39), P9.16 (10), P9.17 (25), P9.18 (13), P9.30 (27), P9.31 (10), P9.32 (6), P9.33 (14), P9.34 (5), P9.35 (4), P9.36 (4).
+- Section 14: P14.1 (12), P14.2 (4), P14.3 (10), P14.4 (9), P14.5 (11), P14.6 (6), P14.7 (3), P14.8 (8), P14.9 (3), P14.10 (11), P14.11 (2), P14.12 (17), P14.13 (18), P14.14 (6), P14.15 (4), P14.16 (15), P14.17 (9), P14.25 (14), P14.26 (6), P14.27 (3), P14.28 (3), P14.29 (3).
 
 Not covered, because the requirement is out of the core: the read-authorization rules, signer sets, parent Originals and scopes, whose rows moved with them to the additions; the limit on nested parents; the read request’s member set and challenge entropy, which the additions define.
 
