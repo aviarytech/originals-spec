@@ -1,0 +1,22 @@
+{
+  "original": "did:og:QmZybmTPf5sg2HJ9uwNyqFXGJ8mhZHqD3qj2vR9vPozwPk",
+  "checkpoint": null,
+  "inputs": [
+    {
+      "kind": "package",
+      "source": "local/package/evidence.zip",
+      "digest": "zQmWigZsh67mqpQFF5XWrJGnonuCk9pF6B8dfbDPir8twgT"
+    }
+  ],
+  "signerHistories": [
+    {
+      "did": "did:webvh:QmZ3f6CT8tzVfdx22EhRFEYbyh6VXc22hYCEk7xoQM17YQ:author.example",
+      "source": "package",
+      "obtained": "2026-01-06T00:00:00Z"
+    }
+  ],
+  "network": null,
+  "tip": null,
+  "depth": null,
+  "prior": null
+}

@@ -1,0 +1,57 @@
+{
+  "type": "OriginalsVerificationReport",
+  "profile": "og:1.0-draft.1",
+  "original": "did:og:QmZybmTPf5sg2HJ9uwNyqFXGJ8mhZHqD3qj2vR9vPozwPk",
+  "checkpoint": "2-QmQJX2Rz6f3PoUXptMuGf9Q3SFUNF11Ti7hTCReoRwWKUQ",
+  "evidence": {
+    "inputs": [
+      {
+        "kind": "package",
+        "source": "local/package/evidence.zip",
+        "digest": "zQmWigZsh67mqpQFF5XWrJGnonuCk9pF6B8dfbDPir8twgT"
+      }
+    ],
+    "network": null,
+    "tip": null,
+    "depth": null
+  },
+  "axes": {
+    "outcome": "verified",
+    "binding": "bound",
+    "history": "valid",
+    "identity": "complete",
+    "authority": "current",
+    "state": "valid-as-of",
+    "availability": "complete",
+    "offline": "self-contained",
+    "bitcoin": "not-read"
+  },
+  "entries": [
+    {
+      "versionId": "1-QmVTUPYZL2KEtXqfkUDQsNBjxRynEwGeUbBruTnDAjKGq5",
+      "status": "accepted",
+      "authority": "current-key",
+      "endorsed": true,
+      "ordering": "claimed"
+    },
+    {
+      "versionId": "2-QmQJX2Rz6f3PoUXptMuGf9Q3SFUNF11Ti7hTCReoRwWKUQ",
+      "status": "accepted",
+      "authority": "current-key",
+      "endorsed": false,
+      "ordering": "claimed"
+    }
+  ],
+  "signers": [
+    {
+      "did": "did:webvh:QmZ3f6CT8tzVfdx22EhRFEYbyh6VXc22hYCEk7xoQM17YQ:author.example",
+      "role": "author",
+      "latestVersionId": "1-QmNjhx8xG4JD9hCswSc1nSZncxuSGzex37ica8BoyHEmrq",
+      "source": "package",
+      "obtained": "2026-01-06T00:00:00Z",
+      "freshness": "not-established"
+    }
+  ],
+  "missing": [],
+  "dependencies": []
+}

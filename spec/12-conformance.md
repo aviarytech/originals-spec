@@ -4,7 +4,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 
 ### Proposed minimum test matrix
 
-The matrix has 382 rows, grouped by the section of the first rule each tests. Every row has:
+The matrix has 390 rows, grouped by the section of the first rule each tests. Every row has:
 
 - an **ID**, `T<section>-<number>`. IDs are stable: a row keeps its ID when rows are added or moved, a new row takes the next unused number in its section, and the number of a removed row is never reused. Fixtures and reports cite rows by ID;
 - an **actor**: a *verifier* (including a resolver or reader), a *writer* (the part of the SDK that makes entries, packages, carriers and inscriptions), a *host* (P6.7, P9.7, P14.11) or the *SDK* as a whole, including its signing display and storage;
@@ -41,8 +41,10 @@ Rows that concern only the experimental additions are in their own document, wit
 | T4-004 | verifier | Entry whose state has no resource, or more than one | Rejected | P4.1, P14.5 |
 | T4-005 | SDK | Metadata supplied, omitted or null | Replacement, unchanged or removed, respectively | P4.6 |
 | T4-006 | verifier | Name set to null | Rejected | P4.6 |
-| T4-007 | verifier | Update that leaves the resource’s digest unchanged | Its version does not advance; `transitions` is empty | P4.4, P14.4 |
+| T4-007 | verifier | Update that leaves the resource’s digest and mediaType unchanged | Its version does not advance; `transitions` is empty | P4.4, P14.4 |
 | T4-008 | verifier | Resource digest with an unlisted algorithm | Entry `rejected`; `history` `invalid`; an unlisted digest algorithm is invalid evidence, not an `unsupported` profile | P4.2, P14.7 |
+| T4-009 | verifier | Update that changes only the resource’s `mediaType`, with the same `digest` and `size`, and a transition whose `from` and `to` are that digest | Accepted; a new version of the resource, and its version advances | P4.1, P4.4, P14.4, P14.6 |
+| T4-010 | verifier | Update that changes only the resource’s `mediaType` with empty `transitions` | Rejected | P14.4, P14.6 |
 
 #### Signing and authority (§5)
 
@@ -65,7 +67,7 @@ Rows that concern only the experimental additions are in their own document, wit
 | T5-015 | verifier | did:btco author DID version inscribed after an Originals inscription in the same block | Not in effect for that inscription | P5.13 |
 | T5-016 | verifier | Inscription on a did:btco author DID’s sat after its deactivation | Not a version; author DID remains deactivated | P5.13 |
 | T5-017 | verifier | Two proofs in the proof array | Rejected | P5.2, P14.8 |
-| T5-018 | verifier | Proof using a cryptosuite other than `eddsa-jcs-2022` or `bip340-jcs-2025` | Rejected | P5.12, P14.8 |
+| T5-018 | verifier | Proof using a cryptosuite other than `eddsa-jcs-2022`, including `bip340-jcs-2025` | Rejected | P5.12, P14.8 |
 | T5-019 | verifier | Entry whose state is a delta rather than the full asset state | Rejected | P5.1, P14.4 |
 | T5-020 | verifier | Entry with duplicate JSON keys or an unsigned state field | Parse failure; entry `rejected`; no verified state | P5.7, P14.3, P14.4 |
 | T5-021 | verifier | Inscribed entry naming a did:btco author DID version inscribed in a later block | Rejected; the version was not in effect | P5.13 |
@@ -106,6 +108,7 @@ Rows that concern only the experimental additions are in their own document, wit
 | T5-056 | verifier | `editors` naming two did:webvh DIDs with the same SCID at different locations | Rejected | P5.15 |
 | T5-057 | SDK | Signer shown an author entry that adds an editor or widens a grant | Before-and-after permission view, with the addition marked, before signing | P5.11 |
 | T5-058 | SDK | Signer shown an author entry with `supersedes` | Entries and signers of each superseded branch shown before signing | P5.11, P6.9 |
+| T5-059 | verifier | Entry signed by a did:btco or did:webvh signer with a secp256k1 verification method and a `bip340-jcs-2025` proof | Entry `rejected`; `identity` `failed` | P5.12, P14.8 |
 
 #### Operations (§6)
 
@@ -375,7 +378,7 @@ Rows that concern only the experimental additions are in their own document, wit
 | T14-012 | verifier | Entry state with a member section 14 does not list, at any level | Rejected | P14.4 |
 | T14-013 | verifier | Resource digest in a non-canonical encoding, or a multihash other than SHA-256 | Rejected | P14.7 |
 | T14-014 | verifier | `asset.editors` present as an empty array | Rejected | P14.5 |
-| T14-015 | verifier | Resource descriptor whose `size` or `mediaType` changes without its `digest` | Rejected | P14.6 |
+| T14-015 | verifier | Resource descriptor whose `size` changes without its `digest` | Rejected | P14.6 |
 | T14-016 | verifier | Entry whose JCS form is 65,536 / 65,537 UTF-8 bytes, in `did.jsonl`, an inscription or any carrier | Accepted / rejected | P14.13 |
 | T14-017 | verifier | Derived DID document compared with section 14’s template | Identical for every resolver | P14.9 |
 | T14-018 | writer | Evidence package built twice from the same contents | Byte-identical archives | P14.10 |
@@ -427,7 +430,7 @@ Rows that concern only the experimental additions are in their own document, wit
 | T14-064 | verifier | Resource served under a did:webvh alias’s `originals/` with a media type other than its signed `mediaType` | The signed `mediaType` is used; the served type is never trusted | P14.11, P9.7 |
 | T14-065 | verifier | Ed25519 proof whose public key or signature point `R` is a small-order point | Entry `rejected`; `identity` `failed` | P14.8 |
 | T14-066 | verifier | `proofValue` that is not `z` followed by base58btc, or that decodes to a signature of other than 64 bytes | Entry `rejected` | P14.8 |
-| T14-067 | verifier | Signer key Multikey with a prefix P14.8 does not list, or an Ed25519 key of other than 32 bytes | Entry `rejected`; `identity` `failed` | P14.8, P5.3 |
+| T14-067 | verifier | Signer key Multikey with a prefix other than Ed25519’s 0xed01, such as secp256k1’s 0xe701, or an Ed25519 key of other than 32 bytes | Entry `rejected`; `identity` `failed` | P14.8, P5.3 |
 | T14-068 | verifier | Entry containing `-0` or `-0.0` | Rejected | P14.3 |
 | T14-069 | verifier | Entry containing a lone surrogate escape such as `\ud800` | Rejected | P14.3 |
 | T14-070 | verifier | Entry nested 64 / 65 levels deep | Accepted, if otherwise valid / rejected | P14.3, P5.7 |
@@ -435,6 +438,11 @@ Rows that concern only the experimental additions are in their own document, wit
 | T14-072 | verifier | Signer DID history of 1,000 / 1,001 versions | Accepted, if otherwise valid / reported with `history` `limit-exceeded`; never complete | P14.13, P7.7 |
 | T14-073 | verifier | `editors` with 32 / 33 grants | Accepted, if otherwise valid / rejected | P14.13, P5.15 |
 | T14-074 | verifier | `supersedes` with 8 distinct versionIds of entries it may supersede | Accepted, if otherwise valid | P14.13, P6.9 |
+| T14-075 | verifier | Each evidence set in `vectors/og-1.0-draft.1/` (`local/`, `bitcoin/`), with no network | A report equal to that vector’s `expected-report.json` | P14.25, P14.26, P7.17 |
+| T14-076 | writer | The vector Original’s entries, resources and signer log, packaged and inscribed as in `vectors/og-1.0-draft.1/` | Byte-identical `evidence.zip`, metadata and envelopes | P14.26, P14.10, P14.12 |
+| T14-077 | verifier | Evidence package whose manifest `checkpoint` is not an entry of `asset/did.jsonl`, or whose `head` is not its last entry | Rejected | P14.10 |
+| T14-078 | writer | Inscription metadata and envelope fields | Members in the order `entries`, `signers`, `part`, and fields in ord 0.29.1’s order; a reader accepts any order ord accepts | P14.12 |
+| T14-079 | host | The shared-host saves in `vectors/og-1.0-draft.1/hosted/exchanges.json`, applied in order | `accepted`, then `stale-parent` with the new head, then `already-accepted` | P6.7, P14.26 |
 
 ### Coverage
 
@@ -442,13 +450,13 @@ Each core rule and the number of rows that test it. Every core rule has at least
 
 - Section 2: P2.1 (2), P2.2 (1), P2.3 (1).
 - Section 3: P3.1 (1), P3.2 (1), P3.3 (3), P3.4 (1), P3.5 (3), P3.6 (4), P3.7 (1), P3.8 (2), P3.9 (1).
-- Section 4: P4.1 (1), P4.2 (2), P4.3 (1), P4.4 (3), P4.5 (1), P4.6 (2).
-- Section 5: P5.1 (2), P5.2 (2), P5.3 (8), P5.4 (2), P5.5 (1), P5.6 (3), P5.7 (2), P5.8 (4), P5.9 (2), P5.10 (2), P5.11 (3), P5.12 (1), P5.13 (18), P5.14 (9), P5.15 (6), P5.16 (8), P5.17 (3), P5.18 (3).
-- Section 6: P6.1 (1), P6.2 (1), P6.3 (1), P6.4 (1), P6.5 (5), P6.6 (6), P6.7 (3), P6.8 (3), P6.9 (13).
-- Section 7: P7.1 (4), P7.2 (1), P7.3 (1), P7.4 (5), P7.5 (8), P7.6 (1), P7.7 (4), P7.8 (7), P7.9 (2), P7.10 (2), P7.11 (1), P7.12 (5), P7.13 (6), P7.14 (7), P7.15 (6), P7.16 (4), P7.17 (7), P7.18 (4), P7.19 (7), P7.20 (9), P7.21 (5), P7.22 (7), P7.23 (1).
+- Section 4: P4.1 (2), P4.2 (2), P4.3 (1), P4.4 (4), P4.5 (1), P4.6 (2).
+- Section 5: P5.1 (2), P5.2 (2), P5.3 (8), P5.4 (2), P5.5 (1), P5.6 (3), P5.7 (2), P5.8 (4), P5.9 (2), P5.10 (2), P5.11 (3), P5.12 (2), P5.13 (18), P5.14 (9), P5.15 (6), P5.16 (8), P5.17 (3), P5.18 (3).
+- Section 6: P6.1 (1), P6.2 (1), P6.3 (1), P6.4 (1), P6.5 (5), P6.6 (6), P6.7 (4), P6.8 (3), P6.9 (13).
+- Section 7: P7.1 (4), P7.2 (1), P7.3 (1), P7.4 (5), P7.5 (8), P7.6 (1), P7.7 (4), P7.8 (7), P7.9 (2), P7.10 (2), P7.11 (1), P7.12 (5), P7.13 (6), P7.14 (7), P7.15 (6), P7.16 (4), P7.17 (8), P7.18 (4), P7.19 (7), P7.20 (9), P7.21 (5), P7.22 (7), P7.23 (1).
 - Section 8: P8.1 (1), P8.2 (1), P8.3 (2), P8.4 (2), P8.5 (13).
 - Section 9: P9.1 (1), P9.2 (2), P9.3 (1), P9.4 (1), P9.5 (4), P9.6 (3), P9.7 (3), P9.8 (1), P9.9 (1), P9.10 (15), P9.11 (3), P9.12 (7), P9.13 (9), P9.14 (1), P9.15 (36), P9.16 (10), P9.17 (25), P9.18 (11), P9.30 (25), P9.31 (8), P9.32 (5), P9.33 (13), P9.34 (5), P9.35 (2), P9.36 (5).
-- Section 14: P14.1 (3), P14.2 (4), P14.3 (9), P14.4 (7), P14.5 (11), P14.6 (3), P14.7 (3), P14.8 (7), P14.9 (3), P14.10 (9), P14.11 (2), P14.12 (11), P14.13 (14), P14.14 (6), P14.15 (4), P14.16 (15), P14.17 (9).
+- Section 14: P14.1 (3), P14.2 (4), P14.3 (9), P14.4 (9), P14.5 (11), P14.6 (5), P14.7 (3), P14.8 (8), P14.9 (3), P14.10 (11), P14.11 (2), P14.12 (13), P14.13 (14), P14.14 (6), P14.15 (4), P14.16 (15), P14.17 (9), P14.25 (1), P14.26 (3).
 
 Not covered, because the requirement is out of the core: the read-authorization rules, signer sets, parent Originals and scopes, whose rows moved with them to the additions; the limit on nested parents; the read request’s member set and challenge entropy, which the additions define.
 

@@ -1,0 +1,29 @@
+{
+  "profile": "og:1.0-draft.1",
+  "original": "did:og:QmZybmTPf5sg2HJ9uwNyqFXGJ8mhZHqD3qj2vR9vPozwPk",
+  "author": "did:webvh:QmZ3f6CT8tzVfdx22EhRFEYbyh6VXc22hYCEk7xoQM17YQ:author.example",
+  "description": "Provisional test vectors for did:og og:1.0-draft.1. See README.md.",
+  "alias": "did:webvh:QmP9qq4dYkZQ3umujUuxrH8WMdgwZRPNPSxuxi1KjuefDm:host.example:field-notes",
+  "anchoringAlias": "did:btco:reg:1234567890",
+  "entries": {
+    "e1": "1-QmVTUPYZL2KEtXqfkUDQsNBjxRynEwGeUbBruTnDAjKGq5",
+    "e2": "2-QmQJX2Rz6f3PoUXptMuGf9Q3SFUNF11Ti7hTCReoRwWKUQ",
+    "e3": "3-QmadXgTtmN9fubkz6DrB4UfsKu5W8WZsY1HyyPjnKQgePM",
+    "e3stale": "3-QmWckWJCmNNyUNkGBGnt2iCQEFG4hw4EKhqiKVMbhf6Yig",
+    "e4": "4-QmT7U3Mt85GJFbcYmjsKscESPjrBzLxAKtpxJDddBxT6ja"
+  },
+  "keys": {
+    "author did:webvh update key": {
+      "seed": "SHA-256(\"originals-spec test vector seed: author did:webvh update key\")",
+      "multikey": "z6MkhtqrkCdVxVhRFQwWDrapyxH6rWwnFinpHx4jwyc2fSnJ"
+    },
+    "author assertionMethod key-1": {
+      "seed": "SHA-256(\"originals-spec test vector seed: author assertionMethod key-1\")",
+      "multikey": "z6MkmcVQQT9L7z5thj6pm6rKaFEt8Tci5PR9tpmUePh9VQjp"
+    },
+    "alias did:webvh update key": {
+      "seed": "SHA-256(\"originals-spec test vector seed: alias did:webvh update key\")",
+      "multikey": "z6MkfA9gDxT82ja4t5f59P5FD9rAMozpUzVyG3Pv7XBGoRct"
+    }
+  }
+}
