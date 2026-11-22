@@ -126,6 +126,15 @@ const entryLabel = (e, i, all, extra = {}) => ({
   endorsed: all.slice(i + 1).some((x) => !x.state.editor), ...extra,
 });
 
+// Diagnostics and offline (P14.25, P7.21), written out here independently of
+// the checker's report-lib.mjs: offline is derived from the dependency codes.
+const DEPENDENCY = ['resource-missing', 'resource-mismatch', 'signer-history-missing', 'signer-version-missing', 'anchoring-sat-not-read', 'signer-sat-not-read'];
+const offlineOf = (diagnostics) => (diagnostics.some((d) => DEPENDENCY.includes(d.code)) ? 'needs-external' : 'self-contained');
+const missingDiag = (bytes, e) => ({
+  code: 'resource-missing', rule: 'P7.4', item: { kind: 'resource', id: digest(bytes), versionId: vid(e) },
+  reason: 'The evidence set does not hold the bytes of this resource version.',
+});
+
 // ---------- genesis/ (P14.1, P14.27–P14.29): the genesis entry alone ----------
 {
   const prelim = {
@@ -157,11 +166,11 @@ const entryLabel = (e, i, all, extra = {}) => ({
     evidence: { inputs, network: null, tip: null, depth: null },
     axes: {
       outcome: 'verified', binding: 'bound', history: 'valid', identity: 'complete', authority: 'current',
-      state: 'valid-as-of', availability: 'complete', offline: 'self-contained', bitcoin: 'not-read',
+      state: 'valid-as-of', availability: 'complete', offline: offlineOf([]), bitcoin: 'not-read',
     },
     entries: [entryLabel(e1, 0, [e1], { ordering: 'claimed' })],
     signers: [{ did: AUTHOR, role: 'author', latestVersionId: vid(author.entry), source: 'genesis/author/did.jsonl', obtained: '2026-01-06T00:00:00Z', freshness: 'not-established' }],
-    missing: [], dependencies: [],
+    diagnostics: [], changes: [],
   }));
 }
 
@@ -186,11 +195,37 @@ const entryLabel = (e, i, all, extra = {}) => ({
     evidence: { inputs: evidence.inputs, network: null, tip: null, depth: null },
     axes: {
       outcome: 'verified', binding: 'bound', history: 'valid', identity: 'complete', authority: 'current',
-      state: 'valid-as-of', availability: 'complete', offline: 'self-contained', bitcoin: 'not-read',
+      state: 'valid-as-of', availability: 'complete', offline: offlineOf([]), bitcoin: 'not-read',
     },
     entries: [e1, e2].map((e, i, a) => entryLabel(e, i, a, { ordering: 'claimed' })),
     signers: [{ did: AUTHOR, role: 'author', latestVersionId: vid(author.entry), source: 'package', obtained: '2026-01-06T00:00:00Z', freshness: 'not-established' }],
-    missing: [], dependencies: [],
+    diagnostics: [], changes: [],
+  }));
+}
+
+// ---------- missing-resource/: loose inputs without version 1 (P7.21) ----------
+{
+  put('missing-resource/asset/did.jsonl', logOf(e1, e2));
+  put('missing-resource/author/did.jsonl', authorLog);
+  put('missing-resource/resources/v2.md', v2);
+  const inputs = [
+    { kind: 'log', source: 'missing-resource/asset/did.jsonl', digest: digest(utf8(logOf(e1, e2))) },
+    { kind: 'signer-history', source: 'missing-resource/author/did.jsonl', digest: digest(utf8(authorLog)) },
+    { kind: 'resource', source: 'missing-resource/resources/v2.md', digest: digest(v2) },
+  ];
+  const evidence = { original: OG, checkpoint: null, inputs, signerHistories: [{ did: AUTHOR, source: 'missing-resource/author/did.jsonl', obtained: '2026-01-06T00:00:00Z' }], network: null, tip: null, depth: null, prior: null };
+  put('missing-resource/evidence-set.json', json(evidence));
+  const diagnostics = [missingDiag(v1, e1)];
+  put('missing-resource/expected-report.json', json({
+    type: 'OriginalsVerificationReport', profile: PROFILE, original: OG, checkpoint: vid(e2),
+    evidence: { inputs, network: null, tip: null, depth: null },
+    axes: {
+      outcome: 'verified', binding: 'bound', history: 'valid', identity: 'complete', authority: 'current',
+      state: 'valid-as-of', availability: 'partial', offline: offlineOf(diagnostics), bitcoin: 'not-read',
+    },
+    entries: [e1, e2].map((e, i, a) => entryLabel(e, i, a, { ordering: 'claimed' })),
+    signers: [{ did: AUTHOR, role: 'author', latestVersionId: vid(author.entry), source: 'missing-resource/author/did.jsonl', obtained: '2026-01-06T00:00:00Z', freshness: 'not-established' }],
+    diagnostics, changes: [],
   }));
 }
 
@@ -259,13 +294,62 @@ const entryLabel = (e, i, all, extra = {}) => ({
     evidence: { inputs, network: 'regtest', tip, depth: 1 },
     axes: {
       outcome: 'verified', binding: 'bound', history: 'valid', identity: 'complete', authority: 'current',
-      state: 'current', availability: 'partial', offline: 'needs-external', bitcoin: 'anchored',
+      state: 'current', availability: 'partial', offline: offlineOf([missingDiag(v1, e1)]), bitcoin: 'anchored',
     },
     entries: all.map((e, i, a) => entryLabel(e, i, a, i < 3 ? { ordering: 'existed-by-block', block: 102 } : { ordering: 'chain-ordered', block: 102 })),
     signers: [{ did: AUTHOR, role: 'author', latestVersionId: vid(author.entry), source: `inscribed:${tx1}i0`, freshness: 'established' }],
-    missing: [{ kind: 'resource', version: 1, digest: digest(v1), versionId: vid(e1) }],
-    dependencies: [{ kind: 'anchoring-sat', did: BTCO }],
+    diagnostics: [missingDiag(v1, e1)], changes: [],
     bitcoin: { sat: BTCO, holder: { address: chain.holder.address, uniqueness: 'provisional' }, conflictingAnchors: [], unverifiable: [], waiting: [] },
+  }));
+}
+
+// ---------- reorg/ (synthetic regtest): the anchoring publication reorganized away ----------
+{
+  const prior = files['bitcoin/expected-report.json'];
+  const priorReport = JSON.parse(new TextDecoder().decode(prior));
+  put('reorg/prior-report.json', prior);
+  put('reorg/did.jsonl', logOf(e1, e2, e3, e4));
+  put('reorg/author/did.jsonl', authorLog);
+  put('reorg/resources/v1.md', v1);
+  put('reorg/resources/v2.md', v2);
+  const tip = { height: 111, hash: synthHash('reorg tip') };
+  const satRead = {
+    synthetic: true,
+    note: 'Synthetic: a reorganization from block 101 replaced the blocks that held the anchoring publication. The index reads the sat in full at the new tip and lists no inscription on it (P9.31, P9.35).',
+    network: 'regtest', ordRelease: '0.29.1', sat: SAT, tip, inscriptions: [],
+  };
+  put('reorg/sat-read.json', json(satRead));
+  const inputs = [
+    { kind: 'prior-result', source: 'reorg/prior-report.json', digest: digest(prior) },
+    { kind: 'log', source: 'reorg/did.jsonl', digest: digest(utf8(logOf(e1, e2, e3, e4))) },
+    { kind: 'signer-history', source: 'reorg/author/did.jsonl', digest: digest(utf8(authorLog)) },
+    { kind: 'resource', source: 'reorg/resources/v1.md', digest: digest(v1) },
+    { kind: 'resource', source: 'reorg/resources/v2.md', digest: digest(v2) },
+    { kind: 'sat-read', source: 'reorg/sat-read.json', digest: digest(files['reorg/sat-read.json']) },
+  ];
+  put('reorg/evidence-set.json', json({
+    original: OG, checkpoint: null, inputs,
+    signerHistories: [{ did: AUTHOR, source: 'reorg/author/did.jsonl', obtained: '2026-01-06T00:00:00Z' }],
+    network: 'regtest', tip, depth: 1, prior: 'reorg/prior-report.json',
+  }));
+  const diagnostics = [];
+  put('reorg/expected-report.json', json({
+    type: 'OriginalsVerificationReport', profile: PROFILE, original: OG, checkpoint: vid(e3),
+    evidence: { inputs, network: 'regtest', tip, depth: 1 },
+    axes: {
+      outcome: 'verified', binding: 'bound', history: 'valid', identity: 'complete', authority: 'current',
+      state: 'valid-as-of', availability: 'complete', offline: offlineOf(diagnostics), bitcoin: 'not-anchored',
+    },
+    entries: [
+      ...[e1, e2, e3].map((e, i, a) => entryLabel(e, i, a, { ordering: 'claimed' })),
+      { versionId: vid(e4), status: 'ignored' },
+    ],
+    signers: [{ did: AUTHOR, role: 'author', latestVersionId: vid(author.entry), source: 'reorg/author/did.jsonl', obtained: '2026-01-06T00:00:00Z', freshness: 'not-established' }],
+    diagnostics,
+    changes: [
+      { kind: 'head', from: priorReport.checkpoint, to: vid(e3), cause: 'reorganization' },
+      { kind: 'holder', from: { sat: priorReport.bitcoin.sat, address: priorReport.bitcoin.holder.address }, to: null, cause: 'reorganization' },
+    ],
   }));
 }
 

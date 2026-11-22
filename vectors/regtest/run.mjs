@@ -245,7 +245,8 @@ async function main() {
       if (a !== b) diffs.push(`${path}: expected ${JSON.stringify(a)}, got ${JSON.stringify(b)}`);
       return;
     }
-    for (const k of new Set([...Object.keys(a), ...Object.keys(b)])) walk(a[k], b[k], `${path}.${k}`);
+    // A diagnostic's `reason` is text for people and is not compared (P14.25).
+    for (const k of new Set([...Object.keys(a), ...Object.keys(b)])) if (k !== 'reason') walk(a[k], b[k], `${path}.${k}`);
   };
   walk(want, report, 'report');
   const env1Same = Buffer.compare(Buffer.from(reads[0]?.envelope ?? []), Buffer.from(env1)) === 0;
@@ -254,7 +255,8 @@ async function main() {
   if (reads.some((x) => x.number < 0)) diffs.push('ord reports a cursed inscription');
 
   const result = {
-    gate: 'regtest (release blocker step a)', date: new Date().toLocaleDateString('en-CA'), // the local calendar date of the run passed: diffs.length === 0,
+    gate: 'regtest (release blocker step a)', date: new Date().toLocaleDateString('en-CA'), // the local calendar date of the run
+    passed: diffs.length === 0,
     bitcoind: bitcoindVersion, ord: ordVersion, network: 'regtest',
     sat: SAT, anchoringAlias: BTCO, holder: holderAddr,
     transactions: { commit: commitTxid, revealPart1: r1id, revealPart2: r2id },

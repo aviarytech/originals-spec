@@ -11,7 +11,7 @@ npm run regtest        # the regtest gate: inscribe the bitcoin vector on a real
 
 `tools/generate.mjs` builds everything from fixed seeds: each key's secret is `SHA-256("originals-spec test vector seed: <label>")`, and `og-1.0-draft.1/index.json` lists the labels and public keys. These are test keys. Never use them for anything else.
 
-`tools/check.mjs` doesn't import the generator; its helpers are in `tools/verify-lib.mjs`. It recomputes SCIDs, entry hashes, `eddsa-jcs-2022` proofs (strict Ed25519, small-order points rejected), digests, the ZIP layout and CRCs, the CBOR metadata and the ord envelopes. It then derives each vector's whole report from its evidence set alone, with `tools/report-lib.mjs` off Bitcoin and `regtest/report.mjs` for the Bitcoin vector (the verifier the regtest gate runs against ord), and compares every member with `expected-report.json`, as P14.25 defines equality. Writers are compared by canonical entry bytes: each line of a `did.jsonl` is the entry's JCS form followed by a line feed, and a writer's log matches when its entries are equal in that form, since P14.2 leaves key order and string escapes free (the vector files are themselves in canonical form, which the checker also verifies). The did:webvh logs are verified with [didwebvh-ts](https://www.npmjs.com/package/didwebvh-ts) 3.2.0, a separate did:webvh implementation.
+`tools/check.mjs` doesn't import the generator; its helpers are in `tools/verify-lib.mjs`. It recomputes SCIDs, entry hashes, `eddsa-jcs-2022` proofs (strict Ed25519, small-order points rejected), digests, the ZIP layout and CRCs, the CBOR metadata and the ord envelopes. It then derives each vector's whole report from its evidence set alone, with `tools/report-lib.mjs` off Bitcoin and `regtest/report.mjs` for the Bitcoin vector (the verifier the regtest gate runs against ord), and compares every member with `expected-report.json`, as P14.25 defines equality, which ignores each diagnostic's `reason`. It also checks the report shape: `diagnostics` and `changes`, codes from the closed list, and no `missing` or `dependencies` members. Writers are compared by canonical entry bytes: each line of a `did.jsonl` is the entry's JCS form followed by a line feed, and a writer's log matches when its entries are equal in that form, since P14.2 leaves key order and string escapes free (the vector files are themselves in canonical form, which the checker also verifies). The did:webvh logs are verified with [didwebvh-ts](https://www.npmjs.com/package/didwebvh-ts) 3.2.0, a separate did:webvh implementation.
 
 ## One Original, three layers
 
@@ -61,7 +61,20 @@ This vector is **synthetic**. No regtest chain produced these transactions or bl
   - Part 2 carries entry 4, with resource version 2 as its body and `text/markdown` as its content type.
 - `inscriptions/part-{1,2}.metadata.cbor`: each part's metadata. This is the concatenation of its tag-5 pushes.
 - `evidence-set.json`: exactly the P9.18 evidence set, which is the sat's inscriptions at the stated network and tip.
-- `expected-report.json`: the report. `state` is `current` and `bitcoin` is `anchored`, with the holder `provisional`. `availability` is `partial`, because version 1's bytes are not on Bitcoin, and `offline` is `needs-external`.
+- `expected-report.json`: the report. `state` is `current` and `bitcoin` is `anchored`, with the holder `provisional`. `availability` is `partial`, because version 1's bytes are not on Bitcoin, and `offline` is `needs-external`, derived from the one `resource-missing` diagnostic for version 1; the sat itself is read in full, so it is not a dependency (P7.21).
+
+### `missing-resource/`
+
+The negative case for P7.21: the loose inputs of `local/` (the asset log through entry 2 and the author's history) with only resource version 2 supplied. The report has `availability` `partial`, `offline` `needs-external` and one `resource-missing` diagnostic naming version 1's digest and entry 1; `outcome` is still `verified`.
+
+### `reorg/`
+
+Also **synthetic**. The same Original after a reorganization from block 101 removed its anchoring publication (P9.5, P9.36):
+
+- `prior-report.json`: the prior result, the `bitcoin/` vector's report.
+- `sat-read.json`: the anchoring sat read in full at the new tip, height 111, with no inscription on it.
+- `did.jsonl`, `author/did.jsonl` and `resources/`: a copy of the log through entry 4, the author's history and both resource versions.
+- `evidence-set.json` and `expected-report.json`: the report is `bitcoin` `not-anchored`, with no `bitcoin` member; entry 4, the anchoring entry, is `ignored`; the state is `valid-as-of` entry 3 with `claimed` ordering; `offline` is `self-contained`. Its change records are `head` from entry 4 to entry 3 and `holder` from the prior `{sat, address}` to null, both with cause `reorganization` (P14.25).
 
 ## `regtest/`: the regtest gate
 

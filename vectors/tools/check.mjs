@@ -8,7 +8,15 @@ import { fileURLToPath } from 'node:url';
 import {
   ASSET_OPT, ASSET_REQ, J, STATE, bytesEq, checkChain, checkOgLog, checkPackage, checkWebvh, counts, decodeCbor, decodeMultikey, eq, multihash, ok, parseEnvelope, parseLines, readZip, resourceDigest, sha, stats, td, te, verifyProof,
 } from './verify-lib.mjs';
-import { canonicalLog, offChainReport, unsupportedReport } from './report-lib.mjs';
+import { CODES, canonicalLog, offChainReport, reorgReport, sameReport, unsupportedReport } from './report-lib.mjs';
+// Whole-report comparison (P14.25): equal as JSON values, ignoring each diagnostic's reason.
+const sameAs = (derived, expected, msg) => ok(sameReport(derived, expected), `${msg}: ${JSON.stringify(derived)} != ${JSON.stringify(expected)}`);
+// P14.25 shape: diagnostics and changes, no manifest-style missing or dependencies.
+const shape = (r, label) => {
+  ok(!('missing' in r) && !('dependencies' in r) && Array.isArray(r.diagnostics) && Array.isArray(r.changes), `${label}: report has diagnostics and changes, not missing or dependencies (P14.25)`);
+  for (const d of r.diagnostics ?? []) eq(Object.keys(d).sort(), ['code', 'item', 'reason', 'rule'], `${label}: diagnostic members`), ok(CODES.includes(d.code), `${label}: diagnostic code ${d.code} is in the closed list`);
+  for (const c of r.changes ?? []) eq(Object.keys(c).sort(), ['cause', 'from', 'kind', 'to'], `${label}: change record members`);
+};
 import { computeReport } from '../regtest/report.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', 'og-1.0-draft.1');
@@ -39,7 +47,7 @@ ok(lev.inputs[0].digest === resourceDigest(zipBytes), 'local: evidence-set diges
   // its author history and the resource bytes it carries (P7.17, P14.25).
   const pkgResources = Object.fromEntries(Object.entries(zfiles).filter(([k]) => k.startsWith('resources/')).map(([k, v]) => [k.slice('resources/'.length), v]));
   const derived = await offChainReport({ evidenceSet: lev, log: lp.log, authorLog: lp.authorLog, resources: pkgResources });
-  eq(derived, lr, 'local report: whole report derived from the evidence set (P14.25)');
+  sameAs(derived, lr, 'local report: whole report derived from the evidence set (P14.25)'); shape(lr, 'local report');
   ok(lr.checkpoint === lp.manifest.checkpoint, 'local report: checkpoint is the manifest checkpoint');
 }
 ok(canonicalLog(localLog) === td.decode(read('local/asset/did.jsonl')), 'local: asset log lines are their canonical form, JCS plus LF (P14.2, P14.3)');
@@ -107,7 +115,7 @@ chain.inscriptions.forEach((x, k) => ok(br.evidence.inputs[k].digest === resourc
     }),
   });
   eq(derived.evidence, { inputs: bev.inputs, network: bev.network, tip: bev.tip, depth: bev.depth }, 'bitcoin report: evidence matches the evidence set');
-  eq(derived, br, 'bitcoin report: whole report derived from the evidence set (P14.25)');
+  sameAs(derived, br, 'bitcoin report: whole report derived from the evidence set (P14.25)'); shape(br, 'bitcoin report');
 }
 
 // genesis vector (P14.1, P14.27–P14.29)
@@ -140,7 +148,8 @@ chain.inscriptions.forEach((x, k) => ok(br.evidence.inputs[k].digest === resourc
     authorLog: parseLines(input('signer-history'), 'genesis evidence author log'),
     resources: { [resourceDigest(gres)]: gres },
   });
-  eq(derived, gr, 'genesis report: whole report derived from the evidence set (P14.25)');
+  sameAs(derived, gr, 'genesis report: whole report derived from the evidence set (P14.25)'); shape(gr, 'genesis report');
+  ok(gr.axes.offline === 'self-contained', 'genesis report: a complete loose evidence set is self-contained (P7.21, T7-067)');
   // Writer comparison: canonical entry bytes, JCS plus LF (P14.2, P14.3).
   ok(canonicalLog(gl) === td.decode(read('genesis/did.jsonl')), 'genesis: did.jsonl is the canonical form of its entry, JCS plus LF');
 }
@@ -195,7 +204,43 @@ chain.inscriptions.forEach((x, k) => ok(br.evidence.inputs[k].digest === resourc
     inputs: chain.inscriptions.map((x) => ({ kind: 'transaction', source: `mempool.space:${x.revealTxid}`, digest: resourceDigest(new Uint8Array(Buffer.from(readFileSync(join(PF, x.transaction), 'utf8').trim(), 'hex'))) })),
   });
   ok(entries[0].parameters.method !== 'og:1.0-draft.1', 'prior: derived outcome is unsupported because the method value is not implemented');
-  eq(derived, pr, 'prior report: whole report derived (T14-085, P14.25)');
+  sameAs(derived, pr, 'prior report: whole report derived (T14-085, P14.25)'); shape(pr, 'prior report');
 }
 
+// missing-resource vector: loose inputs without version 1 (P7.21, T7-068)
+{
+  const mev = readJSON('missing-resource/evidence-set.json');
+  ok(mev.inputs.every((x) => x.digest === resourceDigest(read(x.source))), 'missing-resource: evidence-set digests');
+  const input = (kind) => read(mev.inputs.find((x) => x.kind === kind).source);
+  const res = Object.fromEntries(mev.inputs.filter((x) => x.kind === 'resource').map((x) => { const b = read(x.source); return [resourceDigest(b), b]; }));
+  ok(!res[resourceDigest(v1)], 'missing-resource: version 1 is not supplied');
+  const derived = await offChainReport({
+    evidenceSet: mev, log: parseLines(input('log'), 'missing-resource log'), authorLog: parseLines(input('signer-history'), 'missing-resource author log'), resources: res,
+  });
+  const mr = readJSON('missing-resource/expected-report.json');
+  sameAs(derived, mr, 'missing-resource report: whole report derived from the evidence set (P14.25)'); shape(mr, 'missing-resource report');
+  ok(mr.axes.offline === 'needs-external' && mr.axes.availability === 'partial', 'missing-resource: needs-external and partial (P7.21, P7.4)');
+  ok(mr.diagnostics.length === 1 && mr.diagnostics[0].code === 'resource-missing' && mr.diagnostics[0].item.id === resourceDigest(v1), 'missing-resource: one resource-missing diagnostic for version 1');
+}
+// reorg vector: the anchoring publication reorganized away (P9.5, P9.36, T9-135)
+{
+  const rev = readJSON('reorg/evidence-set.json');
+  ok(rev.inputs.every((x) => x.digest === resourceDigest(read(x.source))), 'reorg: evidence-set digests');
+  const input = (kind) => read(rev.inputs.find((x) => x.kind === kind).source);
+  const prior = JSON.parse(td.decode(input('prior-result')));
+  sameAs(prior, br, 'reorg: the prior result is the bitcoin vector\'s report');
+  const satRead = JSON.parse(td.decode(input('sat-read')));
+  ok(satRead.sat === chain.sat && satRead.network === 'regtest' && satRead.inscriptions.length === 0, 'reorg: the sat is read in full with no inscription');
+  ok(satRead.tip.height > chain.tip.height || satRead.tip.hash !== chain.tip.hash, 'reorg: a new tip');
+  const res = Object.fromEntries(rev.inputs.filter((x) => x.kind === 'resource').map((x) => { const b = read(x.source); return [resourceDigest(b), b]; }));
+  const log = parseLines(input('log'), 'reorg log');
+  eq(log.map((e) => e.versionId), inscribed.map((e) => e.versionId), 'reorg: the copy is the anchored log');
+  const derived = await reorgReport({
+    evidenceSet: rev, prior, log, authorLog: parseLines(input('signer-history'), 'reorg author log'), resources: res, satRead,
+  });
+  const rr = readJSON('reorg/expected-report.json');
+  sameAs(derived, rr, 'reorg report: whole report derived from the evidence set (P14.25)'); shape(rr, 'reorg report');
+  ok(!('bitcoin' in rr) && rr.axes.bitcoin === 'not-anchored', 'reorg: not anchored, no bitcoin member');
+  ok(rr.changes.some((c) => c.kind === 'holder' && c.to === null && c.from.sat === br.bitcoin.sat), 'reorg: holder change record names the lost anchor');
+}
 { const { checks, failures } = stats(); console.log(`${checks} checks, ${failures} failures`); process.exit(failures ? 1 : 0); }

@@ -10,6 +10,7 @@
 import {
   checkOgLog, checkWebvh, parseEnvelope, resourceDigest, stats,
 } from '../tools/verify-lib.mjs';
+import { missingResources, offlineFrom, sortDiagnostics } from '../tools/report-lib.mjs';
 
 const PROFILE = 'og:1.0-draft.1';
 const NETWORK_PREFIX = { mainnet: '', signet: 'sig:', testnet: 'test:', regtest: 'reg:' };
@@ -72,11 +73,10 @@ export async function computeReport(evidence) {
   for (const p of problems) console.error('FAIL', p);
 
   const block = final.x.height;
-  const versions = [];
-  for (const e of entries) for (const t of e.state.transitions) versions.push({ digest: t.to, versionId: e.versionId });
-  const missing = versions.map((v, i) => ({ kind: 'resource', version: i + 1, ...v }))
-    .filter((v) => !resources[v.digest])
-    .map(({ kind, version, digest, versionId }) => ({ kind, version, digest, versionId }));
+  // The evidence is the sat read in full at the tip (P9.18), so the only
+  // dependencies P7.21 can find are resource versions the inscriptions lack.
+  const { diagnostics: missing } = missingResources(entries, resources);
+  const diagnostics = sortDiagnostics(missing);
 
   return {
     type: 'OriginalsVerificationReport', profile: PROFILE, original: did, checkpoint: anchor.versionId,
@@ -88,7 +88,7 @@ export async function computeReport(evidence) {
       ? { outcome: 'invalid' }
       : {
         outcome: 'verified', binding: 'bound', history: 'valid', identity: 'complete', authority: 'current',
-        state: 'current', availability: missing.length ? 'partial' : 'complete', offline: 'needs-external', bitcoin: 'anchored',
+        state: 'current', availability: missing.length ? 'partial' : 'complete', offline: offlineFrom(diagnostics), bitcoin: 'anchored',
       },
     entries: entries.map((e, i) => ({
       versionId: e.versionId, status: 'accepted', authority: 'current-key',
@@ -99,8 +99,8 @@ export async function computeReport(evidence) {
       did: authorDid, role: 'author', latestVersionId: history.log[history.log.length - 1].versionId,
       source: history.source, freshness: 'established',
     }] : [],
-    missing,
-    dependencies: [{ kind: 'anchoring-sat', did: btco }],
+    diagnostics,
+    changes: [], // the gate's evidence set has no prior result
     bitcoin: {
       sat: btco, holder: { address: final.x.holder, uniqueness: 'provisional' },
       conflictingAnchors: [], unverifiable: [], waiting: [],
