@@ -16,7 +16,7 @@ P4.2 Each accepted resource update MUST bind the prior digest and new descriptor
 
 P4.3 Verification MUST compute the digest over the stored byte sequence without image decoding, re-encoding, text normalization or MIME-dependent transformation. Two visually identical photographs with different bytes are different byte versions.
 
-P4.4 The resource’s visible version number MUST be derived from its accepted resource-changing transitions; genesis is version 1. A name or metadata update MUST NOT advance the version. Caller-supplied counters MUST NOT override the verified result. An update that leaves the digest unchanged MUST NOT advance the version.
+P4.4 The resource’s visible version number MUST be derived from its accepted resource-changing transitions; genesis is version 1. A name or metadata update MUST NOT advance the version. Caller-supplied counters MUST NOT override the verified result. An update that leaves the descriptor’s digest and mediaType both unchanged MUST NOT advance the version. An update that changes only the mediaType, such as correcting `text/plain` to `text/markdown` for the same bytes, is a new version and advances it (P4.1, P14.6).
 
 P4.5 A mutation with a stale expected checkpoint or stale prior digest MUST fail as a conflict. The SDK MUST NOT silently rebase and re-sign it against a new parent. Retrying the same submitted candidate MUST NOT produce a different signed entry without an explicit new preparation step.
 

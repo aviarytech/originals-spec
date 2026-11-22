@@ -7,7 +7,7 @@ const CSS = fs.readFileSync(new URL('./originals.css', import.meta.url), 'utf8')
 
 const LABEL = /^(P\d+\.\d+|D\d+)\s/;
 const SOURCE_ENTRY = /^\[(S\d+a?|RFC\d+)\]/;
-const XREF = /\bP\d+\.\d+\b|\bD[1-9]\b|\[S\d+a?(?:(?:, |–)S\d+a?)*\]|\bsection (\d+)\b/g;
+const XREF = /\bP\d+\.\d+\b|\bD[1-9]\d?\b|\[S\d+a?(?:(?:, |–)S\d+a?)*\]|\bsection (\d+)\b/g;
 
 function sourceId(name) {
   return `src-${name.toLowerCase()}`;
