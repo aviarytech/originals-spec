@@ -23,7 +23,7 @@ The SDK today identifies an Original by `did:cel` and keeps a CEL 3 log [S14, S1
 
 P3.1 The asset identifier MUST bind to the correct genesis under the chosen profile. A verifier MUST reject identifier/genesis mismatch, including substitution of a different valid history at the same URL.
 
-P3.2 Exact-checkpoint resolution MUST either return evidence for that checkpoint or report why it cannot. It MUST NOT silently substitute the latest checkpoint or resolve a different Original.
+P3.2 Exact-checkpoint resolution MUST either return evidence for that checkpoint or report why it cannot; a report whose evidence set lacks the target checkpoint has `state` `none`, `outcome` `incomplete` and a `target-missing` diagnostic (P7.18, P14.25). It MUST NOT silently substitute the latest checkpoint or resolve a different Original.
 
 P3.3 A resolver MUST distinguish verified state, missing evidence, unsupported profile and invalid evidence. A successful HTTP request or a host’s claimed identifier MUST NOT count as successful verification.
 

@@ -17,10 +17,36 @@ export const canonicalLog = (entries) => entries.map(canonicalLine).join('');
 // Diagnostics (P14.25): one per missing or failed item, in the closed code
 // list's order. `reason` is for people and is not compared.
 export const CODES = [
-  'resource-missing', 'resource-mismatch', 'signer-history-missing', 'signer-version-missing',
+  'target-missing', 'resource-missing', 'resource-mismatch', 'signer-history-missing', 'signer-version-missing',
   'proof-unchecked', 'entry-rejected', 'anchoring-sat-not-read', 'signer-sat-not-read',
   'inscription-unverifiable', 'publication-waiting', 'input-unusable', 'insufficient-depth',
 ];
+// A `sat-read` evidence input (P14.25): exactly these members, at the evidence
+// set's network and tip, each inscription's confirmations derived from the tip.
+export const SAT_READ_MEMBERS = ['complete', 'holder', 'inscriptions', 'network', 'sat', 'tip'];
+const ITEM_MEMBERS = ['confirmations', 'height', 'id', 'inscriptionIndex', 'txIndex'];
+export function satReadProblems(r, network, tip) {
+  const out = [];
+  if (!r || typeof r !== 'object' || Array.isArray(r)) return ['not an object'];
+  if (Object.keys(r).sort().join() !== SAT_READ_MEMBERS.join()) out.push(`members ${Object.keys(r).sort().join()}`);
+  if (r.network !== network) out.push('network differs from the evidence set');
+  if (JSON.stringify(r.tip) !== JSON.stringify(tip)) out.push('tip differs from the evidence set');
+  if (!Number.isSafeInteger(r.sat) || r.sat < 0) out.push('sat is not a sat number');
+  if (typeof r.complete !== 'boolean') out.push('complete is not a boolean');
+  if (r.holder !== null && (typeof r.holder !== 'object' || Object.keys(r.holder).join() !== 'address')) out.push('holder is not {address} or null');
+  if (!Array.isArray(r.inscriptions)) return [...out, 'inscriptions is not an array'];
+  let prev = null;
+  for (const x of r.inscriptions) {
+    if (Object.keys(x).sort().join() !== ITEM_MEMBERS.join()) out.push(`${x.id}: members ${Object.keys(x).sort().join()}`);
+    if (x.confirmations !== confirmations(tip.height, x.height)) out.push(`${x.id}: confirmations are not the tip's height less its height, plus one`);
+    const pos = [x.height, x.txIndex, x.inscriptionIndex];
+    if (prev && (pos[0] - prev[0] || pos[1] - prev[1] || pos[2] - prev[2]) <= 0) out.push(`${x.id}: not in chain order`);
+    prev = pos;
+  }
+  return out;
+}
+// Inscriptions a sat-read lists that have no `inscription` input: unread (P14.25, P9.35).
+export const unreadInscriptions = (r, inscriptionIds) => r.inscriptions.filter((x) => !inscriptionIds.has(x.id)).map((x) => x.id);
 // The transfer depth (P7.22, P14.13): confirmations a publication needs for the transfer check.
 export const TRANSFER_DEPTH = 6;
 // Confirmations of a publication at a tip: the tip's height less the height of
@@ -141,8 +167,9 @@ export async function anchorAbsentReport({ evidenceSet, log, authorLog, resource
   const btco = `did:btco:${prefix}${satRead.sat}`;
   const anchorAt = log.findIndex((e) => e.state.asset.aliases.includes(btco));
   if (anchorAt < 1) problems.push('the copy has no anchoring entry for the read sat');
-  if (satRead.inscriptions.some((x) => x.metaprotocol === 'og')) problems.push('the sat still holds Originals inscriptions; outside what this deriver covers');
-  if (satRead.network !== evidenceSet.network || JSON.stringify(satRead.tip) !== JSON.stringify(evidenceSet.tip)) problems.push('sat read is not at the evidence set\'s network and tip');
+  if (satRead.inscriptions.length) problems.push('the sat still holds inscriptions; outside what this deriver covers');
+  for (const q of satReadProblems(satRead, evidenceSet.network, evidenceSet.tip)) problems.push(`sat-read: ${q}`);
+  if (!satRead.complete) problems.push('the sat is not read in full (P9.35)');
   if ('prior' in evidenceSet) problems.push('an evidence set has no prior result (P7.17)');
   if (evidenceSet.original !== did) problems.push('evidence set names another did:og');
   if (log.some((e) => e.state.editor)) problems.push('editor entries are outside what this deriver covers');

@@ -55,12 +55,13 @@ Covers entries 1–2.
 
 This vector is **synthetic**. No regtest chain produced these transactions or blocks; the txids, tip hash and holder address are SHA-256 hashes of labels.
 
-- `chain.json`: the chain fixture. It gives the network, tip, sat and holder, and the index reads for each inscription: block, transaction index, inscription index and confirmations.
+- `sat-read.json`: the index read of the anchoring sat at the tip, a `sat-read` evidence input in P14.25's form: the network, sat, tip, `complete`, the holder, and each inscription's height, transaction index, inscription index and confirmations.
+- `chain.json`: fixture plumbing only. It says where each inscription's envelope bytes are; the report depends on nothing in it (T14-102).
 - `inscriptions/part-{1,2}.envelope.bin`: the two Originals inscriptions of the anchoring publication. Each is the ord envelope, from `OP_FALSE OP_IF` to `OP_ENDIF`, with its fields in ord 0.29.1's order (P14.12). Only one inscription would exceed 350,000 bytes, so the publication is in two parts (P9.32):
   - Part 1 carries entries 1–3 and the author's inscribed did:webvh history (P9.33). It has no body.
   - Part 2 carries entry 4, with resource version 2 as its body and `text/markdown` as its content type.
 - `inscriptions/part-{1,2}.metadata.cbor`: each part's metadata. This is the concatenation of its tag-5 pushes.
-- `evidence-set.json`: exactly the P9.18 evidence set, which is the sat's inscriptions at the stated network and tip.
+- `evidence-set.json`: exactly the P9.18 evidence set: the `sat-read` input and one `inscription` input per envelope, at the stated network and tip.
 - `expected-report.json`: the report. `state` is `current` and `bitcoin` is `anchored`, with the holder `provisional`. `availability` is `partial`, because version 1's bytes are not on Bitcoin, and `offline` is `needs-external`, derived from the one `resource-missing` diagnostic for version 1; the sat itself is read in full, so it is not a dependency (P7.21).
 
 ### `missing-resource/`
@@ -71,13 +72,16 @@ The negative case for P7.21: the loose inputs of `local/` (the asset log through
 
 Also **synthetic**. The same Original's anchored log, as a copy, with the anchoring sat read in full at a tip that holds no inscription on it, as after a reorganization from block 101 removed its anchoring publication (P9.5). No earlier report is an input (P7.17); a caller that wants to know what changed compares two reports.
 
-- `sat-read.json`: the anchoring sat read in full at the tip, height 111, with no inscription on it.
+- `sat-read.json`: the anchoring sat read in full at the tip, height 111, with no inscription on it and no holder, in P14.25's form.
 - `did.jsonl`, `author/did.jsonl` and `resources/`: a copy of the log through entry 4, the author's history and both resource versions.
 - `evidence-set.json` and `expected-report.json`: the report is `bitcoin` `not-anchored`, with no `bitcoin` member; entry 4, the anchoring entry, is `ignored`; the state is `valid-as-of` entry 3 with `claimed` ordering; `offline` is `self-contained`.
 
 ### Derived cases in the checker
 
-Two cases are derived by `tools/check.mjs` from the `bitcoin/` vector, with no files of their own:
+These cases are derived by `tools/check.mjs` from the `bitcoin/` vector, with no files of their own:
+
+- **`sat-read` form** (P14.25; T14-099, T14-100): a read whose confirmations disagree with the tip, that has an extra member or that names another network is caught as unusable, and an inscription the read lists with no `inscription` input is unread.
+- **Diagnostic rules** (P14.25; T14-101): every diagnostic in the expected reports carries the one rule P14.25 fixes for its code.
 
 - **Transfer depth** (P7.22, P14.13; T7-071, T7-072): the same index reads at a tip that gives the publication 5, then 6, confirmations. At 5 the report has one `insufficient-depth` diagnostic naming the publication's first inscription, the default check passes and the transfer check fails; at 6 the transfer check passes. The `bitcoin/` vector itself has 9 confirmations.
 - **Map member order** (P14.12; T14-097, T14-098): the vector's envelopes are a fixed read fixture. The checker re-encodes each part's metadata with map members in other orders (reversed, sorted, and `part` and `signers` first), with its own CBOR encoder, and checks that the envelopes decode to the same JSON values and give the same report, apart from the inputs' digests. Writers may order map members freely; only the envelope's fields and their order are fixed bytes.
@@ -88,8 +92,8 @@ Two cases are derived by `tools/check.mjs` from the `bitcoin/` vector, with no f
 
 - inscribes the `bitcoin/` vector's anchoring publication. Part 1 is the vector's envelope byte for byte. The vector's sat is synthetic, so entry 4, the anchoring entry, is re-signed with the vector's author key for the real sat's `did:btco:reg:` alias. Commit and reveal transactions are built with [@scure/btc-signer](https://www.npmjs.com/package/@scure/btc-signer), because ord's wallet can't inscribe an envelope with no body.
 - places both parts on one sat with no pointer (P14.12). ord puts an inscription on the first sat of the input carrying it, so part 1's reveal sends the sat, at offset 0, to the taproot output that commits to part 2's script, and part 2's reveal spends it.
-- reads everything back through ord's JSON API only: the sat's inscriptions, each inscription's metaprotocol, content type, height, satpoint and envelope (from its reveal transaction), each block's transaction order, the holder and the tip. It builds the P9.18 evidence set from those reads.
-- computes the report with `report.mjs`, which uses the checker's helpers and not the generator's, and compares it field by field with `bitcoin/expected-report.json`. Only chain-dependent values are substituted: the sat and its alias, the anchoring entry, inscription ids, part 2's envelope digest, block heights, the tip and the holder.
+- reads everything back through ord's JSON API only: the sat's inscriptions, each inscription's metaprotocol, content type, height, satpoint and envelope (from its reveal transaction), each block's transaction order, the holder and the tip. It builds the P9.18 evidence set from those reads: a `sat-read` input in P14.25's form and one `inscription` input per envelope.
+- computes the report with `report.mjs`, which uses the checker's helpers and not the generator's, and compares it field by field with `bitcoin/expected-report.json`. Only chain-dependent values are substituted: the sat and its alias, the anchoring entry, inscription ids, part 2's envelope digest, the `sat-read` input's digest, block heights, the tip and the holder.
 
 A passing run writes `regtest/last-run.json`, which the register cites. ord 0.29.x marks part 1 as vindicated, because its metadata spans several pushes, which ord counts as a duplicate field, and marks part 2 as a vindicated reinscription. P14.12 says this changes nothing.
 

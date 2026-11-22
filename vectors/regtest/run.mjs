@@ -219,7 +219,21 @@ async function main() {
       holder: output.address ?? null, number: info.number, charms: info.charms,
     });
   }
-  const evidence = { network: 'regtest', tip, depth: 1, sat: SAT, inscriptions: reads };
+  // The evidence set: what ord read, as a sat-read input and one inscription
+  // input per envelope (P7.17, P14.25). ord lists the sat's inscriptions; the
+  // positions come from the reads above and confirmations from the tip.
+  if (reads.some((x) => x.sat !== SAT)) throw new Error('ord placed an inscription on another sat');
+  const ordered = [...reads].sort((a, b) => a.height - b.height || a.txIndex - b.txIndex || a.inscriptionIndex - b.inscriptionIndex);
+  const holderRead = ordered.length ? ordered[ordered.length - 1].holder : null;
+  const satRead = {
+    network: 'regtest', sat: SAT, tip, complete: true, holder: holderRead === null ? null : { address: holderRead },
+    inscriptions: ordered.map((x) => ({ id: x.id, height: x.height, txIndex: x.txIndex, inscriptionIndex: x.inscriptionIndex, confirmations: tip.height - x.height + 1 })),
+  };
+  const satReadBytes = new TextEncoder().encode(JSON.stringify(satRead, null, 2) + '\n');
+  const evidence = {
+    network: 'regtest', tip, depth: 1, satRead: { source: 'bitcoin/sat-read.json', bytes: satReadBytes },
+    inscriptions: ordered.map((x) => ({ id: x.id, envelope: x.envelope, metaprotocol: x.metaprotocol, contentType: x.contentType })),
+  };
   const report = await computeReport(evidence);
 
   // ---------- Compare with the vector's expected report ----------
@@ -228,16 +242,19 @@ async function main() {
   // envelope digest, block heights, the tip and the holder's address.
   const expected = vjson('bitcoin/expected-report.json');
   const chain = vjson('bitcoin/chain.json');
-  const vBtco = `did:btco:reg:${chain.sat}`;
+  const vRead = vjson('bitcoin/sat-read.json');
+  const vBtco = `did:btco:reg:${vRead.sat}`;
   let text = JSON.stringify(expected)
     .replaceAll(vBtco, BTCO)
     .replaceAll(e4v.versionId, e4.versionId)
     .replaceAll(chain.inscriptions[0].id, `${r1id}i0`)
     .replaceAll(chain.inscriptions[1].id, `${r2id}i0`)
     .replaceAll(resourceDigest(env2Estimate), resourceDigest(env2))
-    .replaceAll(chain.holder.address, holderAddr);
+    .replaceAll(vRead.holder.address, holderAddr);
   const want = JSON.parse(text);
   want.evidence.tip = tip;
+  // The sat-read input's bytes name the real sat, ids, heights and tip.
+  want.evidence.inputs[0] = { kind: 'sat-read', source: 'bitcoin/sat-read.json', digest: resourceDigest(satReadBytes) };
   const finalHeight = reads.find((x) => x.id === `${r2id}i0`)?.height;
   for (const e of want.entries) e.block = finalHeight;
 
@@ -264,7 +281,7 @@ async function main() {
     transactions: { commit: commitTxid, revealPart1: r1id, revealPart2: r2id },
     inscriptions: reads.map(({ envelope: env, ...x }) => ({ ...x, envelopeBytes: env.length, envelopeDigest: resourceDigest(env) })),
     part1EnvelopeMatchesVector: env1Same,
-    anchoringEntry: e4.versionId, tip,
+    anchoringEntry: e4.versionId, tip, satRead,
     report,
     differences: diffs,
   };
