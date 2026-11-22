@@ -1,11 +1,11 @@
 {
-  "original": "did:og:QmZybmTPf5sg2HJ9uwNyqFXGJ8mhZHqD3qj2vR9vPozwPk",
+  "original": "did:og:QmV2yQcaZ5eeDyWKqeHW5whoWmhtH9ZygNfDcnFEqEt4vW",
   "checkpoint": null,
   "inputs": [
     {
       "kind": "package",
       "source": "local/package/evidence.zip",
-      "digest": "zQmWigZsh67mqpQFF5XWrJGnonuCk9pF6B8dfbDPir8twgT"
+      "digest": "zQmZ1GtNCnNpkBUeCHHaqY4dR4rCUCtZ9RdwARPYJoGEDPm"
     }
   ],
   "signerHistories": [

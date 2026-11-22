@@ -95,11 +95,19 @@ const ASSET_OPT = ['body', 'editors', 'metadata', 'preview'];
 function checkOgLog(entries, authorDoc, resources, label) {
   const scid = checkChain(entries, label);
   const did = `did:og:${scid}`;
-  eq(entries[0].parameters, { method: 'og:1.0-draft.1', scid }, `${label}: genesis parameters (P14.1)`);
+  eq(entries[0].parameters, { method: 'og:1.0-draft.1', scid, updateKeys: [] }, `${label}: genesis parameters, updateKeys [] (P14.1)`);
+  entries.forEach((entry, i) => {
+    eq(Object.keys(entry).sort(), ['parameters', 'proof', 'state', 'versionId', 'versionTime'], `${label} entry ${i + 1}: entry members (P14.27)`);
+    ok(/^[1-9][0-9]*-z?[1-9A-HJ-NP-Za-km-z]+$/.test(entry.versionId) && !entry.versionId.includes('-z'), `${label} entry ${i + 1}: versionId form (P14.27)`);
+    ok(Array.isArray(entry.proof) && entry.proof.length === 1, `${label} entry ${i + 1}: proof is an array of one (P14.27)`);
+  });
   let anchored = false;
   entries.forEach((entry, i) => {
     const L = `${label} entry ${i + 1}`;
-    if (i > 0) eq(entry.parameters, {}, `${L}: parameters`);
+    if (i > 0) {
+      const pk = JSON.stringify(entry.parameters);
+      ok(pk === '{}' || (!entry.state.editor && pk === '{"updateKeys":[]}'), `${L}: parameters {} or, for an author entry, {"updateKeys": []} (P14.1)`);
+    }
     const s = entry.state;
     eq(Object.keys(s).sort(), STATE, `${L}: state members (P14.4)`);
     ok(s.id === did, `${L}: id`);
@@ -326,6 +334,77 @@ chain.inscriptions.forEach((x, k) => ok(br.evidence.inputs[k].digest === resourc
 eq(br.entries.map((e) => e.versionId), inscribed.map((e) => e.versionId), 'bitcoin report: entries');
 ok(br.axes.state === 'current' && br.axes.bitcoin === 'anchored' && br.axes.availability === 'partial', 'bitcoin report: axes');
 ok(br.missing[0].digest === inscribed[0].state.asset.resource.digest, 'bitcoin report: version 1 bytes are missing');
+
+// genesis vector (P14.1, P14.27–P14.29)
+{
+  const gl = parseLines(read('genesis/did.jsonl'), 'genesis log');
+  ok(gl.length === 1, 'genesis: one entry');
+  const ge = gl[0];
+  checkOgLog(gl, authorDoc, { [resourceDigest(v1)]: read('genesis/resources/v1.md') }, 'genesis');
+  eq(ge, localLog[0], 'genesis: the same entry as local entry 1');
+  const scid = ge.parameters.scid;
+  // P14.28 verification steps, written out independently of checkChain.
+  const { proof, ...noProof } = ge;
+  const placeholder = JSON.parse(JSON.stringify({ ...noProof, versionId: '{SCID}' }).split(scid).join('{SCID}'));
+  ok(bytesEq(read('genesis/scid-input.json'), J(placeholder)), 'genesis: scid-input.json is the JCS form of the placeholder entry (P14.28)');
+  ok(multihash(read('genesis/scid-input.json')) === scid, 'genesis: SCID is the multihash of scid-input.json (P14.28)');
+  ok(bytesEq(read('genesis/entry-hash-input.json'), J({ ...noProof, versionId: scid })), 'genesis: entry-hash-input.json is the entry with versionId = SCID (P14.29)');
+  ok(ge.versionId === '1-' + multihash(read('genesis/entry-hash-input.json')), 'genesis: versionId is 1- and the entry hash (P14.29)');
+  ok(ge.state.id === `did:og:${scid}`, 'genesis: state.id is did:og and the SCID');
+  const d = readJSON('genesis/derivation.json');
+  ok(d.scid === scid && d.versionId === ge.versionId, 'genesis: derivation.json values');
+  const gr = readJSON('genesis/expected-report.json');
+  ok(gr.checkpoint === ge.versionId && gr.original === `did:og:${scid}`, 'genesis report: checkpoint and original');
+  eq(gr.axes, { outcome: 'verified', binding: 'bound', history: 'valid', identity: 'complete', authority: 'current', state: 'valid-as-of', availability: 'complete', offline: 'self-contained', bitcoin: 'not-read' }, 'genesis report: axes');
+  const gev = readJSON('genesis/evidence-set.json');
+  ok(gev.inputs.every((x) => x.digest === resourceDigest(read(x.source.replace(/^genesis\//, 'genesis/')))), 'genesis: evidence-set digests');
+}
+
+// prior-format fixture: the mainnet acceptance Original of 1 November 2026 (T14-085)
+{
+  const PF = join(ROOT, '..', 'prior-format');
+  const chain = JSON.parse(readFileSync(join(PF, 'chain.json'), 'utf8'));
+  const dsha = (b) => sha(sha(b));
+  const entries = [];
+  for (const x of chain.inscriptions) {
+    const tx = Buffer.from(readFileSync(join(PF, x.transaction), 'utf8').trim(), 'hex');
+    // Parse a segwit transaction; the txid is over the serialization without marker, flag and witness.
+    let i = 4;
+    ok(tx[4] === 0 && tx[5] === 1, `prior ${x.revealTxid}: segwit marker`);
+    i = 6;
+    const varint = () => { const f = tx[i++]; if (f < 0xfd) return f; if (f === 0xfd) { const v = tx.readUInt16LE(i); i += 2; return v; } if (f === 0xfe) { const v = tx.readUInt32LE(i); i += 4; return v; } throw new Error('varint'); };
+    const insStart = i;
+    const nin = varint();
+    for (let k = 0; k < nin; k++) { i += 36; const n = varint(); i += n + 4; }
+    const nout = varint();
+    for (let k = 0; k < nout; k++) { i += 8; const n = varint(); i += n; }
+    const insEnd = i;
+    const witness = [];
+    for (let k = 0; k < nin; k++) { const n = varint(); const items = []; for (let m = 0; m < n; m++) { const l = varint(); items.push(tx.subarray(i, i + l)); i += l; } witness.push(items); }
+    const lock = tx.subarray(i, i + 4); i += 4;
+    ok(i === tx.length, `prior ${x.revealTxid}: whole transaction parsed`);
+    const legacy = Buffer.concat([tx.subarray(0, 4), tx.subarray(insStart, insEnd), lock]);
+    ok(Buffer.from(dsha(legacy)).reverse().toString('hex') === x.revealTxid, `prior ${x.revealTxid}: txid matches the transaction bytes`);
+    const script = witness[0][1];
+    const at = script.indexOf(Buffer.from([0x00, 0x63, 0x03, 0x6f, 0x72, 0x64]));
+    ok(at >= 0, `prior ${x.revealTxid}: ord envelope in the reveal script`);
+    // Read the envelope's fields: tag 1 (content type) only, then the body.
+    let j = at + 6; const fields = {}; const body = [];
+    const pushData = () => { const o = script[j++]; let n; if (o <= 75) n = o; else if (o === 0x4c) n = script[j++]; else if (o === 0x4d) { n = script[j] | (script[j + 1] << 8); j += 2; } else return null; const dd = script.subarray(j, j + n); j += n; return dd; };
+    while (script[j] !== 0x68) {
+      const tag = pushData();
+      if (tag.length === 0) { while (script[j] !== 0x68) body.push(pushData()); break; }
+      (fields[tag[0]] ??= []).push(pushData());
+    }
+    ok(Object.keys(fields).join() === '1' && td.decode(fields[1][0]) === chain.contentType, `prior ${x.revealTxid}: content type only, no metaprotocol (not an Originals inscription under P9.31)`);
+    for (const e of parseLines(new Uint8Array(Buffer.concat(body)), `prior ${x.revealTxid} body`)) entries.push(e);
+  }
+  checkChain(entries, 'prior-format log');
+  ok(entries[0].parameters.method === chain.method && chain.method !== 'og:1.0-draft.1', 'prior: method value is originals:1.0, not one this draft implements (P14.1)');
+  ok(entries[0].state.id === chain.did && chain.did.startsWith('did:vh:'), 'prior: identifier is the earlier did:vh form');
+  const pr = JSON.parse(readFileSync(join(PF, 'expected-report.json'), 'utf8'));
+  ok(pr.axes.outcome === 'unsupported' && Object.keys(pr.axes).length === 1 && pr.checkpoint === null, 'prior: expected outcome unsupported, with no state (T14-085)');
+}
 
 console.log(`${checks} checks, ${failures} failures`);
 process.exit(failures ? 1 : 0);

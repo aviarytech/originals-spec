@@ -14,6 +14,12 @@ npm run vectors:check  # verify it independently
 
 ## One Original, three layers
 
+The genesis entry's parameters are `method`, `scid` and `updateKeys` `[]` (P14.1); `updateKeys` authorizes nothing, and the author entry is checked against the author DID.
+
+### `genesis/`
+
+The genesis entry on its own (P14.27–P14.29): `did.jsonl`, `scid-input.json` (the exact JCS bytes of the entry with `{SCID}` placeholders, hashed to the SCID), `entry-hash-input.json` (the exact JCS bytes hashed to the entry hash), `derivation.json`, the author's log and resource version 1, `evidence-set.json` and `expected-report.json`. The two implementations that must agree on it are the Originals SDK and `tools/check.mjs` (T14-091).
+
 The Original is "Field notes", a `text/markdown` resource whose genesis names the `regtest` network. Its author is a did:webvh 1.0 DID at `author.example` with one entry. The asset log is signed by `#key-1`, an assertionMethod key that is not an updateKey (P5.3).
 
 | Entry | Signer | Change |
@@ -55,3 +61,7 @@ This vector is **synthetic**. No regtest chain produced these transactions or bl
 - `inscriptions/part-{1,2}.metadata.cbor`: each part's metadata. This is the concatenation of its tag-5 pushes.
 - `evidence-set.json`: exactly the P9.18 evidence set, which is the sat's inscriptions at the stated network and tip.
 - `expected-report.json`: the report. `state` is `current` and `bitcoin` is `anchored`, with the holder `provisional`. `availability` is `partial`, because version 1's bytes are not on Bitcoin, and `offline` is `needs-external`.
+
+## `prior-format/`
+
+Not generated. The mainnet acceptance Original of 1 November 2026, written before `did:og` under `originals:1.0`, with the identifier `did:vh:QmVyqQ…sa5` and the log as the inscription body (content type `application/vnd.originals.vh+jsonl`, no metaprotocol). `transactions/` holds its two reveal transactions exactly as `https://mempool.space/api/tx/<txid>/hex` returned them on 21 November 2026; `chain.json` gives their blocks and the sat named in the owner's acceptance receipt. The checker recomputes each txid from the bytes, extracts the ord envelope from the reveal witness, checks the hash chain of the three entries it carries, and checks that the expected report is outcome `unsupported` (P14.1, T14-085).

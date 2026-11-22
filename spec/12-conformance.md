@@ -4,7 +4,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 
 ### Proposed minimum test matrix
 
-The matrix has 390 rows, grouped by the section of the first rule each tests. Every row has:
+The matrix has 403 rows, grouped by the section of the first rule each tests. Every row has:
 
 - an **ID**, `T<section>-<number>`. IDs are stable: a row keeps its ID when rows are added or moved, a new row takes the next unused number in its section, and the number of a removed row is never reused. Fixtures and reports cite rows by ID;
 - an **actor**: a *verifier* (including a resolver or reader), a *writer* (the part of the SDK that makes entries, packages, carriers and inscriptions), a *host* (P6.7, P9.7, P14.11) or the *SDK* as a whole, including its signing display and storage;
@@ -24,7 +24,7 @@ Rows that concern only the experimental additions are in their own document, wit
 | T3-004 | verifier | Asset state lists a did:webvh whose document points elsewhere | Alias not confirmed; the `did:og` still verifiable directly | P3.6 |
 | T3-005 | verifier | Served DID document for the `did:og` that differs from the one derived from the log | Ignored; the derived document is used | P3.8 |
 | T3-006 | verifier | Derived DID document | Same for every resolver; `controller`, `alsoKnownAs` and `#files` match the author DID and asset state | P3.8, P14.9 |
-| T3-007 | verifier | Generic VH-Log processor, or a resolver for did:vh, given a `did:og` log | Rejected by its unrecognised `method` value | P3.5, P14.1 |
+| T3-007 | verifier | Generic VH-Log processor, or a resolver for did:vh, given a `did:og` log | Rejected by its unrecognised `method` value, and its empty `updateKeys` authorizes no key for it | P3.5, P14.1 |
 | T3-008 | verifier | did:btco DID document inscribed on the anchoring sat by its holder | Ignored for the Original; a generic did:btco result is not reported as Originals verification | P3.5, P9.31 |
 | T3-009 | verifier | The Original’s did:webvh alias moves to another host | Unanchored: handled as an alias change by an author entry (P3.6, P9.3). Anchored: a new did:webvh alias is rejected (P9.10). Author binding unaffected either way | P3.6, P9.3, P9.10 |
 | T3-010 | verifier | Exact-checkpoint resolution of a checkpoint the resolver cannot supply | Reports why; the latest checkpoint is not substituted | P3.2 |
@@ -54,7 +54,7 @@ Rows that concern only the experimental additions are in their own document, wit
 | T5-002 | verifier | Valid key of an identity other than the Original’s author DID, with no grant in the parent’s state covering the change | Entry `rejected`; identity alone grants no edit right | P5.4, P5.16, P5.17 |
 | T5-003 | verifier | Valid VH entry, key not a method of the named signer DID (the author DID, or the editor DID for an editor entry) | Entry `rejected`; `identity` `failed`; VH validity cannot rescue it | P5.3, P5.4 |
 | T5-004 | verifier | Wrong DID method binding or relationship | Entry `rejected`; `identity` `failed` | P5.3 |
-| T5-005 | verifier | Entry that sets updateKeys or nextKeyHashes | Rejected | P5.10, P5.9 |
+| T5-005 | verifier | Entry that sets a non-empty `updateKeys` or any `nextKeyHashes` | Rejected | P5.10, P5.9, P14.1 |
 | T5-006 | verifier | Entry signed by a key the author DID added, with no asset log entry for the change | Accepted | P5.10 |
 | T5-007 | verifier | Author key not under assertionMethod in the author DID | Entry `rejected`; `identity` `failed` | P5.3 |
 | T5-008 | verifier | Author key that is also an updateKey of the author DID’s own log | Entry `rejected`; `identity` `failed` | P5.3 |
@@ -322,7 +322,7 @@ Rows that concern only the experimental additions are in their own document, wit
 | T9-089 | verifier | Writer inscribing a version whose `mediaType` is not an `image/` type, with no preview supplied | Names no preview and signs `body` `none`, unless the author chooses the full version and it signs `full` | P9.30 |
 | T9-090 | verifier | Writer inscribing a version whose `mediaType` is an `image/` type, including `image/svg+xml` and an animated image | Generates an `image/webp` preview of at most 8,192 bytes, rasterising an SVG, and names it in the entry, unless the author chooses the full version | P9.30 |
 | T9-091 | verifier | Writer inscribing an `image/` version it cannot decode, or cannot fit in a WebP preview of 8,192 bytes | Tells the author and names no preview; the entry signs `body` `full` or `none` | P9.30 |
-| T9-092 | verifier | Writer adding a version whose generated preview is byte-identical to its parent’s | Makes another preview or names none; never signs the parent’s `preview` unchanged | P9.30 |
+| T9-092 | writer | Two distinct `image/` versions, the second replacing the first, whose WebP previews the writer generates from each version’s bytes come out byte-identical | Names that preview in the new entry, with the new version’s descriptor; accepted; the inscription shows the same preview bytes again | P9.30 |
 | T9-093 | verifier | Entry naming a preview of a media type other than `image/webp` for a version whose `mediaType` is an `image/` type, including an `image/svg+xml` preview of an `image/svg+xml` version, or one whose type is `Image` in another case | Rejected | P9.30 |
 | T9-094 | verifier | Author-supplied preview of any media type for a version that is not an image | Accepted, within 8,192 bytes | P9.30 |
 | T9-095 | writer, verifier | Preview of 0 bytes | Rejected; a writer never names one | P9.30, P14.5 |
@@ -332,7 +332,7 @@ Rows that concern only the experimental additions are in their own document, wit
 | T9-099 | verifier | Entry after anchoring that names a preview, signed but never inscribed | Not current (P9.12); its preview is not shown on Bitcoin | P9.12, P9.30 |
 | T9-100 | verifier | Anchoring entry naming a preview, its parent naming none | Accepted | P9.30 |
 | T9-101 | verifier | Entry after the anchor that changes the resource and names a preview of the new version, inscribed with it as its body | Accepted; the sat shows the new preview | P9.17, P9.30 |
-| T9-102 | verifier | Entry that changes the resource’s digest and carries its parent’s `preview` unchanged | Rejected; it names a preview of the new version, or none | P9.30 |
+| T9-102 | verifier | Entry that changes the resource’s digest and names a preview byte-identical to its parent’s | Accepted; a verifier cannot tell a regenerated preview from a copied one | P9.30 |
 | T9-103 | verifier | Entry other than the anchoring entry that does not change the resource and names a preview other than its parent’s, or names one when its parent named none | Rejected | P9.30 |
 | T9-104 | verifier | Inscription whose last entry names no preview and whose version’s `size` is 0, with an empty body and that `mediaType` as content type | Accepted; an empty body is a body, not an absent one | P9.17, P14.12 |
 | T9-105 | verifier | Originals inscription that names a delegate, with or without a body | Rejected as a whole | P9.17, P14.12 |
@@ -359,6 +359,7 @@ Rows that concern only the experimental additions are in their own document, wit
 | T9-126 | SDK | Uploading bytes, publishing a locator or changing an index, with no authorized transition in the operation | No entry signed or appended | P9.2 |
 | T9-127 | SDK | Rebroadcast of an anchoring or later publication’s unconfirmed transaction | The same transaction rebroadcast; no entry re-signed or rebased | P9.6 |
 | T9-128 | SDK | Fee bump of an unconfirmed publication by a replacement transaction | Prepared and reported as a replacement carrying the same signed entries; no entry re-signed or rebased | P9.6 |
+| T9-129 | writer | Entry changing the resource’s digest, where the writer has not generated a preview from the new version’s bytes (or, for a non-image version, been given one by the author) | Names no preview; never copies its parent’s `preview` without regenerating it | P9.30 |
 
 #### Wire format (§14)
 
@@ -415,7 +416,7 @@ Rows that concern only the experimental additions are in their own document, wit
 | T14-049 | verifier | JSON document `{"originalLog":[…]}` with a leading byte order mark / with no other member | Member found; the version is the byte order mark and `{}` / `{}` | P14.17 |
 | T14-050 | verifier | JSON document nested 1,025 levels outside the entries, counting the root object as level 1 | No JSON member | P14.17 |
 | T14-051 | verifier | `aliases` holding a DID of any other method, or the same DID twice | Rejected | P14.5 |
-| T14-052 | verifier | Genesis parameters other than exactly `method` and `scid`; a later entry with a non-empty parameters object that is not a deactivation; a null parameter value | Rejected | P14.1 |
+| T14-052 | verifier | Genesis parameters other than exactly `method`, `scid` and `updateKeys`; a later entry whose parameters are neither `{}`, `{"updateKeys": []}` nor a deactivation’s; a null parameter value | Rejected | P14.1 |
 | T14-053 | verifier | Carried file with a wrong or missing file name extension | The extension is only a hint; the other carriers are tried, and the carrier found is checked against the verified descriptor’s `mediaType` | P14.14 |
 | T14-054 | verifier | Descriptor `mediaType` with a parameter, such as `text/plain; charset=utf-8` | Rejected; the parameter is not ignored | P14.6, P14.14 |
 | T14-055 | verifier | Text block whose closer line is not directly preceded by the END marker, or whose BEGIN marker in a block comment is not directly preceded by the opener | No carrier | P14.16 |
@@ -443,20 +444,32 @@ Rows that concern only the experimental additions are in their own document, wit
 | T14-077 | verifier | Evidence package whose manifest `checkpoint` is not an entry of `asset/did.jsonl`, or whose `head` is not its last entry | Rejected | P14.10 |
 | T14-078 | writer | Inscription metadata and envelope fields | Members in the order `entries`, `signers`, `part`, and fields in ord 0.29.1’s order; a reader accepts any order ord accepts | P14.12 |
 | T14-079 | host | The shared-host saves in `vectors/og-1.0-draft.1/hosted/exchanges.json`, applied in order | `accepted`, then `stale-parent` with the new head, then `already-accepted` | P6.7, P14.26 |
+| T14-080 | verifier | Genesis entry whose parameters are exactly `method`, `scid` and `updateKeys` `[]` | Accepted; `updateKeys` authorizes nothing, and the author entry is checked under P5.3 | P14.1, P5.3 |
+| T14-081 | verifier | Genesis entry with no `updateKeys` parameter | Rejected | P14.1 |
+| T14-082 | verifier | Genesis or later author entry whose `updateKeys` is non-empty, even listing the author’s own signing key | Rejected; a non-empty `updateKeys` is reserved for a later method version | P14.1 |
+| T14-083 | verifier | Editor entry whose parameters carry `updateKeys`, even `[]` | Rejected | P14.1, P5.16 |
+| T14-084 | verifier | Later author entry whose parameters are exactly `{"updateKeys": []}`; deactivation whose parameters are `{"deactivated": true, "updateKeys": []}` | Accepted | P14.1, P6.5 |
+| T14-085 | verifier | Log, package or inscription under another `method` value, such as the mainnet acceptance Original of 1 November 2026 (`originals:1.0`, `vectors/prior-format/`) | outcome `unsupported`; neither `verified` nor `invalid`; no state reported | P14.1, P3.3, P7.18 |
+| T14-086 | verifier | Entry with a member other than `versionId`, `versionTime`, `parameters`, `state` and `proof`, without one of them, or with `proof` not an array of one proof | Rejected | P14.27 |
+| T14-087 | verifier | Log whose version numbers skip, repeat or start other than at 1, or have a leading zero | Rejected | P14.27 |
+| T14-088 | verifier | Genesis entry whose SCID does not match the hash of the entry with `{SCID}` placeholders; or whose `state.id` is not `did:og:` and the SCID | Rejected | P14.28, P3.1 |
+| T14-089 | verifier | Entry whose entry hash is not computed over its predecessor’s `versionId` (or the SCID for genesis), or an SCID or entry hash using a multihash other than SHA-256 | Rejected | P14.29, P14.28 |
+| T14-090 | verifier | `did:og` log checked by a VH-Log or did:vh library for its SCID and hash chain | The same SCID and entry hashes as P14.28 and P14.29; not a verification of the Original | P14.29, P3.5 |
+| T14-091 | writer, verifier | Genesis vector `vectors/og-1.0-draft.1/genesis/` | The writer reproduces the entry byte for byte from its inputs; the verifier reproduces its SCID, entry hash and expected report | P14.26, P14.28, P14.29, P14.1 |
 
 ### Coverage
 
 Each core rule and the number of rows that test it. Every core rule has at least one row. A rule number counts as covered when one row tests one of its requirements; P9.15, P9.17 and P14.13 each bundle many requirements, and their rows test each table row, body mode and limit separately.
 
 - Section 2: P2.1 (2), P2.2 (1), P2.3 (1).
-- Section 3: P3.1 (1), P3.2 (1), P3.3 (3), P3.4 (1), P3.5 (3), P3.6 (4), P3.7 (1), P3.8 (2), P3.9 (1).
+- Section 3: P3.1 (2), P3.2 (1), P3.3 (4), P3.4 (1), P3.5 (4), P3.6 (4), P3.7 (1), P3.8 (2), P3.9 (1).
 - Section 4: P4.1 (2), P4.2 (2), P4.3 (1), P4.4 (4), P4.5 (1), P4.6 (2).
-- Section 5: P5.1 (2), P5.2 (2), P5.3 (8), P5.4 (2), P5.5 (1), P5.6 (3), P5.7 (2), P5.8 (4), P5.9 (2), P5.10 (2), P5.11 (3), P5.12 (2), P5.13 (18), P5.14 (9), P5.15 (6), P5.16 (8), P5.17 (3), P5.18 (3).
-- Section 6: P6.1 (1), P6.2 (1), P6.3 (1), P6.4 (1), P6.5 (5), P6.6 (6), P6.7 (4), P6.8 (3), P6.9 (13).
-- Section 7: P7.1 (4), P7.2 (1), P7.3 (1), P7.4 (5), P7.5 (8), P7.6 (1), P7.7 (4), P7.8 (7), P7.9 (2), P7.10 (2), P7.11 (1), P7.12 (5), P7.13 (6), P7.14 (7), P7.15 (6), P7.16 (4), P7.17 (8), P7.18 (4), P7.19 (7), P7.20 (9), P7.21 (5), P7.22 (7), P7.23 (1).
+- Section 5: P5.1 (2), P5.2 (2), P5.3 (9), P5.4 (2), P5.5 (1), P5.6 (3), P5.7 (2), P5.8 (4), P5.9 (2), P5.10 (2), P5.11 (3), P5.12 (2), P5.13 (18), P5.14 (9), P5.15 (6), P5.16 (9), P5.17 (3), P5.18 (3).
+- Section 6: P6.1 (1), P6.2 (1), P6.3 (1), P6.4 (1), P6.5 (6), P6.6 (6), P6.7 (4), P6.8 (3), P6.9 (13).
+- Section 7: P7.1 (4), P7.2 (1), P7.3 (1), P7.4 (5), P7.5 (8), P7.6 (1), P7.7 (4), P7.8 (7), P7.9 (2), P7.10 (2), P7.11 (1), P7.12 (5), P7.13 (6), P7.14 (7), P7.15 (6), P7.16 (4), P7.17 (8), P7.18 (5), P7.19 (7), P7.20 (9), P7.21 (5), P7.22 (7), P7.23 (1).
 - Section 8: P8.1 (1), P8.2 (1), P8.3 (2), P8.4 (2), P8.5 (13).
-- Section 9: P9.1 (1), P9.2 (2), P9.3 (1), P9.4 (1), P9.5 (4), P9.6 (3), P9.7 (3), P9.8 (1), P9.9 (1), P9.10 (15), P9.11 (3), P9.12 (7), P9.13 (9), P9.14 (1), P9.15 (36), P9.16 (10), P9.17 (25), P9.18 (11), P9.30 (25), P9.31 (8), P9.32 (5), P9.33 (13), P9.34 (5), P9.35 (2), P9.36 (5).
-- Section 14: P14.1 (3), P14.2 (4), P14.3 (9), P14.4 (9), P14.5 (11), P14.6 (5), P14.7 (3), P14.8 (8), P14.9 (3), P14.10 (11), P14.11 (2), P14.12 (13), P14.13 (14), P14.14 (6), P14.15 (4), P14.16 (15), P14.17 (9), P14.25 (1), P14.26 (3).
+- Section 9: P9.1 (1), P9.2 (2), P9.3 (1), P9.4 (1), P9.5 (4), P9.6 (3), P9.7 (3), P9.8 (1), P9.9 (1), P9.10 (15), P9.11 (3), P9.12 (7), P9.13 (9), P9.14 (1), P9.15 (36), P9.16 (10), P9.17 (25), P9.18 (11), P9.30 (26), P9.31 (8), P9.32 (5), P9.33 (13), P9.34 (5), P9.35 (2), P9.36 (5).
+- Section 14: P14.1 (11), P14.2 (4), P14.3 (9), P14.4 (9), P14.5 (11), P14.6 (5), P14.7 (3), P14.8 (8), P14.9 (3), P14.10 (11), P14.11 (2), P14.12 (13), P14.13 (14), P14.14 (6), P14.15 (4), P14.16 (15), P14.17 (9), P14.25 (1), P14.26 (4), P14.27 (2), P14.28 (3), P14.29 (3).
 
 Not covered, because the requirement is out of the core: the read-authorization rules, signer sets, parent Originals and scopes, whose rows moved with them to the additions; the limit on nested parents; the read request’s member set and challenge entropy, which the additions define.
 
@@ -467,4 +480,5 @@ Release evidence should include positive and negative fixtures, pinned profile d
 - an independent verifier reproduces every positive checkpoint and produces the same report for each fixture’s evidence set (P7.17), row by row, citing row IDs;
 - fresh-process tests run with no private key in the reader and without network dependencies, from complete packages whose `offline` result is `self-contained` (T7-001), beside partial-package tests;
 - the application’s own hosted publication paths, not only the SDK’s adapters, publish through this profile and pass exact-snapshot reader regressions: a fresh reader of each published snapshot reaches the writer’s checkpoint (P9.1, P9.2);
-- the Bitcoin rows run against a test network before any mainnet anchoring (P9.18).
+- the Bitcoin rows run against a test network before any mainnet anchoring (P9.18): first a scripted regtest run under `vectors/regtest/`, which starts bitcoind and ord 0.29.x on regtest, inscribes the vector’s publications, reads them back through ord and checks the expected report (P9.31, P14.26); then a fresh mainnet inscription in the current format, made by the owner. The release-blocker row for the mainnet gate stays open until the register records both results with their transaction ids;
+- the Originals SDK reproduces the genesis vector (T14-091), so that it and the vectors checker are two implementations that agree on it.

@@ -37,7 +37,7 @@
 ~ An identity that signs an entry: the author for an author entry, or the named editor for an editor entry.
 
 [[def: updateKey, updateKeys]]:
-~ A VH key, expressed as raw Multikey material, that may append the next entry to a log under the previous accepted entry’s rules. An asset log has none: its authorized keys come from the author DID ([P5.9](#p5.9)).
+~ A VH key, expressed as raw Multikey material, that may append the next entry to a log under the previous accepted entry’s rules. An asset log has none: its `updateKeys` parameter is always the empty array, reserved for a later method version, and its authorized keys come from the author DID ([P5.9](#p5.9), [P14.1](#p14.1)).
 
 [[def: chain order]]:
 ~ The order of Bitcoin inscriptions on one network by block height, then transaction index in the block, then inscription index in the transaction. On one sat it is the order in which the sat’s inscriptions were made. A publication in parts takes the position of its final part ([P9.32](#p9.32)).

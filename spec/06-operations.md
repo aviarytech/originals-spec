@@ -40,6 +40,6 @@ P6.9 An author entry MAY name, in its `supersedes` member (P14.4), entries that 
 
 The SDK should expose the selected checkpoint, derived resource versions, verification status and actionable error category. Suggested categories are invalid evidence, incomplete evidence, unsupported profile, unauthorized key, author binding failure, stale parent (with the refused candidate kept), change outside the editor’s grant, fork, deactivated asset and unavailable bytes. Concrete API names and error codes remain a compatibility review item.
 
-Plain VH entries carry whole-second versionTime values that strictly increase, so such a log accepts at most one entry per second. The current SDK uses millisecond timestamps. VH-Log’s proposed rule for versionTime precision [S22] lets the extension allow finer values, and P14.2 provisionally uses it: at most three fractional digits, each entry at least one millisecond after the previous one. Confirming that value is open (D5).
+Plain VH entries carry whole-second versionTime values that strictly increase, so such a log accepts at most one entry per second. The current SDK uses millisecond timestamps. `did:og` defines its own versionTime precision (P14.2), provisionally at most three fractional digits, each entry at least one millisecond after the previous one. Confirming that value is open (D5).
 
 Sources: OriginalsAsset, OriginalsSDK and envelope [S4, S6, S7]; SDK transitions [S12].

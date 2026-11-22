@@ -56,7 +56,7 @@ const ogSign = (doc) => proof(authorSigning, doc, authorRef.verificationMethod);
 const g = genesis({
   versionId: '{SCID}',
   versionTime: '2026-01-02T00:00:00Z',
-  parameters: { method: PROFILE, scid: '{SCID}' },
+  parameters: { method: PROFILE, scid: '{SCID}', updateKeys: [] },
   state: {
     id: 'did:og:{SCID}', operation: 'create', author: authorRef,
     asset: { name: 'Field notes', status: 'active', network: 'regtest', resource: desc(v1), aliases: [] },
@@ -125,6 +125,45 @@ const entryLabel = (e, i, all, extra = {}) => ({
   versionId: vid(e), status: 'accepted', authority: 'current-key',
   endorsed: all.slice(i + 1).some((x) => !x.state.editor), ...extra,
 });
+
+// ---------- genesis/ (P14.1, P14.27–P14.29): the genesis entry alone ----------
+{
+  const prelim = {
+    versionId: '{SCID}', versionTime: e1.versionTime, parameters: { method: PROFILE, scid: '{SCID}', updateKeys: [] },
+    state: JSON.parse(JSON.stringify(e1.state).replaceAll(g.scid, '{SCID}')),
+  };
+  const { proof: _p, ...unsigned } = e1;
+  const hashInput = { ...unsigned, versionId: g.scid };
+  put('genesis/did.jsonl', line(e1));
+  put('genesis/scid-input.json', jcs(prelim));
+  put('genesis/entry-hash-input.json', jcs(hashInput));
+  put('genesis/resources/v1.md', v1);
+  put('genesis/author/did.jsonl', authorLog);
+  const inputs = [
+    { kind: 'log', source: 'genesis/did.jsonl', digest: digest(utf8(line(e1))) },
+    { kind: 'signer-history', source: 'genesis/author/did.jsonl', digest: digest(utf8(authorLog)) },
+    { kind: 'resource', source: 'genesis/resources/v1.md', digest: digest(v1) },
+  ];
+  put('genesis/derivation.json', json({
+    note: 'How the genesis entry is derived (P14.28, P14.29). scid-input.json and entry-hash-input.json are the exact JCS bytes hashed.',
+    scid: g.scid, scidInput: 'genesis/scid-input.json', scidMultihash: 'sha2-256 (0x12, 0x20), base58btc, no multibase prefix',
+    entryHash: e1.versionId.split('-')[1], entryHashInput: 'genesis/entry-hash-input.json', versionId: e1.versionId,
+    signer: { verificationMethod: authorRef.verificationMethod, key: authorSigning.label },
+  }));
+  const evidence = { original: OG, checkpoint: null, inputs, signerHistories: [{ did: AUTHOR, source: 'genesis/author/did.jsonl', obtained: '2026-01-06T00:00:00Z' }], network: null, tip: null, depth: null, prior: null };
+  put('genesis/evidence-set.json', json(evidence));
+  put('genesis/expected-report.json', json({
+    type: 'OriginalsVerificationReport', profile: PROFILE, original: OG, checkpoint: vid(e1),
+    evidence: { inputs, network: null, tip: null, depth: null },
+    axes: {
+      outcome: 'verified', binding: 'bound', history: 'valid', identity: 'complete', authority: 'current',
+      state: 'valid-as-of', availability: 'complete', offline: 'self-contained', bitcoin: 'not-read',
+    },
+    entries: [entryLabel(e1, 0, [e1], { ordering: 'claimed' })],
+    signers: [{ did: AUTHOR, role: 'author', latestVersionId: vid(author.entry), source: 'genesis/author/did.jsonl', obtained: '2026-01-06T00:00:00Z', freshness: 'not-established' }],
+    missing: [], dependencies: [],
+  }));
+}
 
 // ---------- local/ ----------
 {

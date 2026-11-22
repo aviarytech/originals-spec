@@ -1,14 +1,14 @@
 {
   "type": "OriginalsVerificationReport",
   "profile": "og:1.0-draft.1",
-  "original": "did:og:QmZybmTPf5sg2HJ9uwNyqFXGJ8mhZHqD3qj2vR9vPozwPk",
-  "checkpoint": "2-QmQJX2Rz6f3PoUXptMuGf9Q3SFUNF11Ti7hTCReoRwWKUQ",
+  "original": "did:og:QmV2yQcaZ5eeDyWKqeHW5whoWmhtH9ZygNfDcnFEqEt4vW",
+  "checkpoint": "2-QmU36PtMBuoUaiC8To9eiE5ooy8xgEPBwjvptzdx27bHY2",
   "evidence": {
     "inputs": [
       {
         "kind": "package",
         "source": "local/package/evidence.zip",
-        "digest": "zQmWigZsh67mqpQFF5XWrJGnonuCk9pF6B8dfbDPir8twgT"
+        "digest": "zQmZ1GtNCnNpkBUeCHHaqY4dR4rCUCtZ9RdwARPYJoGEDPm"
       }
     ],
     "network": null,
@@ -28,14 +28,14 @@
   },
   "entries": [
     {
-      "versionId": "1-QmVTUPYZL2KEtXqfkUDQsNBjxRynEwGeUbBruTnDAjKGq5",
+      "versionId": "1-QmdXPmoxmFpAtqK3ZLVusnXZM422SAou6dRz1mg6i8HrrD",
       "status": "accepted",
       "authority": "current-key",
       "endorsed": true,
       "ordering": "claimed"
     },
     {
-      "versionId": "2-QmQJX2Rz6f3PoUXptMuGf9Q3SFUNF11Ti7hTCReoRwWKUQ",
+      "versionId": "2-QmU36PtMBuoUaiC8To9eiE5ooy8xgEPBwjvptzdx27bHY2",
       "status": "accepted",
       "authority": "current-key",
       "endorsed": false,

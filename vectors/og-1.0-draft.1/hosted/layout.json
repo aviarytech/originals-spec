@@ -1,5 +1,5 @@
 {
-  "alias": "did:webvh:QmP9qq4dYkZQ3umujUuxrH8WMdgwZRPNPSxuxi1KjuefDm:host.example:field-notes",
+  "alias": "did:webvh:QmUg1fNtihPZVbFoxxo9ZEronC5j7vbNS5H9Uv9mcRGEEV:host.example:field-notes",
   "aliasLog": "https://host.example/field-notes/did.jsonl",
   "packageRoot": "https://host.example/field-notes/originals/",
   "resources": [

@@ -6,7 +6,7 @@ Author identity remains distinct from asset identity. An asset identifier does n
 
 ### Decided: the Original is a did:og
 
-Each Original is a `did:og`, `did:og:<SCID>`, whose log is its [[ref: asset log]] (section 1). `did:og` is the Originals DID method, a VH-Log specialisation; it replaces the `did:vh:<SCID>` of earlier drafts, which was never issued (D10). The SCID is the asset log’s SCID; there is no separate DID log for the Original. Resource versions, authority and the holder are derived from the asset log and from Bitcoin, never from a DID document.
+Each Original is a `did:og`, `did:og:<SCID>`, whose log is its [[ref: asset log]] (section 1). `did:og` is the Originals DID method, with its own log format (P14.1–P14.3, P14.27–P14.29); it replaces the `did:vh:<SCID>` of earlier drafts, which was never issued (D10). The SCID is the asset log’s SCID; there is no separate DID log for the Original. Resource versions, authority and the holder are derived from the asset log and from Bitcoin, never from a DID document.
 
 The Original gains aliases, listed in its asset state and in the derived `alsoKnownAs`:
 
@@ -29,7 +29,7 @@ P3.3 A resolver MUST distinguish verified state, missing evidence, unsupported p
 
 P3.4 Publication URLs and redirects MUST NOT independently transfer author or log-control authority. Any continuity claim after relocation MUST be supported by the selected profile’s authenticated evidence.
 
-P3.5 A successful generic VH Log, did:webvh or did:btco resolution MUST NOT be reported as Originals verification. Originals state MUST be derived only by a verifier that applies this profile, because generic resolvers ignore the profile’s additional rules. A generic VH-Log processor rejects an asset log by its unrecognised `method` value (P14.1), and a did:vh resolver of either kind [S3] rejects a `did:og` as another method, so each fails closed rather than showing a different current state. A generic did:btco resolver finds no DID document on an anchoring sat, because the metadata of Originals inscriptions is an array of log entries, not a DID document (P9.17, P14.12); if the sat’s holder inscribes one there, a generic did:btco resolver returns it, and it MUST NOT be used for the Original (P3.8).
+P3.5 A successful generic VH Log, did:vh, did:webvh or did:btco resolution MUST NOT be reported as Originals verification. Originals state MUST be derived only by a verifier that applies this profile, because generic resolvers ignore the profile’s additional rules. A processor for VH Log [S2], whose entry shape the asset log shares (P14.27), rejects an asset log by its unrecognised `method` value and its empty `updateKeys` (P14.1), and a did:vh resolver of either kind [S3] rejects a `did:og` as another method, so each fails closed rather than showing a different current state. A generic did:btco resolver finds no DID document on an anchoring sat, because the metadata of an Originals inscription is an object holding log entries, not a DID document (P9.17, P14.12); if the sat’s holder inscribes one there, a generic did:btco resolver returns it, and it MUST NOT be used for the Original (P3.8).
 
 P3.6 A did:webvh is an alias of an Original only if its DID document points to the Original’s `did:og` and the Original’s asset state lists the did:webvh. A verifier MUST NOT accept either direction alone. A did:webvh DID document MUST NOT be used to derive the Original’s state, resource versions, authority or holder.
 
