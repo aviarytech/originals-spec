@@ -39,6 +39,10 @@ P3.8 The DID document of an Original’s `did:og` MUST be derived from the asset
 
 P3.9 (proposed) At every layer an Original has a DID that resolves to it: its `did:og`, from a copy of its log, a `src` location or a carried file (P7.11); on the web, its did:webvh alias (P3.6); on Bitcoin, its did:btco alias (P9.10), which names a sat that holds at most one Original (P9.34). Every alias in the asset state MUST be a DID. Given any of these DIDs, a resolver applying this profile MUST read the asset log from that layer’s source, verify it under this profile, and return the Original’s `did:og` with its state and report, or report why it cannot (P3.3, P3.5).
 
+::: note
+The aliases overlap the `src` locations that the asset log already records, and the did:btco alias cannot be resolved by the did:btco method alone: a did:btco resolver reads the sat’s DID document, which an Original does not use (P3.8), not its asset log, so only a resolver applying this profile returns the Original (P3.5, P3.9). They are kept because each does work a location cannot: adding the did:btco alias is how an Original is anchored and how a sat is bound to one Original (P9.10, P9.34), and the did:webvh alias gives the Original a DID that ordinary web resolution reaches, bound in both directions (P3.6). Owner ruling, 21 November 2026: no rule change.
+:::
+
 ### Identity history and time
 
 A verification method reference needs a specific identity state and its method-bound history evidence, not an unqualified fetch of today’s DID document. Exact identity versionId references reduce ambiguity, but they do not prove when an entry was signed. An attacker retaining a revoked key can reference an older valid identity version and claim an earlier timestamp.

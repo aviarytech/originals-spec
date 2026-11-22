@@ -1,20 +1,28 @@
 ## SDK replacement
 
-This section is not normative. It maps the existing Originals SDK, at revision 00fc683, onto this profile.
+This section is not normative. It orders the work of replacing the existing Originals SDK, at revision 00fc683, with an implementation of this profile, and lists where the profile departs from that SDK.
 
-### Replacement map
+### Build plan
 
-| Area | Retain | Replace or specify |
-|---|---|---|
-| OriginalsAsset and cel history | Resource semantics and lifecycle | VH transitions and author binding checks |
-| OriginalsSDK and OriginalsSDK3 | Create, load and verify workflow | Profile selection and identity adapters |
-| Envelope | Portable evidence boundary | New discriminator and VH payload |
-| Resource helpers and cel history | Exact bytes and prior digest checks | Profile-specific descriptor encoding |
-| StorageAdapter | Byte storage abstraction for hosting | Durable local commit contract and diagnostics |
-| Hosted adapters | Exact snapshot delivery; did:webvh alias log beside the asset log | Separate Ed25519 signing of the did:webvh log; alias binding (P3.6) |
-| Bitcoin adapters | Durable boundary, retry intent, one-way layer order, block-height gate, ownership snapshot | Current payloads and metadata format |
+The SDK’s history implementation is replaced whole, including its types, codecs, genesis and identifier derivation, replay verification, publication paths and tests. The plan below orders that work by rule, so that each component rests only on components above it, and names the SDK area at 00fc683 it replaces or keeps. It is a build order, not a conformance target: the release claims every rule at once (D21), and each step is done when its rules’ rows in section 12 pass and the published vectors reproduce (P14.26).
 
-This is a semantic mapping, not a final API diff. Existing callers may need explicit profile, identity-evidence or authorization arguments. The SDK’s current history implementation is replaced whole, including its types, codecs, genesis/identifier derivation, replay verification, publication paths and tests.
+| Step | Component | Rules it implements | SDK area at 00fc683 |
+|---|---|---|---|
+| 1 | Byte-level codecs: JSON Lines, JCS, numbers, multihash digests, Multikeys, `eddsa-jcs-2022` proofs | P14.2, P14.3, P14.7, P14.8, P4.2, P5.12 | Replaces the cel codecs; keeps exact-byte resource helpers |
+| 2 | Asset state and entry schema, limits and the method value | P14.1, P14.4–P14.6, P14.9, P14.13, P4.1–P4.6 | Replaces OriginalsAsset types and cel profile rules |
+| 3 | VH-Log entries, SCID and entry hashes, the derived DID document | P3.1–P3.5, P3.8, P14.1 [S2] | Replaces cel identity and genesis derivation |
+| 4 | Signer DID resolution adapters for did:webvh, did:vh and did:btco, and identity by SCID | P5.8, P5.13, P5.14 [S3, S26, S27] | New identity adapters |
+| 5 | Author and editor authorization, grants, key removal and endorsement | P5.1–P5.11, P5.15–P5.18, P7.9, P7.20 | Replaces author-only signing |
+| 6 | The evidence set and the verification report | P7.1–P7.10, P7.17–P7.23, P14.25 | Replaces replay verification and status reporting |
+| 7 | Local operations: create, update, deactivate, forks and superseding, durable commit | P6.1–P6.9, P2.1 | Replaces OriginalsSDK create, load and in-memory commit |
+| 8 | Evidence packages, manifests and carried logs | P7.11–P7.16, P8.1–P8.5, P14.10, P14.14–P14.17 | Replaces the envelope; keeps the portable evidence boundary |
+| 9 | Hosting: the did:webvh alias, shared-host append, serving layout | P3.6, P3.7, P6.7, P6.8, P9.1–P9.9, P14.11 | Replaces hosted adapters; keeps StorageAdapter and exact-snapshot delivery |
+| 10 | Bitcoin reading: ord 0.29.x rules, chain order, the network and the one-Original-per-sat binding | P9.10, P9.13, P9.31, P9.34, P3.9 | Replaces publications.ts resolution and holder snapshots |
+| 11 | Bitcoin verification: publications in parts, inscribed signer histories, head selection and the anchor | P9.11, P9.12, P9.15–P9.18, P9.32, P9.33, P9.35, P9.36 | Replaces Bitcoin verification |
+| 12 | Bitcoin writing: inscription encoding, previews and the signed body mode, broadcasting and replacement | P9.14, P9.17, P9.30, P14.12, P9.6 | Replaces current payloads and metadata; keeps the durable boundary, retry intent and one-way layer order |
+| 13 | Signing display and SDK diagnostics | P5.11, section 6 error categories | Extends the signer interface |
+
+Existing callers may need explicit profile, identity-evidence or authorization arguments; this is a semantic plan, not a final API diff.
 
 ### Deliberate departures from the SDK
 
