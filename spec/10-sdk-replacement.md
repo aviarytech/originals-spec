@@ -33,7 +33,7 @@ This profile keeps the SDK’s behavior unless there is a reason not to. These a
 | Create throws without a signer | Create can return an explicit unsigned draft (section 6) |
 | Commits are in memory; persistence is the caller’s | Durable local commit (P6.2) |
 | Anchoring requires web publication first | An Original can be anchored from local (P9.10, P9.16) |
-| Ownership is reported as confirmed or not | Confirmation depth and index agreement are reported (P9.11) |
+| Ownership is reported as confirmed or not | The holder is reported with the confirmation depth, network, tip and index agreement it rests on, and as provisional unless an index of Originals inscriptions shows no competing anchor (P9.11, P9.16, P9.31) |
 
 No Originals were issued under the CEL 3 format or earlier formats, so the SDK replaces them outright: there is no conversion, migration or legacy verification path ([D7](#d7)).
 

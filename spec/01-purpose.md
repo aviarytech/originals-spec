@@ -22,7 +22,7 @@ VH Log is a draft. Their algorithms, parameter behavior and resolution semantics
 
 Originals defines its own DID method, `did:og`, as a specialisation of VH Log [S2]. Each Original is one `did:og` log, its [[ref: asset log]], and its stable identifier is `did:og:<SCID>`. There is no separate DID log for the Original. The method defines its own `method` values, `og:1.0-draft.1` for this draft, each stating the VH-Log version it implies (P14.1). A generic VH-Log processor, or a resolver for another method, rejects the log by its unrecognised `method` value.
 
-Earlier drafts made each Original a `did:vh:<SCID>` under a proposed did:vh extension mechanism [S19]. That mechanism exists only as an open pull request against the VH-Log-based did:vh pre-draft, now at swcurran/didvh-old [S3], while a different, standalone method is published under the name did:vh, uses the same `did:vh:<SCID>` form and rejects an Originals log. So that two methods do not claim one namespace, Originals no longer uses the did:vh name for its own identifiers (D10). did:vh remains one of the DID methods an author or editor may use (P5.8).
+Earlier drafts made each Original a `did:vh:<SCID>` under a proposed did:vh extension mechanism [S19]. That mechanism exists only as an open pull request against the VH-Log-based did:vh pre-draft, now at swcurran/didvh-old, while a different, standalone method derived from did:webvh is published under the name did:vh [S3], uses the same `did:vh:<SCID>` form and rejects an Originals log. So that two methods do not claim one namespace, Originals no longer uses the did:vh name for its own identifiers (D10). did:vh, meaning that standalone method, remains one of the DID methods an author or editor may use (P5.8).
 
 VH Log defines the log mechanism: entry structure, hash chaining, SCID, parameters, updateKeys, witnesses, watchers, resolution, and the rules for publishing and retrieving log files. This draft does not repeat them. It defines the `did:og` identifier, how its log is sourced and its DID URL handling, and what is specific to Originals. It also profiles did:webvh and did:btco, which name an Original as aliases, and did:vh, did:webvh and did:btco as author DID methods.
 
@@ -43,10 +43,10 @@ Originals adds, outside the log:
 
 - Author identity, verified against the author DID’s own history (section 5).
 - Resource bytes and evidence packages that verify offline (sections 4 and 7).
-- Ownership as the holder of the anchoring sat, with no authority to change the Original (P9.11, P9.12).
+- A holder, whoever holds the anchoring sat, with no authority to change the Original (P9.11, P9.12).
 - A did:webvh alias, a small did:webvh log of its own that points to the `did:og` (P3.6).
 - A verification report that keeps Originals verification distinct from generic resolution (P3.5, section 7).
 
 This relies on VH-Log hooks for an authoritative source [S20], additional cryptosuites [S21], versionTime precision [S22] and locations not reached over HTTPS [S23], which are merged, and on two still open as pull requests: alternative encodings whose decoding may depend on earlier entries [S24], and authorized keys and editors from a controller [S25], which provides the boundary editor entries need (P5.15–P5.18). Section 13 lists, for each open pull request, the revision Originals relies on and the fallback if it does not merge. Because `did:og` is its own method, it needs no did:vh extension mechanism.
 
-Sources: SDK 4 guide [S1]; SDK history engine and full SDK [S12, S16]; VH Log [S2]; did:vh pre-draft and the standalone did:vh [S3].
+Sources: SDK 4 guide [S1]; SDK history engine and full SDK [S12, S16]; VH Log [S2]; the standalone did:vh [S3]; the did:vh pre-draft’s extension pull request [S19].

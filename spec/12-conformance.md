@@ -13,8 +13,8 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Valid key of an identity other than the Original’s author DID, with no grant in the parent’s state covering the change | Rejected; identity alone grants no edit right |
 | Valid VH entry, key not a method of the named signer DID (the author DID, or the editor DID for an editor entry) | Signer binding failure; VH validity cannot rescue it |
 | Wrong DID method binding or relationship | Identity authorization failure |
-| Old identity version with claimed old time | Unanchored: ordering unproven; no timestamp-only acceptance. Anchored: checked against the author DID state at the inscription time (P9.15) |
-| Missing identity history for an entry the accepted state depends on | Incomplete identity evidence; no blanket verified result. For an inscription after the anchor, see P9.15’s unverifiable case |
+| Old identity version with claimed old time | Unanchored: ordering unproven; no timestamp-only acceptance. Anchored: checked against the author DID state that Bitcoin evidences at the inscription, never by its claimed time (P9.15, P9.33) |
+| Missing identity history for an entry the accepted state depends on | Incomplete identity evidence; no blanket verified result. For an inscription after the anchor: rejected if it names a did:vh or did:webvh version not inscribed on the sat; unverifiable only while a did:btco signer’s sat is unread (P9.15) |
 | Missing historical resource bytes | Explicit partial availability; supplied bytes still checked |
 | Caller changes version counter | Counter ignored or rejected; history-derived version retained |
 | Stale parent or prior digest | Conflict; no silent rebase or commit |
@@ -30,27 +30,27 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Old valid prefix served as current | Reported valid as of its checkpoint, never current (P7.10) |
 | Divergent valid branches not settled on Bitcoin | Unresolved conflict; every branch reported; none current; no timestamp winner |
 | Hosted mixed snapshot | Rejected before public result is marked verified |
-| Anchoring sat moved to a new holder | Owner reported as the new holder; author unchanged |
+| Anchoring sat moved to a new holder | The new holder reported as the Original’s holder; author unchanged (P9.11) |
 | After anchoring, author-signed entry not inscribed on the sat | Not current |
-| Inscription on the anchoring sat signed by neither the author nor an editor whose grant covers the change, including one by the owner | Rejected; state unchanged |
-| Author-signed entry inscribed by the owner | Accepted |
+| Inscription on the anchoring sat signed by neither the author nor an editor whose grant covers the change, including one by the holder | Rejected; state unchanged |
+| Author-signed entry inscribed by the holder | Accepted |
 | Entry after anchoring that removes or changes the did:btco alias, or adds another | Rejected |
 | Newer inscription on the sat that does not extend the head | Ignored; state follows the authenticated chain |
-| Same evidence inscribed on a different sat | No ownership conferred |
-| Anchoring an Original from the local or web layer | Accepted; ordering before the anchor claimed only; uniqueness not established; ownership provisional |
+| Same evidence inscribed on a different sat | Does not make anyone the Original’s holder |
+| Anchoring an Original from the local or web layer | Accepted; ordering before the anchor claimed only; uniqueness not established; holder provisional |
 | Entry after anchoring that adds a did:webvh alias when the anchoring entry’s state listed none | Rejected |
-| Two valid anchoring entries for one Original on different sats | The first in chain order is the anchor; the other and its descendants are a conflicting anchor, not current, conferring no ownership |
+| Two valid anchoring entries for one Original on different sats | The first in chain order is the anchor; the other and its descendants are a conflicting anchor, not current, and make no one the holder |
 | Anchoring entry inscribed on a sat other than the one it names | Not an anchor |
 | Publication at the same or a lower block height than the previous accepted one | Not accepted |
 | Bitcoin failure, retry or reorganization | Durable boundary follows adapter policy, not pending intent |
-| Entry signed by a key removed from the author DID | Unanchored: historically authorized, ordering unproven, not current while the latest verified author DID state does not list the key (P7.9). Anchored: an anchoring entry or later inscribed entry is rejected if its inscription time is at or after the removal’s versionTime, unless it names a later did:vh or did:webvh version that lists the key again (P9.15); for did:btco, rejected unless the latest version preceding the inscription lists the key (P5.13) |
+| Entry signed by a key removed from the author DID | Unanchored: historically authorized, ordering unproven, not current while the latest verified author DID state does not list the key (P7.9). Anchored: an anchoring entry or later inscribed entry is rejected if the removal is inscribed on the anchoring sat, for did:vh or did:webvh, or on the DID’s sat, for did:btco, before the entry’s inscription; a removal not on Bitcoin does not affect it (P9.15, P9.33, P5.13) |
 | Accepted anchored entry whose key the author DID later removes | Remains current |
-| Author DID deactivated after an Original is anchored | Accepted state remains current; entries inscribed later rejected |
-| Anchored entry naming a did:vh or did:webvh author DID version whose versionTime is later than its inscription time | Checked against the named version (P9.15) |
-| Block whose timestamp is earlier than an ancestor’s | Inscription time is the greatest ancestor timestamp |
-| Anchored entry whose did:vh or did:webvh signer DID is known only up to a version older than the entry’s inscription time | Checked against the newest known version; the report states that version and when it was obtained (P7.8, P9.15) |
-| Author DID version published with a versionTime before an already accepted inscription it would reject | Retroactive revocation conflict reported; result not silently changed |
-| Any entry after the author DID is deactivated | Not anchored: deactivation reported; entries historically authorized only (P7.9). Anchored: accepted state remains current; entries inscribed later rejected (P9.15) |
+| Author DID deactivated after an Original is anchored | Accepted state remains current; entries inscribed after Bitcoin evidences the deactivation rejected (P9.15) |
+| Anchored entry naming a did:vh or did:webvh author DID version not inscribed on the anchoring sat through its publication | Rejected, not unverifiable (P9.15, P9.33) |
+| Block whose timestamp is earlier than an ancestor’s | No effect; block timestamps do not order or check inscribed entries, chain order does (P9.13, P9.15) |
+| Anchored entry whose did:vh or did:webvh signer has, off Bitcoin, a newer version that removes its key, not inscribed on the sat before the entry | Accepted against the inscribed signer history; the verifier may warn of the newer version beside the result (P7.8, P9.15) |
+| did:vh or did:webvh author DID version published off Bitcoin with a versionTime before an already accepted inscription it would reject | No effect on acceptance; versionTime does not order inscribed entries (P9.15) |
+| Any entry after the author DID is deactivated | Not anchored: deactivation reported; entries historically authorized only (P7.9). Anchored: accepted state remains current; entries inscribed after Bitcoin evidences the deactivation rejected (P9.15) |
 | Entry that sets updateKeys or nextKeyHashes | Rejected |
 | Asset log entry that sets the witness parameter to anything other than an empty object | Rejected |
 | Entry signed by a key the author DID added, with no asset log entry for the change | Accepted |
@@ -65,7 +65,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | did:btco author DID version inscribed after an Originals inscription in the same block | Not in effect for that inscription |
 | Anchoring entry naming the author DID’s own did:btco sat | Rejected |
 | Inscription on a did:btco author DID’s sat after its deactivation | Not a version; author DID remains deactivated |
-| Anchored Original whose did:vh or did:webvh author DID log is unavailable for entries the accepted state depends on | Incomplete identity evidence; not reported as current. Later inscriptions it cannot check are unverifiable and leave the accepted state current; later publications from that head wait (P9.15) |
+| Anchored Original whose did:vh or did:webvh author DID host is unavailable | Identity evidence complete from the signer history inscribed on the anchoring sat; no author DID host needed (P9.18, P9.33) |
 | Two proofs in the proof array | Rejected |
 | Older author DID history served when the verifier has retained a newer version | The newer version is used (P7.8) |
 | VH-valid log that fails Originals rules, read through a generic resolver | Not reported as Originals-verified |
@@ -89,10 +89,10 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Archive with a symbolic link, `..` path or duplicate entry | Rejected before extraction |
 | SVG resource containing script, or a name containing markup | Not executed on the platform origin or in a client |
 | Entry inscribed on a sat whose did:btco alias its asset state does not list | Not an anchoring entry; ignored and reported |
-| Inscription on the anchoring sat whose metadata is a did:btco DID document, not an array of entries | Not an Originals inscription; ignored for the Original (P14.12) |
+| Inscription on the anchoring sat without the `og` metaprotocol, such as a did:btco DID document | Not an Originals inscription; ignored for the Original (P9.31, P14.12) |
 | did:btco DID document inscribed on the anchoring sat by its holder | Ignored for the Original; a generic did:btco result is not reported as Originals verification |
-| Inscription other than the anchoring inscription carrying more than one entry | Rejected |
-| Anchored Original verified from Bitcoin alone, with no copy of the log | Complete log verified from the anchoring sat (P9.17) |
+| Publication other than the anchoring publication carrying more than one entry | Rejected (P9.17) |
+| Anchored Original verified from Bitcoin alone, with no copy of the log and no signer DID host | Complete log and every signer’s identity verified from the anchoring sat and any did:btco signer’s sat (P9.17, P9.18, P9.33) |
 | Copy of the log that differs from the entries inscribed on the anchoring sat | Ignored; the sat’s entries are the log (P9.17) |
 | Anchoring sat whose inscriptions cannot be read in full | Resolution fails |
 | Inscription with no confirmations | Reported as observed; not in the accepted log |
@@ -100,46 +100,81 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Inscribed entry naming a did:btco author DID version inscribed in a later block | Rejected; the version was not in effect (P5.13) |
 | Inscribed entry naming a did:btco author DID version inscribed later in the same block | Rejected (P5.13) |
 | Inscribed entry naming a did:btco author DID version inscribed earlier in the same block, whose key it holds | Accepted (P5.13) |
-| Entry before the anchor naming a did:btco author DID version inscribed after the anchoring inscription | Rejected (P5.13) |
+| Entry before the anchor naming a did:btco author DID version inscribed at or after the inscription that carries it | Rejected (P5.13) |
 | Inscribed entry naming a preceding did:btco version whose key a later preceding version removed | Rejected; the key must hold in the latest preceding version (P5.13) |
 | Anchored Original whose resource versions not inscribed in full are unavailable | Log verified; those versions reported unavailable; not a verification failure (P7.4, P9.18) |
 | Anchored Original read from Bitcoin alone, its newest accepted inscription carrying the full version | Current version’s bytes read from that inscription’s body and checked against its descriptor (P9.17, P9.18) |
-| Anchored entry naming a did:vh or did:webvh author DID version, later than its inscription time, that lists again a key removed before that time | Accepted against the named version (P9.15) |
-| Verifier learns of a valid anchoring entry earlier in chain order than the one it reported | Earlier one reported as the anchor, previous one as conflicting, owner change reported; not silent (P9.16) |
+| Anchored entry naming an inscribed did:vh or did:webvh author DID version that lists its key, when a later version inscribed on the sat before the entry removed it | Rejected; the key must hold in the latest inscribed version (P9.15) |
+| Verifier learns of a valid anchoring entry earlier in chain order than the one it reported | Earlier one reported as the anchor, previous one as conflicting, change of holder reported; not silent (P9.16) |
 | Anchoring when the log or signer identity evidence through the signed anchoring entry does not verify | SDK refuses to inscribe (P9.18) |
 | Writer checking its committed log before publishing an entry, the entry not yet on Bitcoin | Verified whole as a local copy, from genesis through that entry; reported as unverified on Bitcoin and never current (P9.18) |
 | Local-copy result placed in a report given to a reader, or presented as anchored or current | Never; a local copy is only the writer’s own pre-publication check (P9.18) |
-| Verified anchoring inscription after submission | Submitted, not observed, while the network is not seen to hold it; pending Bitcoin acceptance while in the mempool, or confirmed but not yet verified; once confirmed, reverified and reported anchored, not anchored, or anchored with incomplete identity evidence (P9.18) |
-| Anchoring inscription that does not start at the genesis entry, or whose entries do not verify as one log | Not an anchor (P9.17) |
-| Anchoring inscription whose last entry is not an anchoring entry naming that sat | Not an anchor (P9.17) |
+| Verified anchoring publication after submission | Submitted, not observed, while the network is not seen to hold it; pending Bitcoin acceptance while in the mempool, or confirmed but not yet verified; once confirmed, reverified and reported anchored, not anchored, or anchored with incomplete identity evidence (P9.18) |
+| Anchoring publication that does not start at the genesis entry, or whose entries do not verify as one log | Not an anchor (P9.17) |
+| Anchoring publication whose last entry is not an anchoring entry naming that sat | Not an anchor (P9.17) |
 | Inscription the Bitcoin index reports on a sat whose number differs from the did:btco alias’s sat number | Not on the anchoring sat; ignored and reported (P9.10) |
 | Inscriptions read from a network other than the one the did:btco alias names | Not on the anchoring sat (P9.10) |
 | did:btco author DID inscription the index reports on a sat other than the one the DID names | Not a version of that DID (P5.13) |
 | Entry after anchoring that replaces the did:webvh alias with a different one | Rejected (P9.10) |
-| Entry before the anchoring entry, in the anchoring inscription, signed by a key removed from its signer’s DID before the inscription | Accepted against the version it names; ordering claimed (P9.15) |
+| Entry before the anchoring entry, in the anchoring publication, signed by a key removed from its signer’s DID before the publication | Accepted against the version it names; ordering claimed (P9.15, P5.13) |
 | did:btco alias with an unknown network prefix, a sign, leading zeros or a number beyond the supply of sats | Rejected (P9.10) |
 | Two indexes the verifier uses disagree on which sat an inscription is on | Not accepted; missing evidence reported until they agree (P9.10) |
 | Anchored Original whose did:webvh alias is removed, then added again | Re-adding rejected (P9.10) |
 | Inscription whose metadata and body are exactly 350,000 bytes together | Accepted, if otherwise valid (P9.17) |
 | Inscription whose metadata and body are over 350,000 bytes together, or an Original whose log through the anchoring entry and the body to be inscribed are over it | Rejected; the SDK refuses to anchor or inscribe (P9.17) |
-| Inscription whose last entry names no preview, with a body whose digest or size differs from that entry’s resource descriptor | Rejected (P9.17) |
-| Inscription whose last entry names no preview, with a body whose content type differs from the resource `mediaType`, or with a content type and no body; any inscription with a content encoding | Rejected (P9.17) |
+| Genesis entry with no `network`, or a later entry that changes it | Rejected (P9.34, P14.5) |
+| Anchoring entry whose did:btco alias names a sat on a network other than its genesis entry’s `network` | Rejected (P9.10, P9.34) |
+| Inscriptions of the Original read on a network other than the one its genesis entry names | Not evidence about the Original; ignored (P9.31, P9.34) |
+| Anchoring publication for a second `did:og` on a sat already taken by a valid anchoring publication, including one that is a conflicting anchor of its own Original | Rejected; the did:btco alias resolves to the Original that took the sat (P9.34) |
+| Anchoring publication on a sat whose only earlier anchoring publication, for another `did:og`, is invalid | Accepted, if otherwise valid; an invalid publication takes no sat (P9.34) |
+| Anchoring publication in three parts, consecutive Originals inscriptions on the sat with an unrelated inscription between two of them | One publication, taking effect when the final part confirms, at the final part’s position in chain order; the unrelated inscription does not interrupt it (P9.32) |
+| Parts of a publication interrupted by another Originals inscription on the sat | The interrupted parts rejected; the interrupting inscription considered on its own (P9.32) |
+| Publication whose final part is not yet inscribed or not yet confirmed | No change of state or holder (P9.32) |
+| Part other than the final part with a body or a content type, or a publication whose last entry is not in its final part | Publication rejected (P9.32) |
+| Publication of 16 / 17 inscriptions | Accepted, if otherwise valid / rejected; the SDK refuses to publish it (P9.17, P14.13) |
+| Originals inscription with a pointer, a parent, a content encoding, a delegate or a field ord does not recognise | Rejected with its publication (P9.31, P14.12) |
+| Originals inscription whose metadata is a CBOR array of entries, as in earlier drafts, or an object with a member other than `entries`, `signers` and `part` | Rejected (P14.12) |
+| Two indexes at the same tip listing different inscriptions on the anchoring sat, or on a did:btco signer’s sat | Not accepted; missing evidence reported until they agree (P9.31) |
+| Verifier combining a holder read at one tip with inscriptions read at another | Never; every report is bound to one tip (P9.31) |
+| Entry whose `aliases` list a did:btco DID with no `body`; `body` `preview` with no `preview`; or `preview` with `body` `full` or `none` | Rejected (P9.30, P14.5) |
+| Entry before any did:btco alias carrying `body` | Rejected; a writer never writes it (P9.30, P14.5) |
+| Inscription whose last entry signs `body` `none`, with a body / `body` `full`, with no body or with the preview as its body | Rejected (P9.17) |
+| Editor entry without a grant that allows the resource, changing `body` | Rejected (P5.16, P9.30) |
+| Inscribed entry naming a did:vh or did:webvh signer version inscribed earlier in the same publication | Accepted, if otherwise valid (P9.33) |
+| Inscribed signer history that does not start at the DID’s genesis entry, skips or repeats an entry already inscribed, or does not verify under its method | Publication rejected (P9.33) |
+| Signer history inscribed only in a publication that was rejected | Ignored; a later publication carries it again (P9.33) |
+| A did:vh or did:webvh signer whose controller publishes off Bitcoin a different version at a number already inscribed | Inscribed history unchanged; acceptance unchanged (P9.15, P9.33) |
+| Writer inscribing an entry whose key the newest version of its signer’s DID that it has verified no longer lists | Refused (P9.33) |
+| Verifier relying on an index of Originals inscriptions that it trusts, which lists no competing anchoring publication for the `did:og` through block N | May report uniqueness as established through block N, naming the index; never beyond it (P9.16) |
+| Verifier with no index of Originals inscriptions | Uniqueness not established; holder provisional (P9.16) |
+| Earlier anchoring publication naming a signer version that Bitcoin does not evidence, and a later valid anchoring publication on another sat | The earlier one is not an anchor; the later one is (P9.16) |
+| Earlier anchoring publication with a did:btco signer whose sat the verifier has not read far enough, and a later valid one | Anchor undetermined until it has; the later one not reported as the anchor meanwhile (P9.16) |
+| Publication and the publication extending it confirmed in the same block, in that transaction order | Both accepted, in chain order (P9.13) |
+| Publication and the publication extending it in the same block, in the reverse transaction order | The later one in chain order does not extend the head when it is reached; only the one extending the accepted head is accepted (P9.13) |
+| Entry before the anchoring entry signed with key K1 at did:btco author version v1, the author having rotated to K2 in v2 before the anchoring publication; anchoring entry signed with K2 naming v2 | Accepted (P5.13, P9.15) |
+| Anchoring entry signed with K1 naming did:btco author version v1, K1 removed in v2 before the anchoring publication | Rejected (P5.13) |
+| Signed entry inscribed by the holder long after it was signed, still extending the accepted head and valid in the signer state at its inscription | Accepted; signed entries do not expire (P9.15) |
+| Deactivation on an unanchored branch, the author anchoring a sibling branch from before it first | The anchored branch is the Original’s history; the deactivation is not part of it (P6.5, P9.16) |
+| Update whose parent descends from a deactivation | Rejected (P6.5) |
+| did:vh signer DID whose log `method` value is not a did:vh value the verifier implements, such as the VH-Log-based pre-draft’s | Not a did:vh signer log for this profile; identity evidence not established (P5.8) |
+| Inscription whose last entry signs `body` `full`, with a body whose digest or size differs from that entry’s resource descriptor | Rejected (P9.17) |
+| Inscription whose last entry signs `body` `full`, with a body whose content type differs from the resource `mediaType`; any inscription with a content type and no body, or with a content encoding | Rejected (P9.17) |
 | SDK about to inscribe an entry | Tells the author whether the preview, the full version or no body is inscribed; that this body, the name and the metadata become public and permanent; what Bitcoin will not hold; and the cost at the fee rate it will use; warns when the body is active content (P9.18) |
-| Inscription after the anchor whose entry changes only the name or metadata, its parent naming a preview | The entry carries the same preview, or none; the body is that preview again, or, with none, the full version or no body (P9.17, P9.30) |
-| Inscription after the anchor whose entry changes only the name or metadata, its parent naming no preview | The body is the full version again, or no body (P9.17, P9.30) |
+| Inscription after the anchor whose entry changes only the name or metadata, its parent naming a preview | The entry carries the same preview, or none; the body is that preview again, or, with none, the full version or no body, as its `body` signs (P9.17, P9.30) |
+| Inscription after the anchor whose entry changes only the name or metadata, its parent naming no preview | The body is the full version again, or no body, as its `body` signs (P9.17, P9.30) |
 | Inscription whose last entry names a preview, with that preview as its body, by default | Accepted; the sat shows the preview; the log verifies without the version’s bytes, which are reported unavailable unless obtained elsewhere, and never reported verified because the preview matched (P9.17, P9.18, P9.30, P7.4) |
-| Inscription whose last entry names no preview, with the full version as its body | Accepted; the body is checked against the resource descriptor (P9.17) |
-| Inscription whose last entry names no preview, with no body and no content type | Accepted; the entries are in its metadata only; the version is reported unavailable unless obtained elsewhere (P9.17, P7.4) |
-| Writer inscribing a version whose `mediaType` is not an `image/` type, with no preview supplied | Names no preview and inscribes no body, unless the author chooses the full version (P9.30) |
+| Inscription whose last entry signs `body` `full`, with the full version as its body | Accepted; the body is checked against the resource descriptor (P9.17) |
+| Inscription whose last entry signs `body` `none`, with no body and no content type | Accepted; the entries are in its metadata only; the version is reported unavailable unless obtained elsewhere (P9.17, P7.4) |
+| Writer inscribing a version whose `mediaType` is not an `image/` type, with no preview supplied | Names no preview and signs `body` `none`, unless the author chooses the full version and it signs `full` (P9.30) |
 | Writer inscribing a version whose `mediaType` is an `image/` type, including `image/svg+xml` and an animated image | Generates an `image/webp` preview of at most 8,192 bytes, rasterising an SVG, and names it in the entry, unless the author chooses the full version (P9.30) |
-| Writer inscribing an `image/` version it cannot decode, or cannot fit in a WebP preview of 8,192 bytes | Tells the author and names no preview; the body is the full version or none (P9.30) |
+| Writer inscribing an `image/` version it cannot decode, or cannot fit in a WebP preview of 8,192 bytes | Tells the author and names no preview; the entry signs `body` `full` or `none` (P9.30) |
 | Writer adding a version whose generated preview is byte-identical to its parent’s | Makes another preview or names none; never signs the parent’s `preview` unchanged (P9.30) |
 | Entry naming a preview of a media type other than `image/webp` for a version whose `mediaType` is an `image/` type, including an `image/svg+xml` preview of an `image/svg+xml` version, or one whose type is `Image` in another case | Rejected (P9.30) |
 | Author-supplied preview of any media type for a version that is not an image | Accepted, within 8,192 bytes (P9.30) |
 | Preview of 0 bytes | Rejected; a writer never names one (P9.30, P14.5) |
 | Preview of 8,192 / 8,193 bytes | Accepted / the writer refuses to sign an entry naming it, and a verifier rejects such an entry and any inscription carrying it (P9.30, P14.5, P14.13) |
 | Inscription whose last entry names a preview, with a body whose digest, size or content type differs from it, including the full version or no body | Inscription rejected, as a body that does not match always was; its entries not accepted from it; not an anchor if it is the anchoring inscription; state unchanged (P9.17) |
-| `preview` in an entry whose `aliases` list no did:btco DID: an entry of an Original for which no anchoring entry has been signed, or an entry before the anchoring entry in an anchoring inscription | Rejected, not ignored; a writer never writes it (P9.30, P14.5) |
+| `preview` in an entry whose `aliases` list no did:btco DID: an entry of an Original for which no anchoring entry has been signed, or an entry before the anchoring entry in an anchoring publication | Rejected, not ignored; a writer never writes it (P9.30, P14.5) |
 | Entry after anchoring that names a preview, signed but never inscribed | Not current (P9.12); its preview is not shown on Bitcoin (P9.30) |
 | Anchoring entry naming a preview, its parent naming none | Accepted (P9.30) |
 | Entry after the anchor that changes the resource and names a preview of the new version, inscribed with it as its body | Accepted; the sat shows the new preview (P9.17, P9.30) |
@@ -149,7 +184,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | `preview` whose `mediaType` has a parameter, whose digest is not in P14.7’s encoding, or with a member other than `mediaType`, `size` and `digest` | Rejected (P14.5, P14.6, P14.7) |
 | Derived DID document of an entry that names a preview | Same as without it; the preview is not in the document, and does not advance the version (P14.9, P4.4, P9.30) |
 | Writer asked to make a carried file from a preview | Refused; a preview is not a resource version (P7.16, P9.30) |
-| Deactivation inscribed after the anchor, its parent naming a preview | Accepted carrying that preview, with it as the body, or carrying none, with the full version or no body (P6.5, P9.17, P9.30) |
+| Deactivation inscribed after the anchor, its parent naming a preview | Accepted carrying that preview, with it as the body, or carrying none, with the full version or no body as its `body` signs (P6.5, P9.17, P9.30) |
 | Inscription whose last entry names no preview and whose version’s `size` is 0, with an empty body and that `mediaType` as content type | Accepted; an empty body is a body, not an absent one (P9.17, P14.12) |
 | Originals inscription that names a delegate, with or without a body | Rejected as a whole (P9.17, P14.12) |
 | Evidence package of an anchored Original whose entries name previews | Complete without the previews; a writer puts no preview under `resources/` and lists none in `missing` (P14.10, P9.30) |
@@ -166,10 +201,10 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Editor entry signed before its revocation, on the revocation’s parent | Unanchored: fork, unresolved; settled by the anchor’s branch (P9.16). After anchoring: the first inscribed in chain order extending the head is accepted, the other ignored (P9.13); if the first is unverifiable, the other waits (P9.15) |
 | Editor’s earlier entries after its grant is revoked | Remain valid |
 | Grant naming the author DID, a DID of the author’s identity, a duplicate editor or an unlisted DID method | Rejected (P5.15) |
-| Editor entry signed with a key removed from the editor DID | Unanchored: not current while the latest verified editor DID state does not list the key. Anchored: rejected if inscribed at or after the removal, unless it names a later did:vh or did:webvh editor DID version that lists the key again (P9.15), or, for a did:btco editor DID, the latest version preceding the inscription lists it (P5.13); see P5.18 |
-| Editor entry after the author DID is deactivated | Unanchored: not current. Anchored: rejected if its inscription time is at or after the author DID deactivation’s versionTime, or for a did:btco author DID if the deactivation precedes it in chain order (P9.15, P5.18) |
-| Editor entry inscribed on the anchoring sat by the owner | Accepted (P9.12) |
-| Editor DID history missing for an editor entry | In the accepted state: incomplete identity evidence, not reported as current (P7.1, P5.6). An inscription after the anchor: unverifiable; accepted state stays current; later publications from that head wait (P9.15) |
+| Editor entry signed with a key removed from the editor DID | Unanchored: not current while the latest verified editor DID state does not list the key. Anchored: rejected if the removal is inscribed on the anchoring sat, for a did:vh or did:webvh editor DID, or on the DID’s own sat, for a did:btco editor DID, before the entry’s inscription (P9.15, P9.33, P5.13); see P5.18 |
+| Editor entry after the author DID is deactivated | Unanchored: not current. Anchored: rejected if Bitcoin evidences the author DID’s deactivation before its inscription, inscribed on the anchoring sat or, for a did:btco author DID, on its own sat (P9.15, P5.18) |
+| Editor entry inscribed on the anchoring sat by the holder | Accepted (P9.12) |
+| Editor DID history missing for an editor entry | In the accepted state of an unanchored Original: incomplete identity evidence, not reported as current (P7.1, P5.6). An inscription: rejected if the did:vh or did:webvh editor version it names is not inscribed on the sat; unverifiable only while a did:btco editor’s sat is unread (P9.15, P9.33) |
 | Two submissions with the same parent at a shared host | One accepted; the other refused with a stale-parent conflict returning the new head; refused candidate kept by the SDK, not published (P6.7, P6.8) |
 | Reconciled candidate signed by an authorized signer against the new head | Accepted (P6.8) |
 | Host changes or re-signs a submitted entry | Fails verification, or is not by an authorized signer (P6.7) |
@@ -200,16 +235,16 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Evidence package built twice from the same contents | Byte-identical archives (P14.10) |
 | Evidence package with a compressed archive entry or a name over 255 bytes | Rejected (P14.10) |
 | Transitions in the genesis entry / an entry changing the resource / any other entry | `[{from: null, to}]` / `[{from, to}]` / `[]` (P14.4) |
-| Inscription after the anchor naming a signer DID version the verifier cannot verify | Reported unverifiable; the accepted state stays current and its identity evidence is not made incomplete; later publications from that head wait (P9.15) |
-| Inscription after the anchor naming a did:vh or did:webvh signer version number the verifier holds under another versionId | Rejected (P9.15) |
+| Inscription after the anchor naming a did:btco signer version on a sat the verifier has not read that far | Reported unverifiable; the accepted state stays current and its identity evidence is not made incomplete; later publications from that head wait (P9.15) |
+| Inscription after the anchor naming a did:vh or did:webvh signer version number that the inscribed signer history holds under another versionId | Rejected (P9.15) |
 | Inscription after the anchor naming a did:btco signer version not in that DID’s fully read history | Rejected (P5.13, P9.15) |
 | Unverifiable inscription after the anchor that the verifier later verifies and accepts | Change of head reported, not silent (P9.15) |
 | Moved signer with no verified entry yet, whose latest entry names a location other than its earliest | Earliest entry’s location asked first; a log from either must verify from the identity’s genesis (P5.14) |
 | Signer DID log obtained from a location without support from that DID’s witnesses or watchers | Freshness not established; the report states where and when it was obtained and that a newer version may exist (P7.8) |
 | Signer DID log obtained at a location whose latest version’s `id` names another location | Not used as that identity’s latest (P7.8) |
-| Anchoring inscription submitted but rejected, evicted or not visible to the SDK’s Bitcoin provider | Labelled submitted, not observed; never pending Bitcoin acceptance (P9.18) |
+| Anchoring publication submitted but rejected, evicted or not visible to the SDK’s Bitcoin provider | Labelled submitted, not observed; never pending Bitcoin acceptance (P9.18) |
 | did:btco inscription with a delegated or content-encoded body whose own metadata is a DID document for that DID | A version of that DID (P5.13) |
-| did:btco inscription on the DID’s sat whose metadata the verifier has not read | History ends before it; an entry depending on it has incomplete identity evidence, or is unverifiable if inscribed after the anchoring inscription (P5.13, P9.15) |
+| did:btco inscription on the DID’s sat whose metadata the verifier has not read | History ends before it; an entry depending on it has incomplete identity evidence, or is unverifiable if inscribed after the anchoring publication (P5.13, P9.15) |
 | Number such as `1e16` or `9007199254740993.0` in an entry | Rejected (P14.3) |
 | Asset log with a carriage return, non-compact JSON or no final line feed | Rejected (P14.2) |
 | Proof with a member other than those P14.8 lists | Rejected (P14.8) |
@@ -218,12 +253,12 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Valid publication after an earlier unverifiable inscription extending the same head | Not accepted until the unverifiable one is resolved; reported as waiting on it (P9.15) |
 | Earlier unverifiable inscription later verified as invalid, with a valid later publication from the same head | The later publication is accepted; the change of head is reported (P9.15) |
 | did:btco signer gap found after an inscription was accepted | That inscription becomes unverifiable; the head is recomputed and the change reported (P9.15) |
-| Entry in the anchoring inscription naming a signer version number the verifier holds under another versionId | Rejected (P9.15) |
+| Entry in the anchoring publication naming a signer version number that the inscribed signer history holds under another versionId | Rejected (P9.15) |
 | `name` of 1,024 / 1,025 UTF-16 code units, counting a non-BMP character as two | Accepted / rejected (P14.5) |
 | Inscription after the anchor whose signer version is unverifiable but which fails a check not depending on that version | Rejected, not unverifiable (P9.15) |
 | Publication extending an unverifiable inscription | Listed as waiting on it; followed under P9.13 once it is accepted, ignored if it is rejected (P9.15) |
 | Single acceptance check while an unverifiable inscription is listed | Passes only with the list presented beside its result (section 7, P9.15) |
-| Inscription after the anchor naming a did:vh or did:webvh version above the P14.13 limit, or after a deactivated version the verifier holds | Rejected (P9.15) |
+| Inscribed signer history above the P14.13 version limit, or continuing after a deactivated version | Publication rejected (P9.33, P14.13) |
 | Signer DID log from the old host whose latest version moves the DID and removes a key | Removal applied; moved log sought; freshness not established until found (P7.8, P5.14) |
 | did:btco signer whose named version is known but an earlier inscription on its sat is unread | Unverifiable; not accepted against the older state (P9.15) |
 | Asset log line with whitespace outside JSON strings / with keys in non-JCS order | Rejected / accepted (P14.2) |
@@ -273,7 +308,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Grant naming the Original’s did:webvh alias | Rejected (P5.15) |
 | Signer asked to sign input that is not a well-formed Originals entry, or without showing the signer, the Original, the operation and the resource changes | Refused (P5.11) |
 | Exact-checkpoint resolution of a checkpoint the resolver cannot supply | Reports why; the latest checkpoint is not substituted (P3.2) |
-| Report for an anchored Original | States the confirmation depth relied on and whether more than one independent index agreed on the sat’s location (P9.5, P9.11) |
+| Report for an anchored Original | States the network and tip it is bound to, the confirmation depth relied on, and whether more than one independent index agreed on the sat’s location (P9.5, P9.11, P9.31) |
 | Genesis parameters other than exactly `method` and `scid`; a later entry with a non-empty parameters object that is not a deactivation; a null parameter value | Rejected (P14.1) |
 | Plaintext metadata, base64 content or raw storage | Never labelled encrypted (P8.2) |
 | Carried file imported, then read again with no separate opt-in to resolve | No resolver request; the import is not an opt-in (P7.13) |

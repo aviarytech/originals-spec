@@ -4,7 +4,7 @@
 
 This is a review draft of the Originals Protocol. It is a protocol and SDK design for review, not a finalized standard or an implementation.
 
-The draft contains 14 sections, a 284-test conformance matrix, and a decision register recording the choices taken and those still open. Each Original is a `did:og`, the Originals DID method, defined as a specialisation of the Verifiable History Log (VH-Log), while useful SDK semantics are retained. Each signer signs the VH entry with a key bound to their own DID: the Original’s one author, or an editor the author has granted. Asset logs have no witnesses: off Bitcoin an Original’s ordering is claimed only, and anchoring it on Bitcoin orders its entries on the anchoring sat and gives it a provisional owner.
+The draft contains 14 sections, a 319-test conformance matrix, and a decision register recording the choices taken and those still open. Each Original is a `did:og`, the Originals DID method, defined as a specialisation of the Verifiable History Log (VH-Log), while useful SDK semantics are retained. Each signer signs the VH entry with a key bound to their own DID: the Original’s one author, or an editor the author has granted. Asset logs have no witnesses: off Bitcoin an Original’s ordering is claimed only, and anchoring it on Bitcoin orders its entries on the anchoring sat and gives it a provisional holder. The anchoring sat carries the log and the DID histories of its did:vh and did:webvh signers, so Bitcoin alone verifies it.
 
 ## Editing
 

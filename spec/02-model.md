@@ -40,7 +40,19 @@
 ~ A VH key, expressed as raw Multikey material, that may append the next entry to a log under the previous accepted entry’s rules. An asset log has none: its authorized keys come from the author DID ([P5.9](#p5.9)).
 
 [[def: chain order]]:
-~ The order of Bitcoin inscriptions by block height, then transaction index in the block, then inscription index in the transaction. On one sat it is the order in which the sat’s inscriptions were made.
+~ The order of Bitcoin inscriptions on one network by block height, then transaction index in the block, then inscription index in the transaction. On one sat it is the order in which the sat’s inscriptions were made. A publication in parts takes the position of its final part ([P9.32](#p9.32)).
+
+[[def: Originals inscription, Originals inscriptions]]:
+~ An inscription whose metaprotocol field is `og` ([P9.31](#p9.31)). Every other inscription is ignored for every Original.
+
+[[def: publication, publications]]:
+~ One or more consecutive Originals inscriptions on an anchoring sat that together carry one step of an Original’s log: the anchoring publication carries the log through the anchoring entry, and each later one a single entry ([P9.32](#p9.32)).
+
+[[def: inscribed signer history]]:
+~ The DID log entries of a did:vh or did:webvh signer inscribed on an anchoring sat, from that DID’s genesis, against which every inscribed entry that signer signed is checked ([P9.33](#p9.33)).
+
+[[def: holder]]:
+~ Whoever holds the anchoring sat of an anchored Original. Holding confers no authority to change the Original, and is provisional until the anchor’s uniqueness is established ([P9.11](#p9.11), [P9.16](#p9.16)).
 
 [[def: witness, witnesses]]:
 ~ A VH witness that approves entries before they count as current. Originals asset logs do not use witnesses ([P9.8](#p9.8)); an author DID may still use its own DID method’s witnesses.
@@ -55,9 +67,9 @@ In the baseline profile these two authorities come from one place. The author DI
 
 Editing authority is narrower. The author can grant an [[ref: editor]] permission to change named content, and the editor then signs its own entries, without the author countersigning them. A grant gives no authority over grants, aliases, lifecycle, parameters, anchoring, deactivation or the author DID (P5.15–P5.18). Each entry names its [[ref: signer]], so the Original keeps its author while every change identifies who made it.
 
-Storage and publication authority is permission to store bytes or publish a checkpoint. A host, storage adapter, wallet, inscription holder or sat owner does not gain asset-editing authority merely by performing that role. One actor may hold several roles, but verifiers evaluate each role separately.
+Storage and publication authority is permission to store bytes or publish a checkpoint. A host, storage adapter, wallet, inscriber or sat holder does not gain asset-editing authority merely by performing that role. One actor may hold several roles, but verifiers evaluate each role separately.
 
-Ownership is not an authority. Once an Original is anchored, its owner is whoever holds the anchoring sat (P9.11). Only the author, or an editor the author has granted, signs changes, for the Original’s whole life, but on Bitcoin a change also has to be inscribed on the sat, so after a sale neither a signer nor the owner can change the Original alone (P9.12).
+Holding is not an authority. Once an Original is anchored, its [[ref: holder]] is whoever holds the anchoring sat (P9.11). Only the author, or an editor the author has granted, signs changes, for the Original’s whole life, but on Bitcoin a change also has to be inscribed on the sat, so after a sale neither a signer nor the holder can change the Original alone (P9.12).
 
 ### Proposed rules
 
