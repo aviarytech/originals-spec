@@ -1,0 +1,133 @@
+{
+  "command": "originals-og anchor",
+  "profile": "og:1.0-draft.1",
+  "network": "mainnet",
+  "original": "did:og:QmZP2TXKH1ym5bfFfhEKPUtofZ21APBwADt7uTNJfbu5bV",
+  "author": "did:webvh:QmekpfVpw5zdmwvJBhkHabipC51e35xuZWqS9CEbLLeDKv:originals.build:authors:og-test-1",
+  "authorUrl": "https://originals.build/authors/og-test-1/did.jsonl",
+  "sat": "1927917275413739",
+  "anchoringAlias": "did:btco:1927917275413739",
+  "holder": "bc1p0gv9xhtvfrlhn6qm9cvvcqkwy64an0s9a2p6lwl5egw2lu04aufsw33p3w",
+  "revealDestination": "bc1p0gv9xhtvfrlhn6qm9cvvcqkwy64an0s9a2p6lwl5egw2lu04aufsw33p3w",
+  "transactions": {
+    "funding": "16687f7f1f307e74aa98a77300bc6128c1dfcd1c95224788e7a9c5f5dc978108",
+    "commit": "d20bdd928a366e19d884e996f4faf85248ab1c70e2859bbcfcdb366f80bb9770",
+    "reveals": [
+      "8fa7ba3cf149c0bc753d6e40ef86e1737d459ee30514981914763e51f8d66bec"
+    ]
+  },
+  "inscriptions": [
+    {
+      "id": "8fa7ba3cf149c0bc753d6e40ef86e1737d459ee30514981914763e51f8d66beci0",
+      "height": 977095,
+      "txIndex": 1400,
+      "inscriptionIndex": 0,
+      "confirmations": 6,
+      "metaprotocol": "og",
+      "contentType": null,
+      "envelopeBytes": 3415,
+      "envelopeDigest": "zQmbD6iau5AmMqUqKix1WqKCyQ5xiN6EKp7V1Z34nmD7UNx"
+    }
+  ],
+  "tip": {
+    "height": 977100,
+    "hash": "00000000000000000000886598c890976f4cd4a493bb1c56d2021e8925525783"
+  },
+  "ord": "unknown at http://127.0.0.1:8787",
+  "backend": "esplora:https://mempool.space/api",
+  "report": {
+    "type": "OriginalsVerificationReport",
+    "profile": "og:1.0-draft.1",
+    "original": "did:og:QmZP2TXKH1ym5bfFfhEKPUtofZ21APBwADt7uTNJfbu5bV",
+    "checkpoint": "2-QmWQ3m6eRjVdGzFK3xeB2UvoZXNU1Hhgbbc5kTsBRSFdhd",
+    "evidence": {
+      "inputs": [
+        {
+          "kind": "sat-read",
+          "source": "ord:http://127.0.0.1:8787/sat/1927917275413739",
+          "digest": "zQmf8bGwPAMF6wxDPDKSh54nuBadtPBxxG9QPn3WMkp1w56"
+        },
+        {
+          "kind": "inscription",
+          "source": "index:8fa7ba3cf149c0bc753d6e40ef86e1737d459ee30514981914763e51f8d66beci0",
+          "digest": "zQmbD6iau5AmMqUqKix1WqKCyQ5xiN6EKp7V1Z34nmD7UNx"
+        }
+      ],
+      "network": "mainnet",
+      "tip": {
+        "height": 977100,
+        "hash": "00000000000000000000886598c890976f4cd4a493bb1c56d2021e8925525783"
+      },
+      "depth": 1
+    },
+    "axes": {
+      "outcome": "verified",
+      "binding": "bound",
+      "history": "valid",
+      "identity": "complete",
+      "authority": "current",
+      "state": "current",
+      "availability": "none",
+      "offline": "needs-external",
+      "bitcoin": "anchored"
+    },
+    "entries": [
+      {
+        "versionId": "1-QmVzSQtEV1CgDjypRrLDvCR5XeqfeLxsASoHJrncujven8",
+        "status": "accepted",
+        "authority": "current-key",
+        "endorsed": true,
+        "ordering": "existed-by-block",
+        "block": 977095
+      },
+      {
+        "versionId": "2-QmWQ3m6eRjVdGzFK3xeB2UvoZXNU1Hhgbbc5kTsBRSFdhd",
+        "status": "accepted",
+        "authority": "current-key",
+        "endorsed": false,
+        "ordering": "chain-ordered",
+        "block": 977095
+      }
+    ],
+    "signers": [
+      {
+        "did": "did:webvh:QmekpfVpw5zdmwvJBhkHabipC51e35xuZWqS9CEbLLeDKv:originals.build:authors:og-test-1",
+        "role": "author",
+        "latestVersionId": "1-QmVp8o3TPtgdkhehy8bC2mqScXNXgondg9f3YY1CDCFpQ8",
+        "source": "inscribed:8fa7ba3cf149c0bc753d6e40ef86e1737d459ee30514981914763e51f8d66beci0",
+        "freshness": "established"
+      }
+    ],
+    "diagnostics": [
+      {
+        "code": "resource-missing",
+        "rule": "P7.4",
+        "item": {
+          "kind": "resource",
+          "id": "zQmddSnxBN8twUGdiZNdZpdGrUVTr2zAncVzUAdp5oHnB41",
+          "versionId": "1-QmVzSQtEV1CgDjypRrLDvCR5XeqfeLxsASoHJrncujven8"
+        },
+        "reason": "The evidence set does not hold the bytes of this resource version."
+      }
+    ],
+    "bitcoin": {
+      "sat": "did:btco:1927917275413739",
+      "holder": {
+        "address": "bc1p0gv9xhtvfrlhn6qm9cvvcqkwy64an0s9a2p6lwl5egw2lu04aufsw33p3w",
+        "uniqueness": "provisional"
+      },
+      "conflictingAnchors": [],
+      "unverifiable": [],
+      "waiting": []
+    }
+  },
+  "defaultCheck": true,
+  "transferCheck": true,
+  "publicHost": {
+    "url": "https://originals.build/authors/og-test-1/did.jsonl",
+    "served": true,
+    "matchesInscribed": true,
+    "latestVersionId": "1-QmVp8o3TPtgdkhehy8bC2mqScXNXgondg9f3YY1CDCFpQ8"
+  },
+  "passed": true
+}
