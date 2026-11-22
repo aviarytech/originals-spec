@@ -6,11 +6,12 @@ These vectors are for the method value `og:1.0-draft.1` (P14.1). They are **prov
 npm install
 npm run vectors        # rebuild og-1.0-draft.1/ from fixed seeds (deterministic)
 npm run vectors:check  # verify it independently
+npm run regtest        # the regtest gate: inscribe the bitcoin vector on a real regtest chain (needs bitcoind and ord 0.29.x)
 ```
 
 `tools/generate.mjs` builds everything from fixed seeds: each key's secret is `SHA-256("originals-spec test vector seed: <label>")`, and `og-1.0-draft.1/index.json` lists the labels and public keys. These are test keys. Never use them for anything else.
 
-`tools/check.mjs` doesn't import the generator. It recomputes SCIDs, entry hashes, `eddsa-jcs-2022` proofs (strict Ed25519, small-order points rejected), digests, the ZIP layout and CRCs, the CBOR metadata and the ord envelopes, and checks the expected reports against them. The did:webvh logs are verified with [didwebvh-ts](https://www.npmjs.com/package/didwebvh-ts) 3.2.0, a separate did:webvh implementation.
+`tools/check.mjs` doesn't import the generator; its helpers are in `tools/verify-lib.mjs`. It recomputes SCIDs, entry hashes, `eddsa-jcs-2022` proofs (strict Ed25519, small-order points rejected), digests, the ZIP layout and CRCs, the CBOR metadata and the ord envelopes, and checks the expected reports against them. The did:webvh logs are verified with [didwebvh-ts](https://www.npmjs.com/package/didwebvh-ts) 3.2.0, a separate did:webvh implementation.
 
 ## One Original, three layers
 
@@ -61,6 +62,17 @@ This vector is **synthetic**. No regtest chain produced these transactions or bl
 - `inscriptions/part-{1,2}.metadata.cbor`: each part's metadata. This is the concatenation of its tag-5 pushes.
 - `evidence-set.json`: exactly the P9.18 evidence set, which is the sat's inscriptions at the stated network and tip.
 - `expected-report.json`: the report. `state` is `current` and `bitcoin` is `anchored`, with the holder `provisional`. `availability` is `partial`, because version 1's bytes are not on Bitcoin, and `offline` is `needs-external`.
+
+## `regtest/`: the regtest gate
+
+`npm run regtest` runs step one of the mainnet gate (§13, release blockers). `run.mjs` starts Bitcoin Core and `ord --regtest` 0.29.x in a new temporary directory on free local ports, regtest only, and removes everything when it finishes. It then:
+
+- inscribes the `bitcoin/` vector's anchoring publication. Part 1 is the vector's envelope byte for byte. The vector's sat is synthetic, so entry 4, the anchoring entry, is re-signed with the vector's author key for the real sat's `did:btco:reg:` alias. Commit and reveal transactions are built with [@scure/btc-signer](https://www.npmjs.com/package/@scure/btc-signer), because ord's wallet can't inscribe an envelope with no body.
+- places both parts on one sat with no pointer (P14.12). ord puts an inscription on the first sat of the input carrying it, so part 1's reveal sends the sat, at offset 0, to the taproot output that commits to part 2's script, and part 2's reveal spends it.
+- reads everything back through ord's JSON API only: the sat's inscriptions, each inscription's metaprotocol, content type, height, satpoint and envelope (from its reveal transaction), each block's transaction order, the holder and the tip. It builds the P9.18 evidence set from those reads.
+- computes the report with `report.mjs`, which uses the checker's helpers and not the generator's, and compares it field by field with `bitcoin/expected-report.json`. Only chain-dependent values are substituted: the sat and its alias, the anchoring entry, inscription ids, part 2's envelope digest, block heights, the tip and the holder.
+
+A passing run writes `regtest/last-run.json`, which the register cites. ord 0.29.x marks part 1 as vindicated, because its metadata spans several pushes, which ord counts as a duplicate field, and marks part 2 as a vindicated reinscription. P14.12 says this changes nothing.
 
 ## `prior-format/`
 

@@ -4,7 +4,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 
 ### Proposed minimum test matrix
 
-The matrix has 403 rows, grouped by the section of the first rule each tests. Every row has:
+The matrix has 405 rows, grouped by the section of the first rule each tests. Every row has:
 
 - an **ID**, `T<section>-<number>`. IDs are stable: a row keeps its ID when rows are added or moved, a new row takes the next unused number in its section, and the number of a removed row is never reused. Fixtures and reports cite rows by ID;
 - an **actor**: a *verifier* (including a resolver or reader), a *writer* (the part of the SDK that makes entries, packages, carriers and inscriptions), a *host* (P6.7, P9.7, P14.11) or the *SDK* as a whole, including its signing display and storage;
@@ -456,6 +456,8 @@ Rows that concern only the experimental additions are in their own document, wit
 | T14-089 | verifier | Entry whose entry hash is not computed over its predecessor’s `versionId` (or the SCID for genesis), or an SCID or entry hash using a multihash other than SHA-256 | Rejected | P14.29, P14.28 |
 | T14-090 | verifier | `did:og` log checked by a VH-Log or did:vh library for its SCID and hash chain | The same SCID and entry hashes as P14.28 and P14.29; not a verification of the Original | P14.29, P3.5 |
 | T14-091 | writer, verifier | Genesis vector `vectors/og-1.0-draft.1/genesis/` | The writer reproduces the entry byte for byte from its inputs; the verifier reproduces its SCID, entry hash and expected report | P14.26, P14.28, P14.29, P14.1 |
+| T14-092 | verifier | Originals inscription with metadata over 520 bytes, so in several tag-5 pushes, or a later inscription on the anchoring sat, which ord 0.29.x reports as cursed, vindicated or a reinscription | Read as any other Originals inscription; its curse status changes nothing | P14.12, P9.31 |
+| T14-093 | writer, verifier | Regtest gate `vectors/regtest/` (`npm run regtest`): the Bitcoin vector's two-part anchoring publication inscribed with Bitcoin Core and ord 0.29.x, both parts on one sat with no pointer, and read back through ord | The report computed from ord's reads equals the vector's expected report, with only chain-dependent values (sat, anchoring entry, inscription ids, part 2's envelope digest, heights, tip, holder) substituted | P14.26, P9.31, P9.32, P9.18, P14.12 |
 
 ### Coverage
 
@@ -468,8 +470,8 @@ Each core rule and the number of rows that test it. Every core rule has at least
 - Section 6: P6.1 (1), P6.2 (1), P6.3 (1), P6.4 (1), P6.5 (6), P6.6 (6), P6.7 (4), P6.8 (3), P6.9 (13).
 - Section 7: P7.1 (4), P7.2 (1), P7.3 (1), P7.4 (5), P7.5 (8), P7.6 (1), P7.7 (4), P7.8 (7), P7.9 (2), P7.10 (2), P7.11 (1), P7.12 (5), P7.13 (6), P7.14 (7), P7.15 (6), P7.16 (4), P7.17 (8), P7.18 (5), P7.19 (7), P7.20 (9), P7.21 (5), P7.22 (7), P7.23 (1).
 - Section 8: P8.1 (1), P8.2 (1), P8.3 (2), P8.4 (2), P8.5 (13).
-- Section 9: P9.1 (1), P9.2 (2), P9.3 (1), P9.4 (1), P9.5 (4), P9.6 (3), P9.7 (3), P9.8 (1), P9.9 (1), P9.10 (15), P9.11 (3), P9.12 (7), P9.13 (9), P9.14 (1), P9.15 (36), P9.16 (10), P9.17 (25), P9.18 (11), P9.30 (26), P9.31 (8), P9.32 (5), P9.33 (13), P9.34 (5), P9.35 (2), P9.36 (5).
-- Section 14: P14.1 (11), P14.2 (4), P14.3 (9), P14.4 (9), P14.5 (11), P14.6 (5), P14.7 (3), P14.8 (8), P14.9 (3), P14.10 (11), P14.11 (2), P14.12 (13), P14.13 (14), P14.14 (6), P14.15 (4), P14.16 (15), P14.17 (9), P14.25 (1), P14.26 (4), P14.27 (2), P14.28 (3), P14.29 (3).
+- Section 9: P9.1 (1), P9.2 (2), P9.3 (1), P9.4 (1), P9.5 (4), P9.6 (3), P9.7 (3), P9.8 (1), P9.9 (1), P9.10 (15), P9.11 (3), P9.12 (7), P9.13 (9), P9.14 (1), P9.15 (36), P9.16 (10), P9.17 (25), P9.18 (12), P9.30 (26), P9.31 (10), P9.32 (6), P9.33 (13), P9.34 (5), P9.35 (2), P9.36 (5).
+- Section 14: P14.1 (11), P14.2 (4), P14.3 (9), P14.4 (9), P14.5 (11), P14.6 (5), P14.7 (3), P14.8 (8), P14.9 (3), P14.10 (11), P14.11 (2), P14.12 (15), P14.13 (14), P14.14 (6), P14.15 (4), P14.16 (15), P14.17 (9), P14.25 (1), P14.26 (5), P14.27 (2), P14.28 (3), P14.29 (3).
 
 Not covered, because the requirement is out of the core: the read-authorization rules, signer sets, parent Originals and scopes, whose rows moved with them to the additions; the limit on nested parents; the read request’s member set and challenge entropy, which the additions define.
 
@@ -480,5 +482,5 @@ Release evidence should include positive and negative fixtures, pinned profile d
 - an independent verifier reproduces every positive checkpoint and produces the same report for each fixture’s evidence set (P7.17), row by row, citing row IDs;
 - fresh-process tests run with no private key in the reader and without network dependencies, from complete packages whose `offline` result is `self-contained` (T7-001), beside partial-package tests;
 - the application’s own hosted publication paths, not only the SDK’s adapters, publish through this profile and pass exact-snapshot reader regressions: a fresh reader of each published snapshot reaches the writer’s checkpoint (P9.1, P9.2);
-- the Bitcoin rows run against a test network before any mainnet anchoring (P9.18): first a scripted regtest run under `vectors/regtest/`, which starts bitcoind and ord 0.29.x on regtest, inscribes the vector’s publications, reads them back through ord and checks the expected report (P9.31, P14.26); then a fresh mainnet inscription in the current format, made by the owner. The release-blocker row for the mainnet gate stays open until the register records both results with their transaction ids;
+- the Bitcoin rows run against a test network before any mainnet anchoring (P9.18): first a scripted regtest run under `vectors/regtest/`, which starts bitcoind and ord 0.29.x on regtest, inscribes the vector’s publications, reads them back through ord and checks the expected report (P9.31, P14.26); then a fresh mainnet inscription in the current format, made by the owner. `npm run regtest` runs the first step and writes `vectors/regtest/last-run.json`; it passed on 21 November 2026, and the register records its transaction ids. The release-blocker row for the mainnet gate stays open until the register also records the mainnet result;
 - the Originals SDK reproduces the genesis vector (T14-091), so that it and the vectors checker are two implementations that agree on it.
