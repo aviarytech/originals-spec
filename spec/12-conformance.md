@@ -4,11 +4,11 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 
 ### Proposed minimum test matrix
 
-The matrix has 425 rows, grouped by the section of the first rule each tests. Every row has:
+The matrix has 426 rows, grouped by the section of the first rule each tests. Every row has:
 
-- an **ID**, `T<section>-<number>`. IDs are stable: a row keeps its ID when rows are added or moved, a new row takes the next unused number in its section, and the number of a removed row is never reused. Fixtures and reports cite rows by ID;
+- an **ID**, `T<section>-<number>`. IDs are stable: a row keeps its ID when rows are added or moved, a new row takes the next unused number in its section, and the number of a removed row is never reused. Fixtures and reports cite rows by ID. Retired IDs: T9-110, T9-137, T9-138 and T9-139 (22 November 2026, when comparison against a prior result was removed);
 - an **actor**: a *verifier* (including a resolver or reader), a *writer* (the part of the SDK that makes entries, packages, carriers and inscriptions), a *host* (P6.7, P9.7, P14.11) or the *SDK* as a whole, including its signing display and storage;
-- a **given**: the input and preconditions. Unless the row says otherwise, the evidence set (P7.17) holds the complete log, the history of every signer DID that the log names, the bytes of every version, and, for an anchored Original or a did:btco signer, the genesis entry’s network, a tip, and the full inscription lists of the sats involved, read by indexes that agree on them (P9.31); it holds no prior result. A row states only how its input departs from that default;
+- a **given**: the input and preconditions. Unless the row says otherwise, the evidence set (P7.17) holds the complete log, the history of every signer DID that the log names, the bytes of every version, and, for an anchored Original or a did:btco signer, the genesis entry’s network, a tip, and the full inscription lists of the sats involved, read by indexes that agree on them (P9.31). A row states only how its input departs from that default;
 - an **expected** result, in the vocabulary of P7.18 and P7.19 wherever it is a verification result. “Rejected” means the entry or publication is labelled `rejected` with the rule it fails; “accepted” means `accepted`. A result given as “A / B” pairs with a given of the form “X / Y”;
 - the **rules** it tests. Every row cites at least one rule.
 
@@ -131,7 +131,7 @@ Rows that concern only the experimental additions are in their own document, wit
 | T6-014 | verifier | Refused candidate published elsewhere | Unanchored: a fork with `state` `conflict` until anchoring, or until an author entry supersedes the refused branch if it holds only editor entries. Anchored: not `current`; `ignored` | P6.6, P6.8, P9.12, P9.13, P6.9 |
 | T6-015 | verifier | Longer branch of a fork, or the branch with more signers | No winner; `state` `conflict` | P6.6 |
 | T6-016 | verifier | Entry on one branch bringing in content from another | Accepted on its branch as a single-parent entry; fork remains | P6.6 |
-| T6-017 | verifier | Evidence set with a prior result that reported a state, and a competing branch | `state` `conflict`, stated against the prior result; not silent | P6.6, P7.17 |
+| T6-017 | verifier | Evidence set holding a competing branch of an Original that is not anchored, beside the branch an earlier report gave as its state | `state` `conflict`, whatever the earlier report gave; no prior result is an input | P6.6, P7.17 |
 | T6-018 | verifier | Unanchored fork: editor-only branch from entry 3, author entry on the other branch naming its first entry in `supersedes` | Editor branch `conflicting`; `state` `valid-as-of` the author branch | P6.9 |
 | T6-019 | verifier | Editor entry later extending a superseded branch | `conflicting` | P6.9 |
 | T6-020 | verifier | `supersedes` naming a branch that holds an author entry | No settlement; `state` `conflict` | P6.6, P6.9 |
@@ -216,6 +216,9 @@ Rows that concern only the experimental additions are in their own document, wit
 | T7-068 | verifier | Loose evidence set missing the bytes of one resource version through the checkpoint (`vectors/og-1.0-draft.1/missing-resource/`) | `availability` `partial`; `offline` `needs-external`, derived from the one `resource-missing` diagnostic naming that version’s digest and entry; `outcome` still `verified` | P7.21, P7.4, P14.25 |
 | T7-069 | verifier | Anchored Original whose evidence set holds the anchoring sat read in full at a tip, the inscribed signer histories, and the bytes of every resource version through the checkpoint | `offline` `self-contained`; the same report with the network disabled | P7.21, P9.18, P8.5 |
 | T7-070 | verifier | Evidence set holding a supplied resource whose bytes do not match the descriptor its entry names | `availability` not `complete`; a `resource-mismatch` diagnostic for that version; `offline` `needs-external` | P7.21, P7.4, P14.25 |
+| T7-071 | verifier | Anchored Original whose anchoring publication has 5 confirmations at the evidence set’s tip, otherwise as the `bitcoin/` vector | One `insufficient-depth` diagnostic naming the publication’s first inscription; the transfer check fails; the default acceptance check passes | P7.22, P14.13, P14.25 |
+| T7-072 | verifier | As T7-071 with exactly 6 confirmations | No `insufficient-depth` diagnostic; the transfer check passes | P7.22, P14.13 |
+| T7-073 | verifier | Anchoring publication with 6 or more confirmations, and a later publication that extends the reported head with fewer than 6 | An `insufficient-depth` diagnostic for the later publication; the transfer check fails | P7.22, P14.13 |
 
 #### Private use and fetching (§8)
 
@@ -271,10 +274,10 @@ Rows that concern only the experimental additions are in their own document, wit
 | T9-031 | verifier | Copy of the log that differs from the entries inscribed on the anchoring sat | Ignored; the sat’s entries are the log | P9.17 |
 | T9-032 | verifier | Anchoring sat whose inscriptions cannot be read in full | Resolution fails; `bitcoin` `missing-evidence`; `outcome` `incomplete` | P9.17, P3.3 |
 | T9-033 | verifier | Inscription with no confirmations | Reported as observed; not in the accepted log | P9.5 |
-| T9-034 | verifier | Reorganization that removes an accepted inscription | Reported with `authoritative-source-changed`; not silent | P9.5 |
+| T9-034 | verifier | Reorganization that removes an accepted inscription; the evidence set reads the sat in full at a tip after it | The report is derived without that inscription; the head is what the inscriptions confirmed at that tip support | P9.5, P7.17 |
 | T9-035 | verifier | Anchored Original read from Bitcoin alone, its newest accepted inscription carrying the full version | Current version’s bytes read from that inscription’s body and checked against its descriptor | P9.17, P9.18 |
 | T9-036 | verifier | Anchored entry naming an inscribed did:vh or did:webvh author DID version that lists its key, when a later version inscribed on the sat before the entry removed it | Rejected; the key must hold in the latest inscribed version | P9.15 |
-| T9-037 | verifier | Evidence set holding a valid anchoring publication earlier in chain order than the anchor of the supplied prior result | The earlier one reported as the anchor and the previous one as a conflicting anchor; the change of holder stated against the prior result, not silent | P9.16, P9.36, P7.17 |
+| T9-037 | verifier | Evidence set holding two valid anchoring publications of the same Original on different sats | The one earlier in chain order is the anchor and the other a conflicting anchor, whatever a report over a smaller evidence set gave | P9.16, P7.17 |
 | T9-038 | SDK | Anchoring when the log or signer identity evidence through the signed anchoring entry does not verify | SDK refuses to inscribe | P9.18 |
 | T9-039 | verifier | Writer checking its committed log before publishing an entry, the entry not yet on Bitcoin | Verified whole as a local copy, from genesis through that entry; reported as unverified on Bitcoin and never current | P9.18 |
 | T9-040 | SDK | Local-copy result placed in a report given to a reader, or presented as anchored or current | Never; a local copy is only the writer’s own pre-publication check | P9.18 |
@@ -347,11 +350,10 @@ Rows that concern only the experimental additions are in their own document, wit
 | T9-107 | verifier | Editor entry inscribed on the anchoring sat by the holder | Accepted | P9.12 |
 | T9-108 | verifier | Inscription after the anchor naming a did:btco signer version on a sat the verifier has not read that far | Labelled `unverifiable`; the accepted state stays `current` and `identity` is not made `incomplete`; later publications from that head `waiting` | P9.15 |
 | T9-109 | verifier | Inscription after the anchor naming a did:vh or did:webvh signer version number that the inscribed signer history holds under another versionId | Rejected | P9.15 |
-| T9-110 | verifier | Inscription after the anchor that was `unverifiable` in the prior result, verified and accepted in a larger evidence set | Change of head stated against the prior result, not silent | P9.15, P9.36 |
 | T9-111 | SDK | Anchoring publication submitted but rejected, evicted or not visible to the SDK’s Bitcoin provider | Labelled submitted, not observed; never pending Bitcoin acceptance | P9.18 |
 | T9-112 | verifier | Valid publication after an earlier `unverifiable` inscription extending the same head | Not accepted until the `unverifiable` one is resolved; reported as waiting on it | P9.15 |
-| T9-113 | verifier | Earlier `unverifiable` inscription later verified as invalid, with a valid later publication from the same head | The later publication is accepted; the change of head is reported | P9.15 |
-| T9-114 | verifier | Evidence set in which a did:btco signer’s sat is not read in full, with a prior result that accepted an inscription depending on it | That inscription `unverifiable` in this report; the head recomputed and the change stated against the prior result | P9.15, P9.36, P7.17 |
+| T9-113 | verifier | Earlier `unverifiable` inscription verified as invalid in an evidence set that reads its sat in full, with a valid later publication from the same head | The later publication is accepted | P9.15, P9.36 |
+| T9-114 | verifier | Evidence set in which a did:btco signer’s sat is not read in full, and a post-anchor inscription depends on it | That inscription `unverifiable`, with an `inscription-unverifiable` diagnostic; the head does not follow it | P9.15, P9.36, P7.17 |
 | T9-115 | verifier | Entry in the anchoring publication naming a signer version number that the inscribed signer history holds under another versionId | Rejected | P9.15 |
 | T9-116 | verifier | Inscription after the anchor whose signer version is `unverifiable` but which fails a check not depending on that version | Rejected, not `unverifiable` | P9.15 |
 | T9-117 | verifier | Publication extending an `unverifiable` inscription | Listed as waiting on it; followed under P9.13 once it is accepted, ignored if it is rejected | P9.13, P9.15 |
@@ -360,7 +362,7 @@ Rows that concern only the experimental additions are in their own document, wit
 | T9-120 | verifier | Report for an anchored Original | States the network and tip it is bound to, the confirmation depth relied on, and whether more than one independent index agreed on the sat’s location | P9.5, P9.11, P9.31 |
 | T9-121 | verifier | Signed anchoring entry not inscribed on the sat it names | Not anchored | P9.10, P9.12 |
 | T9-122 | verifier | Evidence set lacking the full inscription list of a did:btco signer’s sat, for an entry inscribed after the anchoring publication | Inscription `unverifiable`; later publications extending the same head `waiting` | P9.15, P9.35, P9.36 |
-| T9-123 | verifier | Larger evidence set that reads that sat in full, with a prior result | Inscription decided; change of head stated against the prior result | P9.36 |
+| T9-123 | verifier | Evidence set that reads that sat in full | The inscription decided under P9.15: if `accepted`, the head follows it; if `rejected`, the publications waiting on it are ignored | P9.36 |
 | T9-124 | verifier | Entry decided by more than one row of the P9.15 table | First matching row decides | P9.15 |
 | T9-125 | SDK | Publish retry after a partial upload | The same intended snapshot resumed or repeated; no new asset transition | P9.2 |
 | T9-126 | SDK | Uploading bytes, publishing a locator or changing an index, with no authorized transition in the operation | No entry signed or appended | P9.2 |
@@ -372,11 +374,8 @@ Rows that concern only the experimental additions are in their own document, wit
 | T9-132 | verifier | As T9-131, with the did:btco author DID deactivated on its sat before the editor entry’s inscription | Entry `rejected` | P9.15, P5.18, P6.5 |
 | T9-133 | verifier | Post-anchor editor entry by a did:btco editor; the author is a did:webvh DID whose history is inscribed on the anchoring sat. Cases: (a) the editor’s sat not read in full; (b) it is read in full and the author’s inscribed history shows it deactivated before the entry’s inscription; (c) read in full, author not deactivated | (a) `unverifiable`; (b) `rejected`; (c) `accepted`, `chain-ordered` | P9.15, P9.33, P9.35, P5.18 |
 | T9-134 | writer, verifier | Post-anchor entry whose only resource change is the `mediaType` (same digest, e.g. `text/plain` to `text/markdown`), parent naming an author-supplied preview | A new version (P4.4): the writer names a preview made or supplied for the new version, or none, and does not carry the parent’s without doing so; the verifier accepts the entry whether its preview differs from or equals the parent’s, or is absent, and reports the version advanced | P9.30, P4.4, P14.6 |
-| T9-135 | verifier | Prior result anchored at entry 4 with a holder; a reorganization removes the anchoring publication; the evidence set reads the anchoring sat in full at the new tip with no inscription on it, and holds a copy of the log, the author’s history and both resource versions (`vectors/og-1.0-draft.1/reorg/`) | `bitcoin` `not-anchored` and no `bitcoin` member; the anchoring entry `ignored`; `state` `valid-as-of` entry 3, `claimed` ordering; change records `head` from entry 4 to entry 3 and `holder` from `{sat, address}` to null, both with cause `reorganization` | P9.5, P9.36, P7.19, P14.25 |
-| T9-136 | verifier | As T9-135, with the anchoring sat not read in full at the new tip | `bitcoin` `missing-evidence`; an `anchoring-sat-not-read` diagnostic; the anchoring entry `unchecked`; no `holder` record claiming a new holder | P9.5, P7.14, P14.25 |
-| T9-137 | verifier | Prior result anchored on sat A; a larger evidence set holds a valid anchoring publication of the same Original earlier in chain order on sat B | Sat B’s publication is the anchor and sat A’s a conflicting anchor; a `holder` change record from sat A’s holder to sat B’s, and a `head` record if the head differs, with cause `earlier-anchor` | P9.16, P9.36, P14.25 |
-| T9-138 | verifier | Prior result with an `unverifiable` inscription; a larger evidence set reads the missing sat in full and the inscription is `accepted` | The head follows it; a `head` change record with cause `resolved` | P9.36, P14.25 |
-| T9-139 | verifier | Evidence set with no prior result | `changes` is an empty array | P14.25, P9.36 |
+| T9-135 | verifier | A copy of the anchored log, the author’s history and both resource versions, with the anchoring sat read in full at a tip with no inscription on it, as after a reorganization removed the anchoring publication (`vectors/og-1.0-draft.1/anchor-absent/`) | `bitcoin` `not-anchored` and no `bitcoin` member; the anchoring entry `ignored`; `state` `valid-as-of` entry 3, `claimed` ordering | P9.5, P9.12, P7.19 |
+| T9-136 | verifier | As T9-135, with the anchoring sat not read in full at the tip | `bitcoin` `missing-evidence`; an `anchoring-sat-not-read` diagnostic; the anchoring entry `unchecked` | P9.5, P7.14, P14.25 |
 
 #### Wire format (§14)
 
@@ -456,17 +455,17 @@ Rows that concern only the experimental additions are in their own document, wit
 | T14-072 | verifier | Signer DID history of 1,000 / 1,001 versions | Accepted, if otherwise valid / reported with `history` `limit-exceeded`; never complete | P14.13, P7.7 |
 | T14-073 | verifier | `editors` with 32 / 33 grants | Accepted, if otherwise valid / rejected | P14.13, P5.15 |
 | T14-074 | verifier | `supersedes` with 8 distinct versionIds of entries it may supersede | Accepted, if otherwise valid | P14.13, P6.9 |
-| T14-075 | verifier | Each evidence set in `vectors/og-1.0-draft.1/` (`genesis/`, `local/`, `missing-resource/`, `bitcoin/`, `reorg/`), with no network | A report equal to that vector’s `expected-report.json` | P14.25, P14.26, P7.17 |
-| T14-076 | writer | The vector Original’s entries, resources and signer log, packaged and inscribed as in `vectors/og-1.0-draft.1/` | Byte-identical `evidence.zip`, metadata and envelopes | P14.26, P14.10, P14.12 |
+| T14-075 | verifier | Each evidence set in `vectors/og-1.0-draft.1/` (`genesis/`, `local/`, `missing-resource/`, `bitcoin/`, `anchor-absent/`), with no network | A report equal to that vector’s `expected-report.json` | P14.25, P14.26, P7.17 |
+| T14-076 | writer | The vector Original’s entries, resources and signer log, packaged and inscribed as in `vectors/og-1.0-draft.1/` | Byte-identical `evidence.zip`; envelopes with the same fields in the same order; metadata that decodes to the same JSON values as the vector’s, its map members in any order | P14.26, P14.10, P14.12 |
 | T14-077 | verifier | Evidence package whose manifest `checkpoint` is not an entry of `asset/did.jsonl`, or whose `head` is not its last entry | Rejected | P14.10 |
-| T14-078 | writer | Inscription metadata and envelope fields | Members in the order `entries`, `signers`, `part`, and fields in ord 0.29.1’s order; a reader accepts any order ord accepts | P14.12 |
+| T14-078 | writer | Inscription metadata and envelope fields | Map members in any order, at every level; envelope fields in ord 0.29.1’s order; a reader accepts any order of members, and of fields that ord accepts | P14.12 |
 | T14-079 | host | The shared-host saves in `vectors/og-1.0-draft.1/hosted/exchanges.json`, applied in order | `accepted`, then `stale-parent` with the new head, then `already-accepted` | P6.7, P14.26 |
 | T14-080 | verifier | Genesis entry whose parameters are exactly `method`, `scid` and `updateKeys` `[]` | Accepted; `updateKeys` authorizes nothing, and the author entry is checked under P5.3 | P14.1, P5.3 |
 | T14-081 | verifier | Genesis entry with no `updateKeys` parameter | Rejected | P14.1 |
 | T14-082 | verifier | Genesis or later author entry whose `updateKeys` is non-empty, even listing the author’s own signing key | Rejected; a non-empty `updateKeys` is reserved for a later method version | P14.1 |
 | T14-083 | verifier | Editor entry whose parameters carry `updateKeys`, even `[]` | Rejected | P14.1, P5.16 |
 | T14-084 | verifier | Later author entry whose parameters are exactly `{"updateKeys": []}`; deactivation whose parameters are `{"deactivated": true, "updateKeys": []}` | Accepted | P14.1, P6.5 |
-| T14-085 | verifier | Log, package or inscription under another `method` value, such as the mainnet acceptance Original of 1 November 2026 (`originals:1.0`, `vectors/prior-format/`) | outcome `unsupported`; neither `verified` nor `invalid`; no state reported: `axes` holds `outcome` only and `entries`, `signers`, `diagnostics` and `changes` are empty | P14.1, P3.3, P7.18, P14.25 |
+| T14-085 | verifier | Log, package or inscription under another `method` value, such as the mainnet acceptance Original of 1 November 2026 (`originals:1.0`, `vectors/prior-format/`) | outcome `unsupported`; neither `verified` nor `invalid`; no state reported: `axes` holds `outcome` only and `entries`, `signers` and `diagnostics` are empty | P14.1, P3.3, P7.18, P14.25 |
 | T14-086 | verifier | Entry with a member other than `versionId`, `versionTime`, `parameters`, `state` and `proof`, without one of them, or with `proof` not an array of one proof | Rejected | P14.27 |
 | T14-087 | verifier | Log whose version numbers skip, repeat or start other than at 1, or have a leading zero | Rejected | P14.27 |
 | T14-088 | verifier | Genesis entry whose SCID does not match the hash of the entry with `{SCID}` placeholders; or whose `state.id` is not `did:og:` and the SCID | Rejected | P14.28, P3.1 |
@@ -478,6 +477,8 @@ Rows that concern only the experimental additions are in their own document, wit
 | T14-094 | verifier | Any report with missing or failed items | Each is one diagnostic `{code, rule, item, reason}` with a code from P14.25’s closed list, one per code and item, in P14.25’s order; no `missing` or `dependencies` members | P14.25, P7.18 |
 | T14-095 | verifier | Two reports for the same evidence set that differ only in a diagnostic’s `reason` text | The same report | P14.25 |
 | T14-096 | verifier | Evidence-set input whose bytes do not match its stated digest | An `input-unusable` diagnostic naming its source; the input is not used | P14.25, P7.17 |
+| T14-097 | verifier | The `bitcoin/` vector’s inscriptions with their metadata re-encoded so that map members are in other orders: `part` and `signers` before `entries`, and each entry’s and signer log entry’s members not in JCS order | The same entries, the same hashes and proofs, and the same report, apart from the inputs’ digests | P14.12, P14.3, P14.25 |
+| T14-098 | writer | Two writers that encode the same publication with map members in different orders | Both conform; their metadata decodes to the same JSON values, and a verifier gives the same report for either | P14.12, P14.26 |
 
 ### Coverage
 
@@ -488,10 +489,10 @@ Each core rule and the number of rows that test it. Every core rule has at least
 - Section 4: P4.1 (2), P4.2 (2), P4.3 (1), P4.4 (5), P4.5 (1), P4.6 (2).
 - Section 5: P5.1 (2), P5.2 (2), P5.3 (9), P5.4 (2), P5.5 (2), P5.6 (3), P5.7 (3), P5.8 (4), P5.9 (2), P5.10 (2), P5.11 (3), P5.12 (2), P5.13 (19), P5.14 (9), P5.15 (6), P5.16 (9), P5.17 (3), P5.18 (8).
 - Section 6: P6.1 (1), P6.2 (1), P6.3 (1), P6.4 (1), P6.5 (7), P6.6 (6), P6.7 (4), P6.8 (3), P6.9 (13).
-- Section 7: P7.1 (4), P7.2 (1), P7.3 (1), P7.4 (7), P7.5 (8), P7.6 (1), P7.7 (4), P7.8 (7), P7.9 (4), P7.10 (2), P7.11 (1), P7.12 (5), P7.13 (6), P7.14 (8), P7.15 (6), P7.16 (4), P7.17 (9), P7.18 (6), P7.19 (9), P7.20 (11), P7.21 (9), P7.22 (9), P7.23 (1).
+- Section 7: P7.1 (4), P7.2 (1), P7.3 (1), P7.4 (7), P7.5 (8), P7.6 (1), P7.7 (4), P7.8 (7), P7.9 (4), P7.10 (2), P7.11 (1), P7.12 (5), P7.13 (6), P7.14 (8), P7.15 (6), P7.16 (4), P7.17 (10), P7.18 (6), P7.19 (9), P7.20 (11), P7.21 (9), P7.22 (12), P7.23 (1).
 - Section 8: P8.1 (1), P8.2 (1), P8.3 (2), P8.4 (2), P8.5 (14).
-- Section 9: P9.1 (1), P9.2 (2), P9.3 (1), P9.4 (1), P9.5 (6), P9.6 (3), P9.7 (3), P9.8 (1), P9.9 (1), P9.10 (15), P9.11 (3), P9.12 (7), P9.13 (9), P9.14 (1), P9.15 (40), P9.16 (11), P9.17 (25), P9.18 (13), P9.30 (27), P9.31 (10), P9.32 (6), P9.33 (14), P9.34 (5), P9.35 (4), P9.36 (9).
-- Section 14: P14.1 (12), P14.2 (4), P14.3 (9), P14.4 (9), P14.5 (11), P14.6 (6), P14.7 (3), P14.8 (8), P14.9 (3), P14.10 (11), P14.11 (2), P14.12 (15), P14.13 (14), P14.14 (6), P14.15 (4), P14.16 (15), P14.17 (9), P14.25 (16), P14.26 (5), P14.27 (3), P14.28 (3), P14.29 (3).
+- Section 9: P9.1 (1), P9.2 (2), P9.3 (1), P9.4 (1), P9.5 (6), P9.6 (3), P9.7 (3), P9.8 (1), P9.9 (1), P9.10 (15), P9.11 (3), P9.12 (8), P9.13 (9), P9.14 (1), P9.15 (39), P9.16 (10), P9.17 (25), P9.18 (13), P9.30 (27), P9.31 (10), P9.32 (6), P9.33 (14), P9.34 (5), P9.35 (4), P9.36 (4).
+- Section 14: P14.1 (12), P14.2 (4), P14.3 (10), P14.4 (9), P14.5 (11), P14.6 (6), P14.7 (3), P14.8 (8), P14.9 (3), P14.10 (11), P14.11 (2), P14.12 (17), P14.13 (17), P14.14 (6), P14.15 (4), P14.16 (15), P14.17 (9), P14.25 (14), P14.26 (6), P14.27 (3), P14.28 (3), P14.29 (3).
 
 Not covered, because the requirement is out of the core: the read-authorization rules, signer sets, parent Originals and scopes, whose rows moved with them to the additions; the limit on nested parents; the read request’s member set and challenge entropy, which the additions define.
 

@@ -159,7 +159,7 @@ const missingDiag = (bytes, e) => ({
     entryHash: e1.versionId.split('-')[1], entryHashInput: 'genesis/entry-hash-input.json', versionId: e1.versionId,
     signer: { verificationMethod: authorRef.verificationMethod, key: authorSigning.label },
   }));
-  const evidence = { original: OG, checkpoint: null, inputs, signerHistories: [{ did: AUTHOR, source: 'genesis/author/did.jsonl', obtained: '2026-01-06T00:00:00Z' }], network: null, tip: null, depth: null, prior: null };
+  const evidence = { original: OG, checkpoint: null, inputs, signerHistories: [{ did: AUTHOR, source: 'genesis/author/did.jsonl', obtained: '2026-01-06T00:00:00Z' }], network: null, tip: null, depth: null };
   put('genesis/evidence-set.json', json(evidence));
   put('genesis/expected-report.json', json({
     type: 'OriginalsVerificationReport', profile: PROFILE, original: OG, checkpoint: vid(e1),
@@ -170,7 +170,7 @@ const missingDiag = (bytes, e) => ({
     },
     entries: [entryLabel(e1, 0, [e1], { ordering: 'claimed' })],
     signers: [{ did: AUTHOR, role: 'author', latestVersionId: vid(author.entry), source: 'genesis/author/did.jsonl', obtained: '2026-01-06T00:00:00Z', freshness: 'not-established' }],
-    diagnostics: [], changes: [],
+    diagnostics: [],
   }));
 }
 
@@ -187,7 +187,7 @@ const missingDiag = (bytes, e) => ({
     original: OG, checkpoint: null,
     inputs: [{ kind: 'package', source: 'local/package/evidence.zip', digest: digest(p.bytes) }],
     signerHistories: [{ did: AUTHOR, source: 'package', obtained: '2026-01-06T00:00:00Z' }],
-    network: null, tip: null, depth: null, prior: null,
+    network: null, tip: null, depth: null,
   };
   put('local/evidence-set.json', json(evidence));
   put('local/expected-report.json', json({
@@ -199,7 +199,7 @@ const missingDiag = (bytes, e) => ({
     },
     entries: [e1, e2].map((e, i, a) => entryLabel(e, i, a, { ordering: 'claimed' })),
     signers: [{ did: AUTHOR, role: 'author', latestVersionId: vid(author.entry), source: 'package', obtained: '2026-01-06T00:00:00Z', freshness: 'not-established' }],
-    diagnostics: [], changes: [],
+    diagnostics: [],
   }));
 }
 
@@ -213,7 +213,7 @@ const missingDiag = (bytes, e) => ({
     { kind: 'signer-history', source: 'missing-resource/author/did.jsonl', digest: digest(utf8(authorLog)) },
     { kind: 'resource', source: 'missing-resource/resources/v2.md', digest: digest(v2) },
   ];
-  const evidence = { original: OG, checkpoint: null, inputs, signerHistories: [{ did: AUTHOR, source: 'missing-resource/author/did.jsonl', obtained: '2026-01-06T00:00:00Z' }], network: null, tip: null, depth: null, prior: null };
+  const evidence = { original: OG, checkpoint: null, inputs, signerHistories: [{ did: AUTHOR, source: 'missing-resource/author/did.jsonl', obtained: '2026-01-06T00:00:00Z' }], network: null, tip: null, depth: null };
   put('missing-resource/evidence-set.json', json(evidence));
   const diagnostics = [missingDiag(v1, e1)];
   put('missing-resource/expected-report.json', json({
@@ -225,7 +225,7 @@ const missingDiag = (bytes, e) => ({
     },
     entries: [e1, e2].map((e, i, a) => entryLabel(e, i, a, { ordering: 'claimed' })),
     signers: [{ did: AUTHOR, role: 'author', latestVersionId: vid(author.entry), source: 'missing-resource/author/did.jsonl', obtained: '2026-01-06T00:00:00Z', freshness: 'not-established' }],
-    diagnostics, changes: [],
+    diagnostics,
   }));
 }
 
@@ -283,10 +283,13 @@ const missingDiag = (bytes, e) => ({
       { id: `${tx2}i0`, sat: SAT, block: 102, txIndex: 1, inscriptionIndex: 0, envelope: 'inscriptions/part-2.envelope.bin', confirmations: 9 },
     ],
   };
+  // The transfer depth (P7.22, P14.13): the publication's final part, in block
+  // 102, has tip − 102 + 1 confirmations, at least 6, so no insufficient-depth diagnostic.
+  if (tip.height - 102 + 1 < 6) throw new Error('bitcoin vector below the transfer depth');
   put('bitcoin/chain.json', json(chain));
   const inputs = chain.inscriptions.map((x) => ({ kind: 'inscription', source: `index:${x.id}`, digest: digest(files[`bitcoin/${x.envelope}`]) }));
   put('bitcoin/evidence-set.json', json({
-    original: OG, checkpoint: null, inputs, signerHistories: [], network: 'regtest', tip, depth: 1, prior: null,
+    original: OG, checkpoint: null, inputs, signerHistories: [], network: 'regtest', tip, depth: 1,
     note: 'Exactly the P9.18 evidence set: the anchoring sat\'s inscriptions at the stated network and tip, and nothing else.',
   }));
   put('bitcoin/expected-report.json', json({
@@ -298,42 +301,41 @@ const missingDiag = (bytes, e) => ({
     },
     entries: all.map((e, i, a) => entryLabel(e, i, a, i < 3 ? { ordering: 'existed-by-block', block: 102 } : { ordering: 'chain-ordered', block: 102 })),
     signers: [{ did: AUTHOR, role: 'author', latestVersionId: vid(author.entry), source: `inscribed:${tx1}i0`, freshness: 'established' }],
-    diagnostics: [missingDiag(v1, e1)], changes: [],
+    diagnostics: [missingDiag(v1, e1)],
     bitcoin: { sat: BTCO, holder: { address: chain.holder.address, uniqueness: 'provisional' }, conflictingAnchors: [], unverifiable: [], waiting: [] },
   }));
 }
 
-// ---------- reorg/ (synthetic regtest): the anchoring publication reorganized away ----------
+// ---------- anchor-absent/ (synthetic regtest): no anchoring publication on the sat ----------
+// The anchored log as a copy, with the anchoring sat read in full at a tip that
+// holds no inscription on it, as after a reorganization removed the anchoring
+// publication (P9.5). No earlier report is an input (P7.17).
 {
-  const prior = files['bitcoin/expected-report.json'];
-  const priorReport = JSON.parse(new TextDecoder().decode(prior));
-  put('reorg/prior-report.json', prior);
-  put('reorg/did.jsonl', logOf(e1, e2, e3, e4));
-  put('reorg/author/did.jsonl', authorLog);
-  put('reorg/resources/v1.md', v1);
-  put('reorg/resources/v2.md', v2);
-  const tip = { height: 111, hash: synthHash('reorg tip') };
+  put('anchor-absent/did.jsonl', logOf(e1, e2, e3, e4));
+  put('anchor-absent/author/did.jsonl', authorLog);
+  put('anchor-absent/resources/v1.md', v1);
+  put('anchor-absent/resources/v2.md', v2);
+  const tip = { height: 111, hash: synthHash('anchor-absent tip') };
   const satRead = {
     synthetic: true,
-    note: 'Synthetic: a reorganization from block 101 replaced the blocks that held the anchoring publication. The index reads the sat in full at the new tip and lists no inscription on it (P9.31, P9.35).',
+    note: 'Synthetic: the index reads the anchoring sat in full at this tip and lists no inscription on it, as after a reorganization from block 101 removed the anchoring publication (P9.5, P9.31, P9.35).',
     network: 'regtest', ordRelease: '0.29.1', sat: SAT, tip, inscriptions: [],
   };
-  put('reorg/sat-read.json', json(satRead));
+  put('anchor-absent/sat-read.json', json(satRead));
   const inputs = [
-    { kind: 'prior-result', source: 'reorg/prior-report.json', digest: digest(prior) },
-    { kind: 'log', source: 'reorg/did.jsonl', digest: digest(utf8(logOf(e1, e2, e3, e4))) },
-    { kind: 'signer-history', source: 'reorg/author/did.jsonl', digest: digest(utf8(authorLog)) },
-    { kind: 'resource', source: 'reorg/resources/v1.md', digest: digest(v1) },
-    { kind: 'resource', source: 'reorg/resources/v2.md', digest: digest(v2) },
-    { kind: 'sat-read', source: 'reorg/sat-read.json', digest: digest(files['reorg/sat-read.json']) },
+    { kind: 'log', source: 'anchor-absent/did.jsonl', digest: digest(utf8(logOf(e1, e2, e3, e4))) },
+    { kind: 'signer-history', source: 'anchor-absent/author/did.jsonl', digest: digest(utf8(authorLog)) },
+    { kind: 'resource', source: 'anchor-absent/resources/v1.md', digest: digest(v1) },
+    { kind: 'resource', source: 'anchor-absent/resources/v2.md', digest: digest(v2) },
+    { kind: 'sat-read', source: 'anchor-absent/sat-read.json', digest: digest(files['anchor-absent/sat-read.json']) },
   ];
-  put('reorg/evidence-set.json', json({
+  put('anchor-absent/evidence-set.json', json({
     original: OG, checkpoint: null, inputs,
-    signerHistories: [{ did: AUTHOR, source: 'reorg/author/did.jsonl', obtained: '2026-01-06T00:00:00Z' }],
-    network: 'regtest', tip, depth: 1, prior: 'reorg/prior-report.json',
+    signerHistories: [{ did: AUTHOR, source: 'anchor-absent/author/did.jsonl', obtained: '2026-01-06T00:00:00Z' }],
+    network: 'regtest', tip, depth: 1,
   }));
   const diagnostics = [];
-  put('reorg/expected-report.json', json({
+  put('anchor-absent/expected-report.json', json({
     type: 'OriginalsVerificationReport', profile: PROFILE, original: OG, checkpoint: vid(e3),
     evidence: { inputs, network: 'regtest', tip, depth: 1 },
     axes: {
@@ -344,12 +346,8 @@ const missingDiag = (bytes, e) => ({
       ...[e1, e2, e3].map((e, i, a) => entryLabel(e, i, a, { ordering: 'claimed' })),
       { versionId: vid(e4), status: 'ignored' },
     ],
-    signers: [{ did: AUTHOR, role: 'author', latestVersionId: vid(author.entry), source: 'reorg/author/did.jsonl', obtained: '2026-01-06T00:00:00Z', freshness: 'not-established' }],
+    signers: [{ did: AUTHOR, role: 'author', latestVersionId: vid(author.entry), source: 'anchor-absent/author/did.jsonl', obtained: '2026-01-06T00:00:00Z', freshness: 'not-established' }],
     diagnostics,
-    changes: [
-      { kind: 'head', from: priorReport.checkpoint, to: vid(e3), cause: 'reorganization' },
-      { kind: 'holder', from: { sat: priorReport.bitcoin.sat, address: priorReport.bitcoin.holder.address }, to: null, cause: 'reorganization' },
-    ],
   }));
 }
 

@@ -19,8 +19,24 @@ export const canonicalLog = (entries) => entries.map(canonicalLine).join('');
 export const CODES = [
   'resource-missing', 'resource-mismatch', 'signer-history-missing', 'signer-version-missing',
   'proof-unchecked', 'entry-rejected', 'anchoring-sat-not-read', 'signer-sat-not-read',
-  'inscription-unverifiable', 'publication-waiting', 'input-unusable',
+  'inscription-unverifiable', 'publication-waiting', 'input-unusable', 'insufficient-depth',
 ];
+// The transfer depth (P7.22, P14.13): confirmations a publication needs for the transfer check.
+export const TRANSFER_DEPTH = 6;
+// Confirmations of a publication at a tip: the tip's height less the height of
+// the block holding its final part, plus one (P7.22).
+export const confirmations = (tipHeight, blockHeight) => tipHeight - blockHeight + 1;
+export const insufficientDepth = (inscriptionId, n) => ({
+  code: 'insufficient-depth', rule: 'P7.22', item: { kind: 'inscription', id: inscriptionId },
+  reason: `The publication has ${n} confirmations at the tip, fewer than the transfer depth of ${TRANSFER_DEPTH}.`,
+});
+
+// The default acceptance check and the transfer check (P7.22), over a report.
+export const defaultCheck = (r) => r.axes.outcome === 'verified' && r.axes.history === 'valid'
+  && r.axes.authority === 'current' && ['current', 'valid-as-of'].includes(r.axes.state);
+export const transferCheck = (r) => defaultCheck(r) && r.axes.bitcoin === 'anchored'
+  && r.bitcoin.unverifiable.length === 0 && r.bitcoin.waiting.length === 0 && r.bitcoin.conflictingAnchors.length === 0
+  && !r.diagnostics.some((d) => d.code === 'insufficient-depth');
 // The codes that make `offline` `needs-external` (P7.21).
 export const DEPENDENCY_CODES = new Set([
   'resource-missing', 'resource-mismatch', 'signer-history-missing', 'signer-version-missing',
@@ -107,34 +123,32 @@ export async function offChainReport({ evidenceSet, log, authorLog, resources })
       source: history.source, obtained: history.obtained, freshness: 'not-established',
     }] : [],
     diagnostics,
-    changes: [], // no prior result in these evidence sets
   };
 }
 
-// The report after a reorganization removed the anchoring publication
-// (P9.5, P9.36): the prior result was anchored; the evidence set reads the
-// anchoring sat in full at the new tip and finds no Originals inscription on
-// it, and supplies a copy of the log, the author's history and the bytes.
+// The report when the anchoring sat, read in full at the evidence set's tip,
+// holds no anchoring publication of the Original, as after a reorganization
+// removed it (P9.5): the copy's anchoring entry and every later entry are
+// ignored, and the state is valid as of the entry before it. No earlier report
+// is an input (P7.17).
 //   satRead: { network, sat, tip, inscriptions } as an index reports it
-export async function reorgReport({ evidenceSet, prior, log, authorLog, resources, satRead }) {
+export async function anchorAbsentReport({ evidenceSet, log, authorLog, resources, satRead }) {
   const before = stats().failures;
   const problems = [];
-  const authorDoc = await checkWebvh(authorLog, 'reorg report: author history');
-  const { did } = checkOgLog(log, authorDoc, resources, 'reorg report');
+  const authorDoc = await checkWebvh(authorLog, 'anchor-absent report: author history');
+  const { did } = checkOgLog(log, authorDoc, resources, 'anchor-absent report');
   const prefix = { mainnet: '', signet: 'sig:', testnet: 'test:', regtest: 'reg:' }[satRead.network];
   const btco = `did:btco:${prefix}${satRead.sat}`;
   const anchorAt = log.findIndex((e) => e.state.asset.aliases.includes(btco));
   if (anchorAt < 1) problems.push('the copy has no anchoring entry for the read sat');
   if (satRead.inscriptions.some((x) => x.metaprotocol === 'og')) problems.push('the sat still holds Originals inscriptions; outside what this deriver covers');
   if (satRead.network !== evidenceSet.network || JSON.stringify(satRead.tip) !== JSON.stringify(evidenceSet.tip)) problems.push('sat read is not at the evidence set\'s network and tip');
-  if (!prior || prior.axes.bitcoin !== 'anchored' || prior.bitcoin?.sat !== btco) problems.push('prior result is not anchored on this sat');
+  if ('prior' in evidenceSet) problems.push('an evidence set has no prior result (P7.17)');
   if (evidenceSet.original !== did) problems.push('evidence set names another did:og');
   if (log.some((e) => e.state.editor)) problems.push('editor entries are outside what this deriver covers');
   const failed = problems.length > 0 || stats().failures > before;
-  for (const p of problems) console.error('FAIL reorg report:', p);
+  for (const p of problems) console.error('FAIL anchor-absent report:', p);
 
-  // Not anchored: the anchoring entry and every later entry of the copy are
-  // ignored; the state is valid as of the entry before it (P9.5, P7.19).
   const kept = log.slice(0, anchorAt);
   const checkpoint = kept[kept.length - 1].versionId;
   const labels = kept.map((e) => (authorDoc.assertionMethod.includes(e.proof[0].verificationMethod) ? 'current-key' : 'key-removed-since'));
@@ -142,13 +156,6 @@ export async function reorgReport({ evidenceSet, prior, log, authorLog, resource
   const { versions, diagnostics: missing } = missingResources(kept, resources);
   const history = evidenceSet.signerHistories.find((h) => h.did === log[0].state.author.did);
   const diagnostics = sortDiagnostics(missing);
-
-  // Change records against the prior result (P14.25): the head moved back,
-  // and the holder was lost with the anchor; the prior's anchoring
-  // inscriptions are gone from a sat read in full, so the cause is a reorganization.
-  const changes = [];
-  if (prior.checkpoint !== checkpoint) changes.push({ kind: 'head', from: prior.checkpoint, to: checkpoint, cause: 'reorganization' });
-  changes.push({ kind: 'holder', from: { sat: prior.bitcoin.sat, address: prior.bitcoin.holder.address }, to: null, cause: 'reorganization' });
 
   return {
     type: 'OriginalsVerificationReport',
@@ -176,7 +183,6 @@ export async function reorgReport({ evidenceSet, prior, log, authorLog, resource
       source: history.source, obtained: history.obtained, freshness: 'not-established',
     }] : [],
     diagnostics,
-    changes,
   };
 }
 
@@ -193,7 +199,6 @@ export function unsupportedReport({ inputs, network }) {
     entries: [],
     signers: [],
     diagnostics: [],
-    changes: [],
   };
 }
 

@@ -192,6 +192,8 @@ async function main() {
   const r2 = reveal({ txid: r1id, vout: 0, amount: value2 }, env2, holderScript, POSTAGE);
   const r2id = await rpc('sendrawtransaction', [r2.hex]);
   await mine(1);
+  // 8 more blocks: the publication has 9 confirmations, as in the vector,
+  // above the transfer depth of 6 (P7.22, P14.13).
   await mine(8);
   const tipHeight = await ordSync();
   log('reveals', r1id, r2id, 'tip', tipHeight);

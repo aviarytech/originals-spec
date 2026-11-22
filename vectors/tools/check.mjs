@@ -8,15 +8,16 @@ import { fileURLToPath } from 'node:url';
 import {
   ASSET_OPT, ASSET_REQ, J, STATE, bytesEq, checkChain, checkOgLog, checkPackage, checkWebvh, counts, decodeCbor, decodeMultikey, eq, multihash, ok, parseEnvelope, parseLines, readZip, resourceDigest, sha, stats, td, te, verifyProof,
 } from './verify-lib.mjs';
-import { CODES, canonicalLog, offChainReport, reorgReport, sameReport, unsupportedReport } from './report-lib.mjs';
+import { CODES, TRANSFER_DEPTH, anchorAbsentReport, canonicalLog, defaultCheck, offChainReport, sameReport, transferCheck, unsupportedReport } from './report-lib.mjs';
 // Whole-report comparison (P14.25): equal as JSON values, ignoring each diagnostic's reason.
 const sameAs = (derived, expected, msg) => ok(sameReport(derived, expected), `${msg}: ${JSON.stringify(derived)} != ${JSON.stringify(expected)}`);
-// P14.25 shape: diagnostics and changes, no manifest-style missing or dependencies.
+// P14.25 shape: diagnostics; no manifest-style missing or dependencies, and no
+// change records, since no earlier report is an input (P7.17).
 const shape = (r, label) => {
-  ok(!('missing' in r) && !('dependencies' in r) && Array.isArray(r.diagnostics) && Array.isArray(r.changes), `${label}: report has diagnostics and changes, not missing or dependencies (P14.25)`);
+  ok(!('missing' in r) && !('dependencies' in r) && !('changes' in r) && Array.isArray(r.diagnostics), `${label}: report has diagnostics, and no missing, dependencies or changes (P14.25)`);
   for (const d of r.diagnostics ?? []) eq(Object.keys(d).sort(), ['code', 'item', 'reason', 'rule'], `${label}: diagnostic members`), ok(CODES.includes(d.code), `${label}: diagnostic code ${d.code} is in the closed list`);
-  for (const c of r.changes ?? []) eq(Object.keys(c).sort(), ['cause', 'from', 'kind', 'to'], `${label}: change record members`);
 };
+const noPrior = (ev, label) => ok(!('prior' in ev) && !ev.inputs.some((x) => x.kind === 'prior-result'), `${label}: the evidence set has no prior result (P7.17)`);
 import { computeReport } from '../regtest/report.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', 'og-1.0-draft.1');
@@ -115,7 +116,72 @@ chain.inscriptions.forEach((x, k) => ok(br.evidence.inputs[k].digest === resourc
     }),
   });
   eq(derived.evidence, { inputs: bev.inputs, network: bev.network, tip: bev.tip, depth: bev.depth }, 'bitcoin report: evidence matches the evidence set');
-  sameAs(derived, br, 'bitcoin report: whole report derived from the evidence set (P14.25)'); shape(br, 'bitcoin report');
+  sameAs(derived, br, 'bitcoin report: whole report derived from the evidence set (P14.25)'); shape(br, 'bitcoin report'); noPrior(bev, 'bitcoin');
+  ok(defaultCheck(br) && transferCheck(br), 'bitcoin report: default and transfer checks pass at 9 confirmations (P7.22)');
+}
+
+// Transfer depth (P7.22, P14.13; T7-071, T7-072): the same reads at a tip that
+// gives the publication 5, then 6, confirmations. Derived only, not a vector.
+{
+  const finalBlock = chain.inscriptions[chain.inscriptions.length - 1].block;
+  const at = async (confs) => computeReport({
+    network: chain.network, tip: { height: finalBlock + confs - 1, hash: chain.tip.hash }, depth: chain.depth, sat: chain.sat,
+    inscriptions: chain.inscriptions.map((x) => {
+      const envelope = read(`bitcoin/${x.envelope}`); const p = parseEnvelope(envelope);
+      return { id: x.id, envelope, height: x.block, txIndex: x.txIndex, inscriptionIndex: x.inscriptionIndex, sat: x.sat, metaprotocol: 'og', contentType: p.contentType, holder: chain.holder.address };
+    }),
+  });
+  const shallow = await at(TRANSFER_DEPTH - 1);
+  const deep = shallow.diagnostics.filter((d) => d.code === 'insufficient-depth');
+  ok(deep.length === 1 && deep[0].item.kind === 'inscription' && deep[0].item.id === chain.inscriptions[0].id && deep[0].rule === 'P7.22', 'depth: 5 confirmations give one insufficient-depth diagnostic naming the first inscription (T7-071)');
+  ok(defaultCheck(shallow) && !transferCheck(shallow), 'depth: at 5 confirmations the default check passes and the transfer check fails (T7-071)');
+  const enough = await at(TRANSFER_DEPTH);
+  ok(!enough.diagnostics.some((d) => d.code === 'insufficient-depth') && transferCheck(enough), 'depth: at exactly 6 confirmations the transfer check passes (T7-072)');
+  shape(shallow, 'depth report');
+}
+
+// CBOR member order (P14.12; T14-097, T14-098): the vector's envelopes are a
+// fixed read fixture; equivalent metadata with map members in other orders is
+// re-encoded here, independently of the generator, and must decode to the
+// same entries and give the same report, apart from the inputs' digests.
+{
+  const head = (major, n) => n < 24 ? [(major << 5) | n] : n < 0x100 ? [(major << 5) | 24, n] : n < 0x10000 ? [(major << 5) | 25, n >> 8, n & 0xff] : [(major << 5) | 26, (n >>> 24) & 0xff, (n >> 16) & 0xff, (n >> 8) & 0xff, n & 0xff];
+  const enc = (v, order) => {
+    if (v === null) return [0xf6]; if (v === true) return [0xf5]; if (v === false) return [0xf4];
+    if (typeof v === 'number') return v >= 0 ? head(0, v) : head(1, -1 - v);
+    if (typeof v === 'string') { const b = [...te.encode(v)]; return [...head(3, b.length), ...b]; }
+    if (Array.isArray(v)) return [...head(4, v.length), ...v.flatMap((x) => enc(x, order))];
+    const keys = order(Object.keys(v));
+    return [...head(5, keys.length), ...keys.flatMap((k) => [...enc(k, order), ...enc(v[k], order)])];
+  };
+  const push = (d) => d.length <= 75 ? [d.length, ...d] : d.length <= 0xff ? [0x4c, d.length, ...d] : [0x4d, d.length & 0xff, d.length >> 8, ...d];
+  const envelopeOf = (p, metadata) => {
+    const out = [0x00, 0x63, ...push([...te.encode('ord')])];
+    if (p.contentType) out.push(...push([1]), ...push([...te.encode(p.contentType)]));
+    out.push(...push([7]), ...push([...te.encode('og')]));
+    for (let i = 0; i < metadata.length; i += 520) out.push(...push([5]), ...push(metadata.slice(i, i + 520)));
+    if (p.body) { out.push(0x00); for (let i = 0; i < p.body.length; i += 520) out.push(...push([...p.body.subarray(i, i + 520)])); }
+    out.push(0x68);
+    return new Uint8Array(out);
+  };
+  const orders = {
+    reversed: (ks) => [...ks].reverse(),
+    sorted: (ks) => [...ks].sort(),
+    'part-first': (ks) => [...ks].sort((a, b) => (b === 'part') - (a === 'part') || (b === 'signers') - (a === 'signers') || (a < b ? 1 : a > b ? -1 : 0)),
+  };
+  const fixture = chain.inscriptions.map((x) => parseEnvelope(read(`bitcoin/${x.envelope}`)));
+  const strip = (r) => ({ ...r, evidence: { ...r.evidence, inputs: r.evidence.inputs.map(({ digest, ...i }) => i) } });
+  for (const [name, order] of Object.entries(orders)) {
+    const envelopes = fixture.map((p) => envelopeOf(p, enc(p.metadata, order)));
+    ok(envelopes.some((e, k) => !bytesEq(e, read(`bitcoin/${chain.inscriptions[k].envelope}`))), `cbor order ${name}: the re-encoded envelopes differ from the fixture's bytes`);
+    const decoded = envelopes.map(parseEnvelope);
+    decoded.forEach((p, k) => ok(td.decode(J(p.metadata)) === td.decode(J(fixture[k].metadata)), `cbor order ${name}: part ${k + 1} decodes to the same JSON values (T14-097)`));
+    const derived = await computeReport({
+      network: chain.network, tip: chain.tip, depth: chain.depth, sat: chain.sat,
+      inscriptions: chain.inscriptions.map((x, k) => ({ id: x.id, envelope: envelopes[k], height: x.block, txIndex: x.txIndex, inscriptionIndex: x.inscriptionIndex, sat: x.sat, metaprotocol: 'og', contentType: decoded[k].contentType, holder: chain.holder.address })),
+    });
+    sameAs(strip(derived), strip(br), `cbor order ${name}: the same report apart from the inputs' digests (T14-097, T14-098)`);
+  }
 }
 
 // genesis vector (P14.1, P14.27–P14.29)
@@ -222,25 +288,23 @@ chain.inscriptions.forEach((x, k) => ok(br.evidence.inputs[k].digest === resourc
   ok(mr.axes.offline === 'needs-external' && mr.axes.availability === 'partial', 'missing-resource: needs-external and partial (P7.21, P7.4)');
   ok(mr.diagnostics.length === 1 && mr.diagnostics[0].code === 'resource-missing' && mr.diagnostics[0].item.id === resourceDigest(v1), 'missing-resource: one resource-missing diagnostic for version 1');
 }
-// reorg vector: the anchoring publication reorganized away (P9.5, P9.36, T9-135)
+// anchor-absent vector: the anchoring sat read in full with no anchoring publication (P9.5, T9-135)
 {
-  const rev = readJSON('reorg/evidence-set.json');
-  ok(rev.inputs.every((x) => x.digest === resourceDigest(read(x.source))), 'reorg: evidence-set digests');
-  const input = (kind) => read(rev.inputs.find((x) => x.kind === kind).source);
-  const prior = JSON.parse(td.decode(input('prior-result')));
-  sameAs(prior, br, 'reorg: the prior result is the bitcoin vector\'s report');
+  const aev = readJSON('anchor-absent/evidence-set.json');
+  noPrior(aev, 'anchor-absent');
+  ok(aev.inputs.every((x) => x.digest === resourceDigest(read(x.source))), 'anchor-absent: evidence-set digests');
+  const input = (kind) => read(aev.inputs.find((x) => x.kind === kind).source);
   const satRead = JSON.parse(td.decode(input('sat-read')));
-  ok(satRead.sat === chain.sat && satRead.network === 'regtest' && satRead.inscriptions.length === 0, 'reorg: the sat is read in full with no inscription');
-  ok(satRead.tip.height > chain.tip.height || satRead.tip.hash !== chain.tip.hash, 'reorg: a new tip');
-  const res = Object.fromEntries(rev.inputs.filter((x) => x.kind === 'resource').map((x) => { const b = read(x.source); return [resourceDigest(b), b]; }));
-  const log = parseLines(input('log'), 'reorg log');
-  eq(log.map((e) => e.versionId), inscribed.map((e) => e.versionId), 'reorg: the copy is the anchored log');
-  const derived = await reorgReport({
-    evidenceSet: rev, prior, log, authorLog: parseLines(input('signer-history'), 'reorg author log'), resources: res, satRead,
+  ok(satRead.sat === chain.sat && satRead.network === 'regtest' && satRead.inscriptions.length === 0, 'anchor-absent: the sat is read in full with no inscription');
+  const res = Object.fromEntries(aev.inputs.filter((x) => x.kind === 'resource').map((x) => { const b = read(x.source); return [resourceDigest(b), b]; }));
+  const log = parseLines(input('log'), 'anchor-absent log');
+  eq(log.map((e) => e.versionId), inscribed.map((e) => e.versionId), 'anchor-absent: the copy is the anchored log');
+  const derived = await anchorAbsentReport({
+    evidenceSet: aev, log, authorLog: parseLines(input('signer-history'), 'anchor-absent author log'), resources: res, satRead,
   });
-  const rr = readJSON('reorg/expected-report.json');
-  sameAs(derived, rr, 'reorg report: whole report derived from the evidence set (P14.25)'); shape(rr, 'reorg report');
-  ok(!('bitcoin' in rr) && rr.axes.bitcoin === 'not-anchored', 'reorg: not anchored, no bitcoin member');
-  ok(rr.changes.some((c) => c.kind === 'holder' && c.to === null && c.from.sat === br.bitcoin.sat), 'reorg: holder change record names the lost anchor');
+  const ar = readJSON('anchor-absent/expected-report.json');
+  sameAs(derived, ar, 'anchor-absent report: whole report derived from the evidence set (P14.25)'); shape(ar, 'anchor-absent report');
+  ok(!('bitcoin' in ar) && ar.axes.bitcoin === 'not-anchored' && ar.entries[ar.entries.length - 1].status === 'ignored', 'anchor-absent: not anchored, the anchoring entry ignored, no bitcoin member');
 }
+for (const v of ['genesis', 'local', 'missing-resource']) noPrior(readJSON(`${v}/evidence-set.json`), v);
 { const { checks, failures } = stats(); console.log(`${checks} checks, ${failures} failures`); process.exit(failures ? 1 : 0); }

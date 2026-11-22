@@ -55,7 +55,7 @@
 ~ Whoever holds the anchoring sat of an anchored Original. Holding confers no authority to change the Original, and is provisional until the anchor’s uniqueness is established ([P9.11](#p9.11), [P9.16](#p9.16)).
 
 [[def: evidence set]]:
-~ Everything a verifier is given for one verification: the copies of the log, bytes, signer DID histories, the Bitcoin network, tip and index reads, and optionally a prior result. A report is a function of it alone ([P7.17](#p7.17)).
+~ Everything a verifier is given for one verification: the copies of the log, bytes, signer DID histories, the Bitcoin network, tip and index reads. A report is a function of it alone ([P7.17](#p7.17)).
 
 [[def: endorsed]]:
 ~ An accepted entry descending to a later accepted author entry, on the same branch, whose key the author DID still lists ([P7.20](#p7.20)).

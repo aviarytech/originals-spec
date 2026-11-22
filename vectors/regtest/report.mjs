@@ -10,7 +10,9 @@
 import {
   checkOgLog, checkWebvh, parseEnvelope, resourceDigest, stats,
 } from '../tools/verify-lib.mjs';
-import { missingResources, offlineFrom, sortDiagnostics } from '../tools/report-lib.mjs';
+import {
+  TRANSFER_DEPTH, confirmations, insufficientDepth, missingResources, offlineFrom, sortDiagnostics,
+} from '../tools/report-lib.mjs';
 
 const PROFILE = 'og:1.0-draft.1';
 const NETWORK_PREFIX = { mainnet: '', signet: 'sig:', testnet: 'test:', regtest: 'reg:' };
@@ -76,7 +78,11 @@ export async function computeReport(evidence) {
   // The evidence is the sat read in full at the tip (P9.18), so the only
   // dependencies P7.21 can find are resource versions the inscriptions lack.
   const { diagnostics: missing } = missingResources(entries, resources);
-  const diagnostics = sortDiagnostics(missing);
+  // The transfer depth (P7.22): the publication's confirmations at the tip,
+  // counted from the block holding its final part.
+  const confs = confirmations(evidence.tip.height, final.x.height);
+  const depth = confs < TRANSFER_DEPTH ? [insufficientDepth(parts[0].x.id, confs)] : [];
+  const diagnostics = sortDiagnostics([...missing, ...depth]);
 
   return {
     type: 'OriginalsVerificationReport', profile: PROFILE, original: did, checkpoint: anchor.versionId,
@@ -100,7 +106,6 @@ export async function computeReport(evidence) {
       source: history.source, freshness: 'established',
     }] : [],
     diagnostics,
-    changes: [], // the gate's evidence set has no prior result
     bitcoin: {
       sat: btco, holder: { address: final.x.holder, uniqueness: 'provisional' },
       conflictingAnchors: [], unverifiable: [], waiting: [],

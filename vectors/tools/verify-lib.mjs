@@ -11,7 +11,9 @@ export const te = new TextEncoder(), td = new TextDecoder('utf-8', { fatal: true
 export const counts = { failures: 0, checks: 0 };
 export const stats = () => ({ ...counts });
 export const ok = (cond, msg) => { counts.checks++; if (!cond) { counts.failures++; console.error('FAIL', msg); } };
-export const eq = (a, b, msg) => ok(JSON.stringify(a) === JSON.stringify(b), `${msg}: ${JSON.stringify(a)} != ${JSON.stringify(b)}`);
+// Equal as JSON values: compared in JCS form, so the order of object members
+// never matters (P14.3, P14.12); array order does.
+export const eq = (a, b, msg) => ok(td.decode(J(a)) === td.decode(J(b)), `${msg}: ${JSON.stringify(a)} != ${JSON.stringify(b)}`);
 export const bytesEq = (a, b) => a.length === b.length && a.every((x, i) => x === b[i]);
 
 export const sha = (b) => sha256(b);

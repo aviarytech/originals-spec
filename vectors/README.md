@@ -67,14 +67,20 @@ This vector is **synthetic**. No regtest chain produced these transactions or bl
 
 The negative case for P7.21: the loose inputs of `local/` (the asset log through entry 2 and the author's history) with only resource version 2 supplied. The report has `availability` `partial`, `offline` `needs-external` and one `resource-missing` diagnostic naming version 1's digest and entry 1; `outcome` is still `verified`.
 
-### `reorg/`
+### `anchor-absent/`
 
-Also **synthetic**. The same Original after a reorganization from block 101 removed its anchoring publication (P9.5, P9.36):
+Also **synthetic**. The same Original's anchored log, as a copy, with the anchoring sat read in full at a tip that holds no inscription on it, as after a reorganization from block 101 removed its anchoring publication (P9.5). No earlier report is an input (P7.17); a caller that wants to know what changed compares two reports.
 
-- `prior-report.json`: the prior result, the `bitcoin/` vector's report.
-- `sat-read.json`: the anchoring sat read in full at the new tip, height 111, with no inscription on it.
+- `sat-read.json`: the anchoring sat read in full at the tip, height 111, with no inscription on it.
 - `did.jsonl`, `author/did.jsonl` and `resources/`: a copy of the log through entry 4, the author's history and both resource versions.
-- `evidence-set.json` and `expected-report.json`: the report is `bitcoin` `not-anchored`, with no `bitcoin` member; entry 4, the anchoring entry, is `ignored`; the state is `valid-as-of` entry 3 with `claimed` ordering; `offline` is `self-contained`. Its change records are `head` from entry 4 to entry 3 and `holder` from the prior `{sat, address}` to null, both with cause `reorganization` (P14.25).
+- `evidence-set.json` and `expected-report.json`: the report is `bitcoin` `not-anchored`, with no `bitcoin` member; entry 4, the anchoring entry, is `ignored`; the state is `valid-as-of` entry 3 with `claimed` ordering; `offline` is `self-contained`.
+
+### Derived cases in the checker
+
+Two cases are derived by `tools/check.mjs` from the `bitcoin/` vector, with no files of their own:
+
+- **Transfer depth** (P7.22, P14.13; T7-071, T7-072): the same index reads at a tip that gives the publication 5, then 6, confirmations. At 5 the report has one `insufficient-depth` diagnostic naming the publication's first inscription, the default check passes and the transfer check fails; at 6 the transfer check passes. The `bitcoin/` vector itself has 9 confirmations.
+- **Map member order** (P14.12; T14-097, T14-098): the vector's envelopes are a fixed read fixture. The checker re-encodes each part's metadata with map members in other orders (reversed, sorted, and `part` and `signers` first), with its own CBOR encoder, and checks that the envelopes decode to the same JSON values and give the same report, apart from the inputs' digests. Writers may order map members freely; only the envelope's fields and their order are fixed bytes.
 
 ## `regtest/`: the regtest gate
 
