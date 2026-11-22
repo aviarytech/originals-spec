@@ -54,6 +54,12 @@
 [[def: holder]]:
 ~ Whoever holds the anchoring sat of an anchored Original. Holding confers no authority to change the Original, and is provisional until the anchor’s uniqueness is established ([P9.11](#p9.11), [P9.16](#p9.16)).
 
+[[def: evidence set]]:
+~ Everything a verifier is given for one verification: the copies of the log, bytes, signer DID histories, the Bitcoin network, tip and index reads, and optionally a prior result. A report is a function of it alone ([P7.17](#p7.17)).
+
+[[def: endorsed]]:
+~ An accepted entry descending to a later accepted author entry, on the same branch, whose key the author DID still lists ([P7.20](#p7.20)).
+
 [[def: witness, witnesses]]:
 ~ A VH witness that approves entries before they count as current. Originals asset logs do not use witnesses ([P9.8](#p9.8)); an author DID may still use its own DID method’s witnesses.
 
@@ -73,7 +79,7 @@ Holding is not an authority. Once an Original is anchored, its [[ref: holder]] i
 
 ### Proposed rules
 
-P2.1 An accepted [[ref: Original]] MUST have one unambiguous history identity and an exact verified current [[ref: checkpoint]]. An implementation MUST NOT merge divergent valid histories by choosing the latest claimed timestamp.
+P2.1 An accepted [[ref: Original]] MUST have one unambiguous history identity and an exact verified [[ref: checkpoint]], reported as valid as of that checkpoint unless the Original is anchored, when its state on the anchoring sat can be current (P7.10, P7.18). An implementation MUST NOT merge divergent valid histories by choosing the latest claimed timestamp.
 
 P2.2 A committed asset change MUST be a valid [[ref: VH entry]] under the selected profile, signed by a key that the verifier confirms is an authorized verification method, at the version named in that entry, of the author or of an editor whose grant covers the change (P5.16). A key with no verified signer binding, or an editor key whose grant in the parent’s state does not cover the change, MUST NOT be treated as an authorized change.
 

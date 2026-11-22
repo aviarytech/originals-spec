@@ -43,14 +43,14 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Anchoring entry inscribed on a sat other than the one it names | Not an anchor |
 | Publication at the same or a lower block height than the previous accepted one | Not accepted |
 | Bitcoin failure, retry or reorganization | Durable boundary follows adapter policy, not pending intent |
-| Entry signed by a key removed from the author DID | Unanchored: historically authorized, ordering unproven, not current while the latest verified author DID state does not list the key (P7.9). Anchored: an anchoring entry or later inscribed entry is rejected if the removal is inscribed on the anchoring sat, for did:vh or did:webvh, or on the DID’s sat, for did:btco, before the entry’s inscription; a removal not on Bitcoin does not affect it (P9.15, P9.33, P5.13) |
+| Entry signed by a key removed from the author DID | Unanchored: labelled `key-removed-since`, ordering `claimed`, `authority` `historical` and the default acceptance check fails while no later author entry endorses it (P7.9, P7.20, P7.22). Anchored: an anchoring entry or later inscribed entry is rejected if the removal is inscribed on the anchoring sat, for did:vh or did:webvh, or on the DID’s sat, for did:btco, before the entry’s inscription; a removal not on Bitcoin does not affect it (P9.15, P9.33, P5.13) |
 | Accepted anchored entry whose key the author DID later removes | Remains current |
 | Author DID deactivated after an Original is anchored | Accepted state remains current; entries inscribed after Bitcoin evidences the deactivation rejected (P9.15) |
 | Anchored entry naming a did:vh or did:webvh author DID version not inscribed on the anchoring sat through its publication | Rejected, not unverifiable (P9.15, P9.33) |
 | Block whose timestamp is earlier than an ancestor’s | No effect; block timestamps do not order or check inscribed entries, chain order does (P9.13, P9.15) |
 | Anchored entry whose did:vh or did:webvh signer has, off Bitcoin, a newer version that removes its key, not inscribed on the sat before the entry | Accepted against the inscribed signer history; the verifier may warn of the newer version beside the result (P7.8, P9.15) |
 | did:vh or did:webvh author DID version published off Bitcoin with a versionTime before an already accepted inscription it would reject | No effect on acceptance; versionTime does not order inscribed entries (P9.15) |
-| Any entry after the author DID is deactivated | Not anchored: deactivation reported; entries historically authorized only (P7.9). Anchored: accepted state remains current; entries inscribed after Bitcoin evidences the deactivation rejected (P9.15) |
+| Any entry after the author DID is deactivated | Not anchored: deactivation reported; entries labelled `did-deactivated-since`, default acceptance check fails (P7.9, P7.20). Anchored: accepted state remains current; entries inscribed after Bitcoin evidences the deactivation rejected (P9.15) |
 | Entry that sets updateKeys or nextKeyHashes | Rejected |
 | Asset log entry that sets the witness parameter to anything other than an empty object | Rejected |
 | Entry signed by a key the author DID added, with no asset log entry for the change | Accepted |
@@ -148,7 +148,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Verifier relying on an index of Originals inscriptions that it trusts, which lists no competing anchoring publication for the `did:og` through block N | May report uniqueness as established through block N, naming the index; never beyond it (P9.16) |
 | Verifier with no index of Originals inscriptions | Uniqueness not established; holder provisional (P9.16) |
 | Earlier anchoring publication naming a signer version that Bitcoin does not evidence, and a later valid anchoring publication on another sat | The earlier one is not an anchor; the later one is (P9.16) |
-| Earlier anchoring publication with a did:btco signer whose sat the verifier has not read far enough, and a later valid one | Anchor undetermined until it has; the later one not reported as the anchor meanwhile (P9.16) |
+| Earlier anchoring publication with a did:btco signer whose sat is not read in full in the evidence set, and a later valid one | `bitcoin` `undetermined` until an evidence set reads it in full (P9.35); the later one not reported as the anchor meanwhile (P9.16) |
 | Publication and the publication extending it confirmed in the same block, in that transaction order | Both accepted, in chain order (P9.13) |
 | Publication and the publication extending it in the same block, in the reverse transaction order | The later one in chain order does not extend the head when it is reached; only the one extending the accepted head is accepted (P9.13) |
 | Entry before the anchoring entry signed with key K1 at did:btco author version v1, the author having rotated to K2 in v2 before the anchoring publication; anchoring entry signed with K2 naming v2 | Accepted (P5.13, P9.15) |
@@ -325,6 +325,37 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 | Writer with no parser for the version’s syntax asked for a text block | Refused (P14.16) |
 | Signed anchoring entry not inscribed on the sat it names | Not anchored (P9.10, P9.12) |
 | Two entries whose `versionTime` values differ by less than one millisecond, or a `versionTime` with more than three fractional digits | Rejected (P14.2) |
+| Same evidence set verified twice, by one verifier or by two | Identical reports (P7.17) |
+| Same log verified with and without a retained newer signer DID version supplied in the evidence set | Two reports, each identifying its evidence set; only the one with the newer version uses it (P7.8, P7.17) |
+| Verifier with network access verifying an evidence set that lacks a signer DID history | Report over that evidence set: `identity` `incomplete`; it does not fetch silently (P7.17) |
+| Report omitting an applicable axis, or using a value outside its list | Not conforming (P7.18, P7.23) |
+| Unanchored Original, author key K1 removed, later author entry signed with K2 | Entries signed with K1 `endorsed`; `authority` `current`; default acceptance check passes (P7.20, P7.22) |
+| Unanchored Original, author key K1 removed, no later author entry | Last K1 entries `key-removed-since`, not endorsed; `authority` `historical`; default check fails; history still `valid` (P7.20) |
+| Unanchored Original whose editor’s key was removed from the editor DID, followed by an author entry with a current key | Editor entry `endorsed`; default check passes (P7.20) |
+| Host given an editor entry extending an entry that is neither `current-key` nor endorsed | Refused (P7.20) |
+| Host given a `current-key` author entry extending such an entry | Accepted; it endorses it (P7.20) |
+| Complete package, all entries `accepted`, bytes of one version missing | Default check passes; `availability` `partial` (P7.22) |
+| Transfer check with one inscription on the anchoring sat `unverifiable` | Fails; default check passes with the inscription listed (P7.22) |
+| Transfer check with a conflicting anchor reported | Fails (P7.22) |
+| Application showing a single “verified” for `outcome` `verified` with `authority` `historical` | Not conforming (P7.22) |
+| Complete package of a never-anchored Original with a did:webvh author, signer history included, network disabled | `offline` `self-contained`; `outcome` `verified` (P7.21, P8.5) |
+| Complete package of a never-anchored Original with a did:btco author | `offline` `needs-external`, listing the author’s sat; not verified offline (P7.21, P8.5) |
+| Complete package of an anchored Original | `offline` `needs-external`, listing the anchoring sat (P7.21) |
+| Evidence set lacking the full inscription list of a did:btco signer’s sat, for an entry inscribed after the anchoring publication | Inscription `unverifiable`; later publications extending the same head `waiting` (P9.15, P9.35, P9.36) |
+| Larger evidence set that reads that sat in full, with a prior result | Inscription decided; change of head stated against the prior result (P9.36) |
+| Entry decided by more than one row of the P9.15 table | First matching row decides (P9.15) |
+| Unanchored fork: editor-only branch from entry 3, author entry on the other branch naming its first entry in `supersedes` | Editor branch `conflicting`; `state` `valid-as-of` the author branch (P6.9) |
+| Editor entry later extending a superseded branch | `conflicting` (P6.9) |
+| `supersedes` naming a branch that holds an author entry | No settlement; `state` `conflict` (P6.6, P6.9) |
+| `supersedes` naming an ancestor of the superseding entry, or an entry whose parent is not its ancestor | Author entry rejected (P6.9) |
+| `supersedes` naming an entry not in the evidence set | No effect; author entry decided without it (P6.9) |
+| Editor entry with a `supersedes` member | Rejected (P6.9, P14.4) |
+| `supersedes` with 9 versionIds, or a repeated one | Rejected (P14.4, P14.13) |
+| Superseding author entry labelled `key-removed-since` and not endorsed | Settles nothing; `state` `conflict` (P6.9) |
+| Revoked editor forks again from an entry before the superseded branch | New `conflict` until superseded or anchored (P6.9) |
+| `editors` naming two did:webvh DIDs with the same SCID at different locations | Rejected (P5.15) |
+| Signer shown an author entry that adds an editor or widens a grant | Before-and-after permission view, with the addition marked, before signing (P5.11) |
+| Signer shown an author entry with `supersedes` | Entries and signers of each superseded branch shown before signing (P5.11, P6.9) |
 
 ### Release evidence
 

@@ -12,13 +12,14 @@ P14.3 Canonicalization is JCS [[spec: RFC8785]]. Parsers MUST reject duplicate k
 
 ### Entry state
 
-P14.4 An entry’s state MUST have exactly the members `id`, `operation`, `author`, `asset` and `transitions`, and an editor entry also `editor`. Every object defined in this section MUST have exactly its listed members, and a verifier MUST reject any other member (P5.7).
+P14.4 An entry’s state MUST have exactly the members `id`, `operation`, `author`, `asset` and `transitions`, an editor entry also `editor`, and an author entry MAY also have `supersedes`. Every object defined in this section MUST have exactly its listed members, and a verifier MUST reject any other member (P5.7).
 
 - `id` is the Original’s `did:og`, `did:og:<SCID>`.
 - `operation` is `create` in the genesis entry and `update` or `deactivate` in every other entry. Anchoring is an `update` (P9.10).
 - `editor` and `author` are each a [[ref: signer]] reference, exactly `{did, verificationMethod, versionId}`, all strings (P5.1, P5.16). For a did:btco signer, `versionId` is the inscription id of the version (P5.13).
 - A verifier MUST reject an `author` that is not an object, such as an array of signer references (D13).
 - `asset` has the required members `name`, `status`, `network`, `resource` and `aliases`, and the optional members `metadata`, `editors`, `preview` and `body`. A verifier MUST reject `authors`, `parent` and `readers`, which only the experimental additions define (D13).
+- `supersedes` is an array of 1 to 8 versionIds, all strings and all different, naming the entries an author entry supersedes (P6.9). An editor entry MUST NOT have it. Its name and limit are provisional.
 - `transitions` is an array of `{from, to}` with at most one item, where `from` is the previous digest, or null in the genesis entry, and `to` is the new digest. It MUST have one item exactly when the resource’s digest changes: in the genesis entry `{from: null, to}`, and in a later entry that changes the digest `{from, to}`. It is empty in any other entry, including a deactivation (P4.1, P4.2).
 
 P14.5 The members of `asset`:
@@ -102,6 +103,7 @@ P14.13 A verifier MUST enforce these limits (P7.7, P8.5):
 | Entries in an asset log | 10,000 |
 | Bytes in one entry, as its JCS form in UTF-8, in every format | 65,536 |
 | Editor grants | 32 |
+| Entries named in one `supersedes` (P6.9) | 8 |
 | Inscriptions in one publication (P9.32) | 16 |
 | Bytes in a preview (P9.30) | 8,192 |
 | Versions of one signer DID | 1,000 |
