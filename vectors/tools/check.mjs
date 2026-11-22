@@ -8,6 +8,8 @@ import { fileURLToPath } from 'node:url';
 import {
   ASSET_OPT, ASSET_REQ, J, STATE, bytesEq, checkChain, checkOgLog, checkPackage, checkWebvh, counts, decodeCbor, decodeMultikey, eq, multihash, ok, parseEnvelope, parseLines, readZip, resourceDigest, sha, stats, td, te, verifyProof,
 } from './verify-lib.mjs';
+import { canonicalLog, offChainReport, unsupportedReport } from './report-lib.mjs';
+import { computeReport } from '../regtest/report.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', 'og-1.0-draft.1');
 const read = (p) => new Uint8Array(readFileSync(join(ROOT, p)));
@@ -32,9 +34,15 @@ eq(lp.authorLog, authorEntries, 'local: packaged author log');
 const lr = readJSON('local/expected-report.json');
 const lev = readJSON('local/evidence-set.json');
 ok(lev.inputs[0].digest === resourceDigest(zipBytes), 'local: evidence-set digest of the package');
-ok(lr.checkpoint === lp.manifest.checkpoint && lr.original === OG, 'local report: checkpoint and original');
-eq(lr.entries.map((e) => e.versionId), localLog.map((e) => e.versionId), 'local report: entries');
-eq(lr.axes, { outcome: 'verified', binding: 'bound', history: 'valid', identity: 'complete', authority: 'current', state: 'valid-as-of', availability: 'complete', offline: 'self-contained', bitcoin: 'not-read' }, 'local report: axes');
+{
+  // The whole report, derived from the evidence set alone: the package's log,
+  // its author history and the resource bytes it carries (P7.17, P14.25).
+  const pkgResources = Object.fromEntries(Object.entries(zfiles).filter(([k]) => k.startsWith('resources/')).map(([k, v]) => [k.slice('resources/'.length), v]));
+  const derived = await offChainReport({ evidenceSet: lev, log: lp.log, authorLog: lp.authorLog, resources: pkgResources });
+  eq(derived, lr, 'local report: whole report derived from the evidence set (P14.25)');
+  ok(lr.checkpoint === lp.manifest.checkpoint, 'local report: checkpoint is the manifest checkpoint');
+}
+ok(canonicalLog(localLog) === td.decode(read('local/asset/did.jsonl')), 'local: asset log lines are their canonical form, JCS plus LF (P14.2, P14.3)');
 
 // hosted
 const served = (p) => read(`hosted/served/${p}`);
@@ -87,9 +95,20 @@ const total = parts.reduce((n, p) => n + p.metadataBytes, 0);
 ok(total + parts[1].body.length > 350000, 'bitcoin: one inscription would exceed 350,000 bytes, so parts are justified');
 const br = readJSON('bitcoin/expected-report.json');
 chain.inscriptions.forEach((x, k) => ok(br.evidence.inputs[k].digest === resourceDigest(read(`bitcoin/${x.envelope}`)), `bitcoin report: input digest ${k + 1}`));
-eq(br.entries.map((e) => e.versionId), inscribed.map((e) => e.versionId), 'bitcoin report: entries');
-ok(br.axes.state === 'current' && br.axes.bitcoin === 'anchored' && br.axes.availability === 'partial', 'bitcoin report: axes');
-ok(br.missing[0].digest === inscribed[0].state.asset.resource.digest, 'bitcoin report: version 1 bytes are missing');
+{
+  // The whole report, derived from the index reads of the chain fixture only
+  // (P9.18), with the same verifier the regtest gate runs against ord.
+  const bev = readJSON('bitcoin/evidence-set.json');
+  const derived = await computeReport({
+    network: chain.network, tip: chain.tip, depth: chain.depth, sat: chain.sat,
+    inscriptions: chain.inscriptions.map((x) => {
+      const envelope = read(`bitcoin/${x.envelope}`); const p = parseEnvelope(envelope);
+      return { id: x.id, envelope, height: x.block, txIndex: x.txIndex, inscriptionIndex: x.inscriptionIndex, sat: x.sat, metaprotocol: 'og', contentType: p.contentType, holder: chain.holder.address };
+    }),
+  });
+  eq(derived.evidence, { inputs: bev.inputs, network: bev.network, tip: bev.tip, depth: bev.depth }, 'bitcoin report: evidence matches the evidence set');
+  eq(derived, br, 'bitcoin report: whole report derived from the evidence set (P14.25)');
+}
 
 // genesis vector (P14.1, P14.27–P14.29)
 {
@@ -110,10 +129,20 @@ ok(br.missing[0].digest === inscribed[0].state.asset.resource.digest, 'bitcoin r
   const d = readJSON('genesis/derivation.json');
   ok(d.scid === scid && d.versionId === ge.versionId, 'genesis: derivation.json values');
   const gr = readJSON('genesis/expected-report.json');
-  ok(gr.checkpoint === ge.versionId && gr.original === `did:og:${scid}`, 'genesis report: checkpoint and original');
-  eq(gr.axes, { outcome: 'verified', binding: 'bound', history: 'valid', identity: 'complete', authority: 'current', state: 'valid-as-of', availability: 'complete', offline: 'self-contained', bitcoin: 'not-read' }, 'genesis report: axes');
   const gev = readJSON('genesis/evidence-set.json');
-  ok(gev.inputs.every((x) => x.digest === resourceDigest(read(x.source.replace(/^genesis\//, 'genesis/')))), 'genesis: evidence-set digests');
+  ok(gev.inputs.every((x) => x.digest === resourceDigest(read(x.source))), 'genesis: evidence-set digests');
+  // The whole report, derived from the evidence set's inputs only (P7.17, P14.25).
+  const input = (kind) => read(gev.inputs.find((x) => x.kind === kind).source);
+  const gres = read(gev.inputs.find((x) => x.kind === 'resource').source);
+  const derived = await offChainReport({
+    evidenceSet: gev,
+    log: parseLines(input('log'), 'genesis evidence log'),
+    authorLog: parseLines(input('signer-history'), 'genesis evidence author log'),
+    resources: { [resourceDigest(gres)]: gres },
+  });
+  eq(derived, gr, 'genesis report: whole report derived from the evidence set (P14.25)');
+  // Writer comparison: canonical entry bytes, JCS plus LF (P14.2, P14.3).
+  ok(canonicalLog(gl) === td.decode(read('genesis/did.jsonl')), 'genesis: did.jsonl is the canonical form of its entry, JCS plus LF');
 }
 
 // prior-format fixture: the mainnet acceptance Original of 1 November 2026 (T14-085)
@@ -159,7 +188,14 @@ ok(br.missing[0].digest === inscribed[0].state.asset.resource.digest, 'bitcoin r
   ok(entries[0].parameters.method === chain.method && chain.method !== 'og:1.0-draft.1', 'prior: method value is originals:1.0, not one this draft implements (P14.1)');
   ok(entries[0].state.id === chain.did && chain.did.startsWith('did:vh:'), 'prior: identifier is the earlier did:vh form');
   const pr = JSON.parse(readFileSync(join(PF, 'expected-report.json'), 'utf8'));
-  ok(pr.axes.outcome === 'unsupported' && Object.keys(pr.axes).length === 1 && pr.checkpoint === null, 'prior: expected outcome unsupported, with no state (T14-085)');
+  // The whole report: a method value this draft does not implement is
+  // `unsupported`, and nothing else is reported about the log (P14.1, P14.25).
+  const derived = unsupportedReport({
+    network: chain.network,
+    inputs: chain.inscriptions.map((x) => ({ kind: 'transaction', source: `mempool.space:${x.revealTxid}`, digest: resourceDigest(new Uint8Array(Buffer.from(readFileSync(join(PF, x.transaction), 'utf8').trim(), 'hex'))) })),
+  });
+  ok(entries[0].parameters.method !== 'og:1.0-draft.1', 'prior: derived outcome is unsupported because the method value is not implemented');
+  eq(derived, pr, 'prior report: whole report derived (T14-085, P14.25)');
 }
 
 { const { checks, failures } = stats(); console.log(`${checks} checks, ${failures} failures`); process.exit(failures ? 1 : 0); }

@@ -13,7 +13,7 @@
 ~ The state recorded in full in each asset log entry: the Original’s name, metadata, lifecycle status, resource descriptor, aliases and editor grants, and, from its anchoring entry on, any preview of the version that an inscription carries (P9.30). It is not a DID document.
 
 [[def: VH entry, VH entries]]:
-~ Commits a state transition according to the selected VH profile.
+~ An entry of an asset log: it commits a state transition, in the entry shape that VH Log uses, and is valid only under this specification’s rules (P5.5, P14.27).
 
 [[def: checkpoint, checkpoints]]:
 ~ Identifies an exact verified prefix of that history.
@@ -67,7 +67,7 @@
 
 Author identity is the identity making a change. Its verification method is authorized through the applicable DID verification relationship and method rules.
 
-Log-control authority is the authority to append or modify VH history under the previous accepted entry’s rules. In plain VH it comes from updateKeys. A log signature alone does not establish author identity.
+Log-control authority is the authority to append or modify VH history under the previous accepted entry’s rules. In plain VH it comes from updateKeys; in an asset log it comes only from the author DID and editor grants (P5.5), and `updateKeys` confers none. A log signature alone does not establish author identity.
 
 In the baseline profile these two authorities come from one place. The author DID is the asset log’s controller, and the author signs each author entry with a verification method of that DID. One signature therefore shows both who made the change and that it may be appended.
 
@@ -81,7 +81,7 @@ Holding is not an authority. Once an Original is anchored, its [[ref: holder]] i
 
 P2.1 An accepted [[ref: Original]] MUST have one unambiguous history identity and an exact verified [[ref: checkpoint]], reported as valid as of that checkpoint unless the Original is anchored, when its state on the anchoring sat can be current (P7.10, P7.18). An implementation MUST NOT merge divergent valid histories by choosing the latest claimed timestamp.
 
-P2.2 A committed asset change MUST be a valid [[ref: VH entry]] under the selected profile, signed by a key that the verifier confirms is an authorized verification method, at the version named in that entry, of the author or of an editor whose grant covers the change (P5.16). A key with no verified signer binding, or an editor key whose grant in the parent’s state does not cover the change, MUST NOT be treated as an authorized change.
+P2.2 A committed asset change MUST be a valid [[ref: VH entry]] under this specification (P5.5), signed by a key that the verifier confirms is an authorized verification method, at the version named in that entry, of the author or of an editor whose grant covers the change (P5.16). A key with no verified signer binding, or an editor key whose grant in the parent’s state does not cover the change, MUST NOT be treated as an authorized change.
 
 P2.3 Every accepted state MUST preserve the association between the Original, its resource and the prior accepted checkpoint. Storage locations MUST be treated as retrieval hints, not substitutes for signed digest bindings.
 

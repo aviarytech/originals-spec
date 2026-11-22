@@ -65,6 +65,14 @@ Rulings on review of the design-review pull request (21 November 2026, owner dec
 - The mainnet gate is a scripted regtest run with bitcoind and ord 0.29.x, then a fresh mainnet inscription by the owner; the acceptance Original of 1 November 2026 is a prior-format fixture, reported `unsupported` (P14.1; D1).
 - The two implementations that must agree on the genesis vector are the Originals SDK and the vectors checker (P14.26; D21).
 
+Rulings on the follow-up review of the design-review pull request (22 November 2026, owner decisions):
+
+- A still-active author MAY endorse an entry by an editor whose DID has since been deactivated: such an editor entry, labelled `did-deactivated-since`, passes the default acceptance check once a later `current-key` author entry on the same branch endorses it. When the deactivated DID is the author DID, no entry it affects ever passes, since no later author entry can then be `current-key` (P7.20; T7-065, T7-066).
+- The rules of this specification, not VH Log’s or any DID method’s, govern the asset log; upstream methods apply only to the signer and alias logs that use them (P5.5, P5.7, P8.5).
+- Missing evidence for the author DID’s state is never accepting: a post-anchor editor entry whose did:btco author’s sat is not read in full is `unverifiable` (P9.15 row 6; T9-130–T9-133).
+- A preview follows the same new-version predicate as P4.4: a digest change, or a change of `mediaType` alone (P9.30; T9-134).
+- The checker derives each vector’s whole report from its evidence set, and writers are compared by canonical entry bytes, JCS plus a line feed (P14.25, P14.26).
+
 ### Release blockers
 
 Every open or provisional choice, the rules it affects and what it blocks. An **interoperable release** means two independent implementations reproduce the same results; a **mainnet release** means anchoring real Originals on Bitcoin. None of these permits skipping a check: until a choice is made, implementations apply the rules as written and label provisional values as such.

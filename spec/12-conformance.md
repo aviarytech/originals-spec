@@ -1,10 +1,10 @@
 ## Conformance and negative tests
 
-All requirements here are proposed. A conformance claim needs a named, pinned Originals profile plus the upstream VH and identity-method versions. “VH-based” alone is not an interoperable conformance target. Open profile choices are blockers to a release claim, not reasons to accept unverified evidence.
+All requirements here are proposed. A conformance claim needs a named, pinned Originals profile plus the pinned versions of the signer DID methods it supports (P5.8); the asset log’s own rules are this specification’s (P5.5). “VH-based” alone is not an interoperable conformance target. Open profile choices are blockers to a release claim, not reasons to accept unverified evidence.
 
 ### Proposed minimum test matrix
 
-The matrix has 405 rows, grouped by the section of the first rule each tests. Every row has:
+The matrix has 413 rows, grouped by the section of the first rule each tests. Every row has:
 
 - an **ID**, `T<section>-<number>`. IDs are stable: a row keeps its ID when rows are added or moved, a new row takes the next unused number in its section, and the number of a removed row is never reused. Fixtures and reports cite rows by ID;
 - an **actor**: a *verifier* (including a resolver or reader), a *writer* (the part of the SDK that makes entries, packages, carriers and inscriptions), a *host* (P6.7, P9.7, P14.11) or the *SDK* as a whole, including its signing display and storage;
@@ -109,6 +109,7 @@ Rows that concern only the experimental additions are in their own document, wit
 | T5-057 | SDK | Signer shown an author entry that adds an editor or widens a grant | Before-and-after permission view, with the addition marked, before signing | P5.11 |
 | T5-058 | SDK | Signer shown an author entry with `supersedes` | Entries and signers of each superseded branch shown before signing | P5.11, P6.9 |
 | T5-059 | verifier | Entry signed by a did:btco or did:webvh signer with a secp256k1 verification method and a `bip340-jcs-2025` proof | Entry `rejected`; `identity` `failed` | P5.12, P14.8 |
+| T5-060 | verifier | Asset log checked with VH Log’s rules for parameters, proofs and controller changes instead of this specification’s, e.g. an entry signed by a key that only a non-empty `updateKeys` would authorize, or a VH-Log `logVersion` parameter | Not this profile’s verification: the entry is `rejected` (P14.1 rejects the parameters, and P5.3 finds no authorizing key in the author DID); `updateKeys` `[]` authorizes no key, and only the author DID at its named version and editor grants confer authority | P5.5, P5.7, P14.1, P14.27 |
 
 #### Operations (§6)
 
@@ -209,6 +210,8 @@ Rows that concern only the experimental additions are in their own document, wit
 | T7-062 | SDK | Archive with an entry whose name is an absolute path | Rejected before extraction | P7.5, P14.10 |
 | T7-063 | SDK | Archive of 20,000 / 20,001 entries | Imported, if otherwise valid / rejected before extraction | P7.5, P14.10 |
 | T7-064 | SDK | Archive whose entries total 512 MiB / more than 512 MiB | Imported, if otherwise valid / rejected before extraction | P7.5, P14.10 |
+| T7-065 | verifier | Unanchored Original: editor entry, then the editor DID deactivated, then a later author entry on the same branch whose author DID is active and whose key is current | The editor entry labelled `did-deactivated-since` and `endorsed`; `authority` `current`; default acceptance check passes | P7.9, P7.19, P7.20, P7.22 |
+| T7-066 | verifier | As T7-065 with no later author entry, or with the author DID (not the editor’s) deactivated after the editor entry | Editor entry `did-deactivated-since`, not endorsed; `authority` `historical`; default check fails. With the author DID deactivated no later author entry can be `current-key`, so it never passes | P7.9, P7.20, P7.22, P5.18 |
 
 #### Private use and fetching (§8)
 
@@ -360,6 +363,11 @@ Rows that concern only the experimental additions are in their own document, wit
 | T9-127 | SDK | Rebroadcast of an anchoring or later publication’s unconfirmed transaction | The same transaction rebroadcast; no entry re-signed or rebased | P9.6 |
 | T9-128 | SDK | Fee bump of an unconfirmed publication by a replacement transaction | Prepared and reported as a replacement carrying the same signed entries; no entry re-signed or rebased | P9.6 |
 | T9-129 | writer | Entry changing the resource’s digest, where the writer has not generated a preview from the new version’s bytes (or, for a non-image version, been given one by the author) | Names no preview; never copies its parent’s `preview` without regenerating it | P9.30 |
+| T9-130 | verifier | Post-anchor editor entry by a did:webvh editor whose history is inscribed on the anchoring sat; the author is a did:btco DID whose sat is not read in full in the evidence set | Entry `unverifiable`, never `accepted`; later publications from it wait on it (`waiting`); in the anchoring publication, identity evidence incomplete and P9.16 decides the anchor | P9.15, P9.35, P5.18 |
+| T9-131 | verifier | As T9-130, with the did:btco author’s sat read in full and no deactivation of the author before the editor entry’s inscription | Entry `accepted`, ordering `chain-ordered` | P9.15, P5.13, P5.18 |
+| T9-132 | verifier | As T9-131, with the did:btco author DID deactivated on its sat before the editor entry’s inscription | Entry `rejected` | P9.15, P5.18, P6.5 |
+| T9-133 | verifier | Post-anchor editor entry by a did:btco editor; the author is a did:webvh DID whose history is inscribed on the anchoring sat. Cases: (a) the editor’s sat not read in full; (b) it is read in full and the author’s inscribed history shows it deactivated before the entry’s inscription; (c) read in full, author not deactivated | (a) `unverifiable`; (b) `rejected`; (c) `accepted`, `chain-ordered` | P9.15, P9.33, P9.35, P5.18 |
+| T9-134 | writer, verifier | Post-anchor entry whose only resource change is the `mediaType` (same digest, e.g. `text/plain` to `text/markdown`), parent naming an author-supplied preview | A new version (P4.4): the writer names a preview made or supplied for the new version, or none, and does not carry the parent’s without doing so; the verifier accepts the entry whether its preview differs from or equals the parent’s, or is absent, and reports the version advanced | P9.30, P4.4, P14.6 |
 
 #### Wire format (§14)
 
@@ -449,13 +457,13 @@ Rows that concern only the experimental additions are in their own document, wit
 | T14-082 | verifier | Genesis or later author entry whose `updateKeys` is non-empty, even listing the author’s own signing key | Rejected; a non-empty `updateKeys` is reserved for a later method version | P14.1 |
 | T14-083 | verifier | Editor entry whose parameters carry `updateKeys`, even `[]` | Rejected | P14.1, P5.16 |
 | T14-084 | verifier | Later author entry whose parameters are exactly `{"updateKeys": []}`; deactivation whose parameters are `{"deactivated": true, "updateKeys": []}` | Accepted | P14.1, P6.5 |
-| T14-085 | verifier | Log, package or inscription under another `method` value, such as the mainnet acceptance Original of 1 November 2026 (`originals:1.0`, `vectors/prior-format/`) | outcome `unsupported`; neither `verified` nor `invalid`; no state reported | P14.1, P3.3, P7.18 |
+| T14-085 | verifier | Log, package or inscription under another `method` value, such as the mainnet acceptance Original of 1 November 2026 (`originals:1.0`, `vectors/prior-format/`) | outcome `unsupported`; neither `verified` nor `invalid`; no state reported: `axes` holds `outcome` only and `entries`, `signers`, `missing` and `dependencies` are empty | P14.1, P3.3, P7.18, P14.25 |
 | T14-086 | verifier | Entry with a member other than `versionId`, `versionTime`, `parameters`, `state` and `proof`, without one of them, or with `proof` not an array of one proof | Rejected | P14.27 |
 | T14-087 | verifier | Log whose version numbers skip, repeat or start other than at 1, or have a leading zero | Rejected | P14.27 |
 | T14-088 | verifier | Genesis entry whose SCID does not match the hash of the entry with `{SCID}` placeholders; or whose `state.id` is not `did:og:` and the SCID | Rejected | P14.28, P3.1 |
 | T14-089 | verifier | Entry whose entry hash is not computed over its predecessor’s `versionId` (or the SCID for genesis), or an SCID or entry hash using a multihash other than SHA-256 | Rejected | P14.29, P14.28 |
 | T14-090 | verifier | `did:og` log checked by a VH-Log or did:vh library for its SCID and hash chain | The same SCID and entry hashes as P14.28 and P14.29; not a verification of the Original | P14.29, P3.5 |
-| T14-091 | writer, verifier | Genesis vector `vectors/og-1.0-draft.1/genesis/` | The writer reproduces the entry byte for byte from its inputs; the verifier reproduces its SCID, entry hash and expected report | P14.26, P14.28, P14.29, P14.1 |
+| T14-091 | writer, verifier | Genesis vector `vectors/og-1.0-draft.1/genesis/` | The writer reproduces the entry in canonical form, its JCS bytes followed by a line feed, from its inputs (key order and escapes are free under P14.2); the verifier reproduces its SCID, entry hash and the whole expected report, every member equal (P14.25) | P14.26, P14.28, P14.29, P14.1, P14.25 |
 | T14-092 | verifier | Originals inscription with metadata over 520 bytes, so in several tag-5 pushes, or a later inscription on the anchoring sat, which ord 0.29.x reports as cursed, vindicated or a reinscription | Read as any other Originals inscription; its curse status changes nothing | P14.12, P9.31 |
 | T14-093 | writer, verifier | Regtest gate `vectors/regtest/` (`npm run regtest`): the Bitcoin vector's two-part anchoring publication inscribed with Bitcoin Core and ord 0.29.x, both parts on one sat with no pointer, and read back through ord | The report computed from ord's reads equals the vector's expected report, with only chain-dependent values (sat, anchoring entry, inscription ids, part 2's envelope digest, heights, tip, holder) substituted | P14.26, P9.31, P9.32, P9.18, P14.12 |
 
@@ -465,13 +473,13 @@ Each core rule and the number of rows that test it. Every core rule has at least
 
 - Section 2: P2.1 (2), P2.2 (1), P2.3 (1).
 - Section 3: P3.1 (2), P3.2 (1), P3.3 (4), P3.4 (1), P3.5 (4), P3.6 (4), P3.7 (1), P3.8 (2), P3.9 (1).
-- Section 4: P4.1 (2), P4.2 (2), P4.3 (1), P4.4 (4), P4.5 (1), P4.6 (2).
-- Section 5: P5.1 (2), P5.2 (2), P5.3 (9), P5.4 (2), P5.5 (1), P5.6 (3), P5.7 (2), P5.8 (4), P5.9 (2), P5.10 (2), P5.11 (3), P5.12 (2), P5.13 (18), P5.14 (9), P5.15 (6), P5.16 (9), P5.17 (3), P5.18 (3).
-- Section 6: P6.1 (1), P6.2 (1), P6.3 (1), P6.4 (1), P6.5 (6), P6.6 (6), P6.7 (4), P6.8 (3), P6.9 (13).
-- Section 7: P7.1 (4), P7.2 (1), P7.3 (1), P7.4 (5), P7.5 (8), P7.6 (1), P7.7 (4), P7.8 (7), P7.9 (2), P7.10 (2), P7.11 (1), P7.12 (5), P7.13 (6), P7.14 (7), P7.15 (6), P7.16 (4), P7.17 (8), P7.18 (5), P7.19 (7), P7.20 (9), P7.21 (5), P7.22 (7), P7.23 (1).
+- Section 4: P4.1 (2), P4.2 (2), P4.3 (1), P4.4 (5), P4.5 (1), P4.6 (2).
+- Section 5: P5.1 (2), P5.2 (2), P5.3 (9), P5.4 (2), P5.5 (2), P5.6 (3), P5.7 (3), P5.8 (4), P5.9 (2), P5.10 (2), P5.11 (3), P5.12 (2), P5.13 (19), P5.14 (9), P5.15 (6), P5.16 (9), P5.17 (3), P5.18 (8).
+- Section 6: P6.1 (1), P6.2 (1), P6.3 (1), P6.4 (1), P6.5 (7), P6.6 (6), P6.7 (4), P6.8 (3), P6.9 (13).
+- Section 7: P7.1 (4), P7.2 (1), P7.3 (1), P7.4 (5), P7.5 (8), P7.6 (1), P7.7 (4), P7.8 (7), P7.9 (4), P7.10 (2), P7.11 (1), P7.12 (5), P7.13 (6), P7.14 (7), P7.15 (6), P7.16 (4), P7.17 (8), P7.18 (5), P7.19 (8), P7.20 (11), P7.21 (5), P7.22 (9), P7.23 (1).
 - Section 8: P8.1 (1), P8.2 (1), P8.3 (2), P8.4 (2), P8.5 (13).
-- Section 9: P9.1 (1), P9.2 (2), P9.3 (1), P9.4 (1), P9.5 (4), P9.6 (3), P9.7 (3), P9.8 (1), P9.9 (1), P9.10 (15), P9.11 (3), P9.12 (7), P9.13 (9), P9.14 (1), P9.15 (36), P9.16 (10), P9.17 (25), P9.18 (12), P9.30 (26), P9.31 (10), P9.32 (6), P9.33 (13), P9.34 (5), P9.35 (2), P9.36 (5).
-- Section 14: P14.1 (11), P14.2 (4), P14.3 (9), P14.4 (9), P14.5 (11), P14.6 (5), P14.7 (3), P14.8 (8), P14.9 (3), P14.10 (11), P14.11 (2), P14.12 (15), P14.13 (14), P14.14 (6), P14.15 (4), P14.16 (15), P14.17 (9), P14.25 (1), P14.26 (5), P14.27 (2), P14.28 (3), P14.29 (3).
+- Section 9: P9.1 (1), P9.2 (2), P9.3 (1), P9.4 (1), P9.5 (4), P9.6 (3), P9.7 (3), P9.8 (1), P9.9 (1), P9.10 (15), P9.11 (3), P9.12 (7), P9.13 (9), P9.14 (1), P9.15 (40), P9.16 (10), P9.17 (25), P9.18 (12), P9.30 (27), P9.31 (10), P9.32 (6), P9.33 (14), P9.34 (5), P9.35 (4), P9.36 (5).
+- Section 14: P14.1 (12), P14.2 (4), P14.3 (9), P14.4 (9), P14.5 (11), P14.6 (6), P14.7 (3), P14.8 (8), P14.9 (3), P14.10 (11), P14.11 (2), P14.12 (15), P14.13 (14), P14.14 (6), P14.15 (4), P14.16 (15), P14.17 (9), P14.25 (3), P14.26 (5), P14.27 (3), P14.28 (3), P14.29 (3).
 
 Not covered, because the requirement is out of the core: the read-authorization rules, signer sets, parent Originals and scopes, whose rows moved with them to the additions; the limit on nested parents; the read request’s member set and challenge entropy, which the additions define.
 
