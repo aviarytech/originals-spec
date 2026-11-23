@@ -1,0 +1,131 @@
+{
+  "command": "originals-og anchor",
+  "profile": "og:1.0-draft.1",
+  "network": "mainnet",
+  "original": "did:og:QmatdyXa2jL9e6yCijFVL6intEDxcE6UBFn52hLP6Pjnmi",
+  "author": "did:webvh:QmekpfVpw5zdmwvJBhkHabipC51e35xuZWqS9CEbLLeDKv:originals.build:authors:og-test-1",
+  "authorUrl": "https://originals.build/authors/og-test-1/did.jsonl",
+  "sat": "1927917275415833",
+  "anchoringAlias": "did:btco:1927917275415833",
+  "holder": "bc1p0gv9xhtvfrlhn6qm9cvvcqkwy64an0s9a2p6lwl5egw2lu04aufsw33p3w",
+  "revealDestination": "bc1p0gv9xhtvfrlhn6qm9cvvcqkwy64an0s9a2p6lwl5egw2lu04aufsw33p3w",
+  "transactions": {
+    "funding": "44507703fa2483b9923bb93f458534df40260b582e9692e21fc01da9b56eafc1",
+    "commit": "5f35893c04329ed32741daab3eacc4100aa2bfd0d0e3017ec7b1b7b90f8b9027",
+    "reveals": [
+      "c4cff5295b8826f83bc31dbab1fc53655b39351be918513a32286644d2a45b6b"
+    ]
+  },
+  "inscriptions": [
+    {
+      "id": "c4cff5295b8826f83bc31dbab1fc53655b39351be918513a32286644d2a45b6bi0",
+      "height": 977145,
+      "txIndex": 1737,
+      "inscriptionIndex": 0,
+      "confirmations": 6,
+      "metaprotocol": "og",
+      "contentType": "text/markdown",
+      "envelopeBytes": 2376,
+      "envelopeDigest": "zQmQZT4LvDwVNB8v9XHkNqQajmjzBuLewaXU9Ftwy8upqqG"
+    }
+  ],
+  "tip": {
+    "height": 977150,
+    "hash": "000000000000000000006248c06f87757ef657f997ba70cd79ac72f718ef9c12"
+  },
+  "ord": "unknown at http://127.0.0.1:8787",
+  "backend": "esplora:https://mempool.space/api",
+  "report": {
+    "type": "OriginalsVerificationReport",
+    "profile": "og:1.0-draft.1",
+    "original": "did:og:QmatdyXa2jL9e6yCijFVL6intEDxcE6UBFn52hLP6Pjnmi",
+    "checkpoint": "2-QmZAiNE11gvm3K5WKufMuPaiPUVb9jicdyhQi3obtX4FRn",
+    "evidence": {
+      "inputs": [
+        {
+          "kind": "sat-read",
+          "source": "ord:http://127.0.0.1:8787/sat/1927917275415833",
+          "digest": "zQmTX3Sofp2TnF9Mz6PJq9GvagJg57KnL8QPLXtRi2zWkZN"
+        },
+        {
+          "kind": "inscription",
+          "source": "index:c4cff5295b8826f83bc31dbab1fc53655b39351be918513a32286644d2a45b6bi0",
+          "digest": "zQmQZT4LvDwVNB8v9XHkNqQajmjzBuLewaXU9Ftwy8upqqG"
+        },
+        {
+          "kind": "signer-history",
+          "source": "https://originals.build/authors/og-test-1/did.jsonl",
+          "digest": "zQmTewWg63nKZ4XbntmU2eQHtAe5usm5QpyeaNZkkBqnQEi"
+        }
+      ],
+      "network": "mainnet",
+      "tip": {
+        "height": 977150,
+        "hash": "000000000000000000006248c06f87757ef657f997ba70cd79ac72f718ef9c12"
+      },
+      "depth": 1
+    },
+    "axes": {
+      "outcome": "verified",
+      "binding": "bound",
+      "history": "valid",
+      "identity": "complete",
+      "authority": "current",
+      "state": "current",
+      "availability": "complete",
+      "offline": "self-contained",
+      "bitcoin": "anchored"
+    },
+    "entries": [
+      {
+        "versionId": "1-QmaCTfi35yfaH4i7isUA9sdNug9n5xtFhCZpmSJypmBovo",
+        "status": "accepted",
+        "authority": "current-key",
+        "endorsed": true,
+        "ordering": "existed-by-block",
+        "block": 977145
+      },
+      {
+        "versionId": "2-QmZAiNE11gvm3K5WKufMuPaiPUVb9jicdyhQi3obtX4FRn",
+        "status": "accepted",
+        "authority": "current-key",
+        "endorsed": false,
+        "ordering": "chain-ordered",
+        "block": 977145
+      }
+    ],
+    "signers": [
+      {
+        "did": "did:webvh:QmekpfVpw5zdmwvJBhkHabipC51e35xuZWqS9CEbLLeDKv:originals.build:authors:og-test-1",
+        "role": "author",
+        "latestVersionId": "1-QmVp8o3TPtgdkhehy8bC2mqScXNXgondg9f3YY1CDCFpQ8",
+        "source": "https://originals.build/authors/og-test-1/did.jsonl",
+        "obtained": "2026-11-23T04:57:36Z",
+        "freshness": "not-established"
+      }
+    ],
+    "diagnostics": [],
+    "bitcoin": {
+      "sat": "did:btco:1927917275415833",
+      "holder": {
+        "address": "bc1p0gv9xhtvfrlhn6qm9cvvcqkwy64an0s9a2p6lwl5egw2lu04aufsw33p3w",
+        "uniqueness": "provisional"
+      },
+      "conflictingAnchors": [],
+      "unverifiable": [],
+      "waiting": []
+    }
+  },
+  "defaultCheck": true,
+  "transferCheck": true,
+  "publicHost": {
+    "url": "https://originals.build/authors/og-test-1/did.jsonl",
+    "served": true,
+    "verifies": true,
+    "reachesNamedVersions": true,
+    "obtained": "2026-11-23T04:57:36Z",
+    "latestVersionId": "1-QmVp8o3TPtgdkhehy8bC2mqScXNXgondg9f3YY1CDCFpQ8"
+  },
+  "warnings": [],
+  "passed": true
+}
