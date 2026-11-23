@@ -92,14 +92,24 @@ const bsr = JSON.parse(td.decode(bsrBytes));
 eq(satReadProblems(bsr, bev.network, bev.tip), [], 'bitcoin: sat-read input has the P14.25 form');
 eq(bev.inputs.filter((x) => x.kind === 'inscription').map((x) => x.source), bsr.inscriptions.map((x) => `index:${x.id}`), 'bitcoin: one inscription input per inscription the sat-read lists, in chain order');
 const envOf = Object.fromEntries(chain.inscriptions.map((x) => [x.id, read(`bitcoin/${x.envelope}`)]));
+// The author's did:webvh log, resolved from its host (P9.33, P8.5): a
+// signer-history input with its source and the time obtained (P7.17).
+const resolved = readJSON('bitcoin/resolved.json');
+const bHistories = bev.signerHistories.map((h) => {
+  const bytes = read(`bitcoin/${resolved.responses.find((r) => r.source === h.source).file}`);
+  ok(bev.inputs.some((x) => x.kind === 'signer-history' && x.source === h.source && x.digest === resourceDigest(bytes)), `bitcoin: ${h.source} is a signer-history input with its digest`);
+  return { ...h, bytes };
+});
+ok(bHistories.length === 1 && /^https:\/\//.test(bHistories[0].source) && typeof bHistories[0].obtained === 'string', 'bitcoin: the author log is resolved, with its URL and the time obtained (P9.33, P7.17)');
 // The verifier's evidence, from evidence-set inputs only. A different tip
 // re-derives each inscription's confirmations, as P14.25 fixes them.
-const btcEvidence = ({ tip = bev.tip, envelopes = envOf } = {}) => {
+const btcEvidence = ({ tip = bev.tip, envelopes = envOf, signerHistories = bHistories } = {}) => {
   let bytes = bsrBytes;
   if (tip !== bev.tip) bytes = te.encode(JSON.stringify({ ...bsr, tip, inscriptions: bsr.inscriptions.map((x) => ({ ...x, confirmations: tip.height - x.height + 1 })) }));
   return {
     network: bev.network, tip, depth: bev.depth, satRead: { source: bsrInput.source, bytes },
     inscriptions: bsr.inscriptions.map((x) => ({ id: x.id, envelope: envelopes[x.id], metaprotocol: 'og', contentType: parseEnvelope(envelopes[x.id]).contentType })),
+    signerHistories,
   };
 };
 {
@@ -125,10 +135,11 @@ ok(last.state.asset.body === 'full' && parts[1].contentType === last.state.asset
 ok(resourceDigest(parts[1].body) === last.state.asset.resource.digest, 'bitcoin: body is the exact resource version');
 ok(inscribed.findIndex((e) => e.state.asset.aliases.some((a) => a.startsWith('did:btco:'))) === inscribed.length - 1, 'bitcoin: anchoring entry is the last of the anchoring publication');
 ok(last.state.asset.aliases.includes(`did:btco:reg:${bsr.sat}`), 'bitcoin: anchoring alias names the sat');
-const sh = parts[0].metadata.signers;
-ok(sh.length === 1 && sh[0].did === last.state.author.did, 'bitcoin: inscribed signer history for the author (P9.33)');
-await checkWebvh(sh[0].log, 'inscribed signer history');
-ok(sh[0].log.some((e) => e.versionId === last.state.author.versionId), 'bitcoin: named author version is inscribed before the entry');
+ok(parts.every((p) => Object.keys(p.metadata).every((k) => k === 'entries' || k === 'part')), 'bitcoin: metadata is {entries, part}, with no signers member (P14.12, D22)');
+const resolvedLog = parseLines(bHistories[0].bytes, 'resolved author log');
+ok(bHistories[0].did === last.state.author.did, 'bitcoin: the resolved log is the author\'s (P9.33)');
+await checkWebvh(resolvedLog, 'resolved author log');
+ok(resolvedLog.some((e) => e.versionId === last.state.author.versionId), 'bitcoin: the resolved author log holds the named version (P5.3, P9.33)');
 const total = parts.reduce((n, p) => n + p.metadataBytes, 0);
 ok(total + parts[1].body.length > 350000, 'bitcoin: one inscription would exceed 350,000 bytes, so parts are justified');
 const br = readJSON('bitcoin/expected-report.json');
@@ -184,7 +195,7 @@ chain.inscriptions.forEach((x, k) => ok(br.evidence.inputs[k + 1].digest === res
   const orders = {
     reversed: (ks) => [...ks].reverse(),
     sorted: (ks) => [...ks].sort(),
-    'part-first': (ks) => [...ks].sort((a, b) => (b === 'part') - (a === 'part') || (b === 'signers') - (a === 'signers') || (a < b ? 1 : a > b ? -1 : 0)),
+    'part-first': (ks) => [...ks].sort((a, b) => (b === 'part') - (a === 'part') || (a < b ? 1 : a > b ? -1 : 0)),
   };
   const fixture = chain.inscriptions.map((x) => parseEnvelope(read(`bitcoin/${x.envelope}`)));
   const strip = (r) => ({ ...r, evidence: { ...r.evidence, inputs: r.evidence.inputs.map(({ digest, ...i }) => i) } });
@@ -196,6 +207,28 @@ chain.inscriptions.forEach((x, k) => ok(br.evidence.inputs[k + 1].digest === res
     const derived = await computeReport(btcEvidence({ envelopes: Object.fromEntries(chain.inscriptions.map((x, k) => [x.id, envelopes[k]])) }));
     sameAs(strip(derived), strip(br), `cbor order ${name}: the same report apart from the inputs' digests (T14-097, T14-098)`);
   }
+  // A `signers` member, as inscriptions written before D22 carry, is ignored
+  // and is never evidence (P14.12; T14-103): part 1 with one added gives the
+  // same report apart from the inputs' digests, even when it claims a log the
+  // resolved one contradicts. Any other unknown member makes the metadata invalid.
+  const withMember = (member) => fixture.map((p, k) => envelopeOf(p, enc(k === 0 ? { ...p.metadata, ...member } : p.metadata, orders.sorted)));
+  const envs = (list) => Object.fromEntries(chain.inscriptions.map((x, k) => [x.id, list[k]]));
+  const legacy = await computeReport(btcEvidence({ envelopes: envs(withMember({ signers: [{ did: last.state.author.did, log: [{ versionId: '1-zQmForged', note: 'not evidence' }] }] })) }));
+  sameAs(strip(legacy), strip(br), 'legacy signers member: ignored, the same report apart from the inputs\' digests (P14.12, T14-103)');
+  const quiet = console.error; console.error = () => {}; // the expected FAIL line
+  const unknown = await computeReport(btcEvidence({ envelopes: envs(withMember({ extra: 1 })) }));
+  console.error = quiet;
+  ok(unknown.axes.outcome === 'invalid', 'unknown metadata member: invalid (P14.12, T14-003)');
+}
+
+// The author's resolved log missing (P9.33; T9-140): missing evidence, never
+// acceptance. Derived only, not a vector.
+{
+  const absent = await computeReport(btcEvidence({ signerHistories: [] }));
+  ok(absent.axes.outcome === 'incomplete' && absent.axes.identity === 'incomplete' && absent.axes.bitcoin === 'undetermined', 'no resolved author log: outcome and identity incomplete, bitcoin undetermined (P9.33, P9.16, T9-140)');
+  ok(absent.diagnostics.some((d) => d.code === 'signer-history-missing' && d.rule === 'P5.6' && d.item.id === last.state.author.did), 'no resolved author log: a signer-history-missing diagnostic (P5.6, T9-140)');
+  ok(!absent.entries.some((e) => e.status === 'accepted'), 'no resolved author log: no entry accepted (P5.6, T9-140)');
+  shape(absent, 'missing author log report');
 }
 
 // genesis vector (P14.1, P14.27–P14.29)

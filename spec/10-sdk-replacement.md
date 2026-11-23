@@ -18,7 +18,7 @@ The SDK’s history implementation is replaced whole, including its types, codec
 | 8 | Evidence packages, manifests and carried logs | P7.11–P7.16, P8.1–P8.5, P14.10, P14.14–P14.17 | Replaces the envelope; keeps the portable evidence boundary |
 | 9 | Hosting: the did:webvh alias, shared-host append, serving layout | P3.6, P3.7, P6.7, P6.8, P9.1–P9.9, P14.11 | Replaces hosted adapters; keeps StorageAdapter and exact-snapshot delivery |
 | 10 | Bitcoin reading: ord 0.29.x rules, chain order, the network and the one-Original-per-sat binding | P9.10, P9.13, P9.31, P9.34, P3.9 | Replaces publications.ts resolution and holder snapshots |
-| 11 | Bitcoin verification: publications in parts, inscribed signer histories, head selection and the anchor | P9.11, P9.12, P9.15–P9.18, P9.32, P9.33, P9.35, P9.36 | Replaces Bitcoin verification |
+| 11 | Bitcoin verification: publications in parts, resolved signer logs, head selection and the anchor | P9.11, P9.12, P9.15–P9.18, P9.32, P9.33, P9.35, P9.36 | Replaces Bitcoin verification |
 | 12 | Bitcoin writing: inscription encoding, previews and the signed body mode, broadcasting and replacement | P9.14, P9.17, P9.30, P14.12, P9.6 | Replaces current payloads and metadata; keeps the durable boundary, retry intent and one-way layer order |
 | 13 | Signing display and SDK diagnostics | P5.11, section 6 error categories | Extends the signer interface |
 

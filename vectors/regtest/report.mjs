@@ -5,10 +5,11 @@
 // This is the verifier half of the regtest gate. It uses the checker's
 // helpers (vectors/tools/verify-lib.mjs), never the generator's lib.mjs, and
 // it covers what the gate exercises: one anchoring publication in parts on
-// one sat, an author with an inscribed did:webvh history, body `full`.
-// Anything outside that is reported as a failure, not guessed at.
+// one sat, a did:webvh author whose log is resolved from its host and supplied
+// as a signer-history input (P9.33), body `full`. Anything outside that is
+// reported as a failure, not guessed at.
 import {
-  checkOgLog, checkWebvh, parseEnvelope, resourceDigest, stats,
+  checkChain, checkOgLog, checkWebvh, parseEnvelope, parseLines, resourceDigest, stats,
 } from '../tools/verify-lib.mjs';
 import {
   TRANSFER_DEPTH, confirmations, insufficientDepth, missingResources, offlineFrom, satReadProblems, sortDiagnostics, unreadInscriptions,
@@ -21,9 +22,12 @@ const NETWORK_PREFIX = { mainnet: '', signet: 'sig:', testnet: 'test:', regtest:
 //   network, tip: { height, hash }, depth,
 //   satRead: { source, bytes: Uint8Array },   // the `sat-read` input (P14.25)
 //   inscriptions: [{ id, envelope: Uint8Array, metaprotocol, contentType }],  // `inscription` inputs
+//   signerHistories: [{ did, source, obtained, bytes: Uint8Array }],  // resolved `signer-history` inputs
 // }
 // The sat, the inscriptions' positions and confirmations and the holder come
-// from the sat-read input alone (P7.17, P14.25), never from elsewhere.
+// from the sat-read input alone (P7.17, P14.25), never from elsewhere. A
+// did:vh or did:webvh signer's log comes from a signer-history input alone,
+// never from the inscriptions (P9.33, P14.12).
 export async function computeReport(evidence) {
   const before = stats().failures;
   const problems = [];
@@ -48,17 +52,36 @@ export async function computeReport(evidence) {
     if (part[0] !== i + 1 || part[1] !== n) fail(`${x.id}: part ${JSON.stringify(part)} out of sequence`);
     if (i < n - 1 && (p.body !== null || p.contentType !== null)) fail(`${x.id}: a part before the last has a body`);
   });
+  // Metadata is {entries, part?}; a `signers` member, written before D22, is
+  // ignored and never evidence; any other member makes it invalid (P14.12).
+  for (const { x, p } of parts) {
+    const extra = Object.keys(p.metadata).filter((k) => !['entries', 'part', 'signers'].includes(k));
+    if (extra.length) fail(`${x.id}: metadata member ${extra.join()} (P14.12)`);
+  }
   const final = parts[n - 1];
   const entries = parts.flatMap(({ p }) => p.metadata.entries);
-  const signers = parts.flatMap(({ x, p }) => (p.metadata.signers ?? []).map((s) => ({ ...s, source: `inscribed:${x.id}` })));
 
-  // Signer state from inscribed histories only (P9.33).
+  // The author's log from a resolved signer-history input only (P9.33), each
+  // entry checked at the version it names (P5.3, P9.15 rows 3 and 7).
   const anchor = entries[entries.length - 1];
   const authorDid = anchor.state.author.did;
-  const history = signers.find((s) => s.did === authorDid);
-  if (!history) fail('no inscribed history for the author (P9.33)');
-  const authorDoc = history ? await checkWebvh(history.log, 'regtest: inscribed author history') : null;
-  if (history && !history.log.some((e) => e.versionId === anchor.state.author.versionId)) fail('named author version is not inscribed');
+  const supplied = (evidence.signerHistories ?? []).find((h) => h.did === authorDid);
+  const history = supplied ? { ...supplied, log: parseLines(supplied.bytes, 'regtest: resolved author log') } : null;
+  const named = anchor.state.author.versionId;
+  const namedNumber = Number(named.split('-')[0]);
+  const atNamed = history ? history.log.find((e) => Number(e.versionId.split('-')[0]) === namedNumber) : null;
+  // Missing evidence, never accepting: no log is signer-history-missing, a log
+  // that does not reach the named number is signer-version-missing (P9.33).
+  const gap = !history
+    ? { code: 'signer-history-missing', rule: 'P5.6', item: { kind: 'signer', id: authorDid }, reason: 'The author DID log is not in the evidence set.' }
+    : !atNamed
+      ? { code: 'signer-version-missing', rule: 'P7.8', item: { kind: 'signer', id: authorDid, versionId: named }, reason: 'The resolved author log does not reach the version the entries name.' }
+      : null;
+  if (atNamed && atNamed.versionId !== named) fail('the resolved author log holds the named version number under another versionId (P5.3)');
+  const upToNamed = atNamed ? history.log.slice(0, history.log.indexOf(atNamed) + 1) : null;
+  const authorDoc = upToNamed && !gap ? await checkWebvh(upToNamed, 'regtest: resolved author log at the named version') : null;
+  if (history && !gap) await checkWebvh(history.log, 'regtest: resolved author log');
+  if (gap) return incompleteReport(evidence, read, ins, entries, gap, problems, before);
 
   // Resource bytes the inscriptions carry (P9.17): only a `full` body is a version.
   const resources = {};
@@ -94,6 +117,7 @@ export async function computeReport(evidence) {
       inputs: [
         { kind: 'sat-read', source: evidence.satRead.source, digest: resourceDigest(evidence.satRead.bytes) },
         ...ins.map((x) => ({ kind: 'inscription', source: `index:${x.id}`, digest: resourceDigest(x.envelope) })),
+        ...historyInputs(evidence),
       ],
       network: evidence.network, tip: evidence.tip, depth: evidence.depth,
     },
@@ -108,14 +132,45 @@ export async function computeReport(evidence) {
       endorsed: entries.slice(i + 1).some((x) => !x.state.editor),
       ordering: i < entries.length - 1 ? 'existed-by-block' : 'chain-ordered', block,
     })),
-    signers: history ? [{
+    signers: [{
       did: authorDid, role: 'author', latestVersionId: history.log[history.log.length - 1].versionId,
-      source: history.source, freshness: 'established',
-    }] : [],
+      source: history.source, obtained: history.obtained, freshness: 'not-established',
+    }],
     diagnostics,
     bitcoin: {
       sat: btco, holder: { address: read.holder?.address ?? null, uniqueness: 'provisional' },
       conflictingAnchors: [], unverifiable: [], waiting: [],
     },
+  };
+}
+
+const historyInputs = (evidence) => (evidence.signerHistories ?? []).map((h) => ({ kind: 'signer-history', source: h.source, digest: resourceDigest(h.bytes) }));
+
+// The anchoring publication with its author's log missing or short: identity
+// evidence is incomplete (P5.6, P9.33), so nothing is accepted, the anchor is
+// not decided (P9.16) and the outcome is incomplete, never verified.
+function incompleteReport(evidence, read, ins, entries, gap, problems, before) {
+  checkChain(entries, 'regtest: inscribed entries');
+  const failed = problems.length > 0 || stats().failures > before;
+  for (const p of problems) console.error('FAIL', p);
+  const unchecked = entries.map((e) => ({ code: 'proof-unchecked', rule: 'P7.19', item: { kind: 'entry', id: e.versionId }, reason: 'The signer\'s DID log needed to check this proof is not in the evidence set.' }));
+  const diagnostics = sortDiagnostics([gap, ...unchecked]);
+  return {
+    type: 'OriginalsVerificationReport', profile: PROFILE, original: entries[0].state.id, checkpoint: null,
+    evidence: {
+      inputs: [
+        { kind: 'sat-read', source: evidence.satRead.source, digest: resourceDigest(evidence.satRead.bytes) },
+        ...ins.map((x) => ({ kind: 'inscription', source: `index:${x.id}`, digest: resourceDigest(x.envelope) })),
+        ...historyInputs(evidence),
+      ],
+      network: evidence.network, tip: evidence.tip, depth: evidence.depth,
+    },
+    axes: failed ? { outcome: 'invalid' } : {
+      outcome: 'incomplete', binding: 'bound', history: 'valid', identity: 'incomplete', authority: 'current',
+      state: 'none', availability: 'none', offline: offlineFrom(diagnostics), bitcoin: 'undetermined',
+    },
+    entries: entries.map((e) => ({ versionId: e.versionId, status: 'unchecked' })),
+    signers: [],
+    diagnostics,
   };
 }
