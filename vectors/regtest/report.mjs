@@ -210,7 +210,7 @@ function incompleteReport(evidence, read, ins, entries, gap, problems, before) {
     },
     axes: failed ? { outcome: 'invalid' } : {
       outcome: 'incomplete', binding: 'bound', history: 'valid', identity: 'incomplete', authority: 'current',
-      state: 'none', availability: 'none', offline: offlineFrom(diagnostics), bitcoin: 'undetermined',
+      state: 'none', availability: 'complete', offline: offlineFrom(diagnostics), bitcoin: 'undetermined',
     },
     entries: entries.map((e) => ({ versionId: e.versionId, status: 'unchecked' })),
     signers: [],
