@@ -18,7 +18,7 @@ const shape = (r, label) => {
   for (const d of r.diagnostics ?? []) eq(Object.keys(d).sort(), ['code', 'item', 'reason', 'rule'], `${label}: diagnostic members`), ok(CODES.includes(d.code), `${label}: diagnostic code ${d.code} is in the closed list`);
 };
 const noPrior = (ev, label) => ok(!('prior' in ev) && !ev.inputs.some((x) => x.kind === 'prior-result'), `${label}: the evidence set has no prior result (P7.17)`);
-import { computeReport } from '../regtest/report.mjs';
+import { computeReport, legacySignersAllowed } from '../regtest/report.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', 'og-1.0-draft.1');
 const read = (p) => new Uint8Array(readFileSync(join(ROOT, p)));
@@ -208,17 +208,20 @@ chain.inscriptions.forEach((x, k) => ok(br.evidence.inputs[k + 1].digest === res
     sameAs(strip(derived), strip(br), `cbor order ${name}: the same report apart from the inputs' digests (T14-097, T14-098)`);
   }
   // A `signers` member, as inscriptions written before D22 carry, is ignored
-  // and is never evidence (P14.12; T14-103): part 1 with one added gives the
-  // same report apart from the inputs' digests, even when it claims a log the
-  // resolved one contradicts. Any other unknown member makes the metadata invalid.
+  // only on mainnet at height 977,150 or lower (P14.12; T14-103); this regtest
+  // vector is outside that bound, so there it makes the metadata invalid like
+  // any other unknown member (T14-106, T14-003).
   const withMember = (member) => fixture.map((p, k) => envelopeOf(p, enc(k === 0 ? { ...p.metadata, ...member } : p.metadata, orders.sorted)));
   const envs = (list) => Object.fromEntries(chain.inscriptions.map((x, k) => [x.id, list[k]]));
+  const quiet = console.error; console.error = () => {}; // the expected FAIL lines
   const legacy = await computeReport(btcEvidence({ envelopes: envs(withMember({ signers: [{ did: last.state.author.did, log: [{ versionId: '1-zQmForged', note: 'not evidence' }] }] })) }));
-  sameAs(strip(legacy), strip(br), 'legacy signers member: ignored, the same report apart from the inputs\' digests (P14.12, T14-103)');
-  const quiet = console.error; console.error = () => {}; // the expected FAIL line
   const unknown = await computeReport(btcEvidence({ envelopes: envs(withMember({ extra: 1 })) }));
   console.error = quiet;
+  ok(legacy.axes.outcome === 'invalid', 'signers member on regtest: the metadata invalid (P14.12, T14-106)');
   ok(unknown.axes.outcome === 'invalid', 'unknown metadata member: invalid (P14.12, T14-003)');
+  // The mainnet exception's bound, which the regtest vector cannot reach (T14-103, T14-106).
+  ok(legacySignersAllowed('mainnet', 977095) && legacySignersAllowed('mainnet', 977150), 'signers member: ignored on mainnet at height 977,150 or lower (P14.12, T14-103)');
+  ok(!legacySignersAllowed('mainnet', 977151) && !legacySignersAllowed('regtest', 102) && !legacySignersAllowed('signet', 100) && !legacySignersAllowed('testnet', 100), 'signers member: not ignored above height 977,150 or on any other network (P14.12, T14-106)');
 }
 
 // The author's resolved log missing (P9.33; T9-140): missing evidence, never
@@ -229,6 +232,25 @@ chain.inscriptions.forEach((x, k) => ok(br.evidence.inputs[k + 1].digest === res
   ok(absent.diagnostics.some((d) => d.code === 'signer-history-missing' && d.rule === 'P5.6' && d.item.id === last.state.author.did), 'no resolved author log: a signer-history-missing diagnostic (P5.6, T9-140)');
   ok(!absent.entries.some((e) => e.status === 'accepted'), 'no resolved author log: no entry accepted (P5.6, T9-140)');
   shape(absent, 'missing author log report');
+}
+
+// Several logs for the author (P9.33; T9-148, T9-149): a log that fails
+// anywhere is not evidence, with no verified prefix used, and the order of
+// the inputs never changes the report. The failing log here is the resolved
+// one with a forged second version appended. Derived only, not a vector.
+{
+  const good = bHistories[0];
+  const forgedLine = JSON.stringify({ ...resolvedLog[0], versionId: '2-QmForgedVersionNotSignedByTheUpdateKeys', versionTime: '2026-01-02T00:00:00Z' });
+  const forged = { did: good.did, source: 'https://mirror.example/did.jsonl', obtained: '2026-01-07T00:00:00Z', bytes: te.encode(td.decode(good.bytes) + forgedLine + '\n') };
+  const noEvidence = ({ evidence, ...r }) => r;
+  const ab = await computeReport(btcEvidence({ signerHistories: [good, forged] }));
+  const ba = await computeReport(btcEvidence({ signerHistories: [forged, good] }));
+  sameAs(ab, ba, 'two author logs: the same report in either input order (P9.33, P7.17, T9-148)');
+  sameAs(noEvidence(ab), noEvidence(br), 'two author logs: the failing one is not evidence; the report is the one-log report apart from its inputs (P9.33, T9-148)');
+  const alone = await computeReport(btcEvidence({ signerHistories: [forged] }));
+  ok(alone.axes.outcome === 'incomplete' && alone.axes.identity === 'incomplete' && alone.axes.bitcoin === 'undetermined', 'failing author log alone: not evidence, its verified prefix unused; outcome and identity incomplete, bitcoin undetermined (P9.33, T9-149)');
+  ok(alone.diagnostics.some((d) => d.code === 'signer-history-missing' && d.item.id === good.did) && !alone.entries.some((e) => e.status === 'accepted' || e.status === 'rejected'), 'failing author log alone: signer-history-missing, nothing accepted or rejected (P9.33, T9-149)');
+  shape(alone, 'failing author log report');
 }
 
 // genesis vector (P14.1, P14.27–P14.29)

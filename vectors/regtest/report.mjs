@@ -9,13 +9,40 @@
 // as a signer-history input (P9.33), body `full`. Anything outside that is
 // reported as a failure, not guessed at.
 import {
-  checkChain, checkOgLog, checkWebvh, parseEnvelope, parseLines, resourceDigest, stats,
+  checkChain, checkOgLog, checkWebvh, counts, parseEnvelope, parseLines, resourceDigest, stats,
 } from '../tools/verify-lib.mjs';
 import {
   TRANSFER_DEPTH, confirmations, insufficientDepth, missingResources, offlineFrom, satReadProblems, sortDiagnostics, unreadInscriptions,
 } from '../tools/report-lib.mjs';
 
 const PROFILE = 'og:1.0-draft.1';
+
+// A `signers` member, written before D22, is ignored only in an inscription on
+// mainnet in a block at height 977,150 or lower (P14.12); anywhere else it
+// makes the metadata invalid like any other unknown member.
+export const LEGACY_SIGNERS_MAX_HEIGHT = 977150;
+export const legacySignersAllowed = (network, height) => network === 'mainnet' && Number.isInteger(height) && height <= LEGACY_SIGNERS_MAX_HEIGHT;
+
+// Whether one signer log is evidence (P9.33): it verifies whole, from the DID's
+// genesis, as that DID's log. A log that fails anywhere is not evidence, and
+// no verified prefix of it is used. Checked quietly: a log that is not
+// evidence is an expected outcome, not a checker failure.
+async function verifiesWhole(bytes, did) {
+  const saved = { ...counts };
+  const quiet = console.error; console.error = () => {};
+  let log = null;
+  try {
+    log = parseLines(bytes, 'signer log');
+    const doc = await checkWebvh(log, 'signer log');
+    if (doc?.id !== did) counts.failures++;
+  } catch { counts.failures++; }
+  console.error = quiet;
+  const good = counts.failures === saved.failures;
+  Object.assign(counts, saved);
+  return good ? log : null;
+}
+const vnum = (v) => Number(v.split('-')[0]);
+const cp = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
 const NETWORK_PREFIX = { mainnet: '', signet: 'sig:', testnet: 'test:', regtest: 'reg:' };
 
 // evidence = {
@@ -52,36 +79,48 @@ export async function computeReport(evidence) {
     if (part[0] !== i + 1 || part[1] !== n) fail(`${x.id}: part ${JSON.stringify(part)} out of sequence`);
     if (i < n - 1 && (p.body !== null || p.contentType !== null)) fail(`${x.id}: a part before the last has a body`);
   });
-  // Metadata is {entries, part?}; a `signers` member, written before D22, is
-  // ignored and never evidence; any other member makes it invalid (P14.12).
+  // Metadata is {entries, part?}; a `signers` member is ignored and never
+  // evidence only on mainnet at height 977,150 or lower; anywhere else, like
+  // any other member, it makes the metadata invalid (P14.12).
   for (const { x, p } of parts) {
-    const extra = Object.keys(p.metadata).filter((k) => !['entries', 'part', 'signers'].includes(k));
+    const allowed = ['entries', 'part', ...(legacySignersAllowed(evidence.network, x.height) ? ['signers'] : [])];
+    const extra = Object.keys(p.metadata).filter((k) => !allowed.includes(k));
     if (extra.length) fail(`${x.id}: metadata member ${extra.join()} (P14.12)`);
   }
   const final = parts[n - 1];
   const entries = parts.flatMap(({ p }) => p.metadata.entries);
 
-  // The author's log from a resolved signer-history input only (P9.33), each
-  // entry checked at the version it names (P5.3, P9.15 rows 3 and 7).
+  // The author's logs from signer-history inputs only (P9.33). Each log that
+  // verifies whole is evidence, one that fails anywhere is not, and the
+  // entries are checked at the versionId they name in any log that is
+  // evidence and holds it (P5.3, P9.15 rows 3, 4 and 7). The order of the
+  // inputs never matters.
   const anchor = entries[entries.length - 1];
   const authorDid = anchor.state.author.did;
-  const supplied = (evidence.signerHistories ?? []).find((h) => h.did === authorDid);
-  const history = supplied ? { ...supplied, log: parseLines(supplied.bytes, 'regtest: resolved author log') } : null;
+  const logs = [];
+  for (const h of (evidence.signerHistories ?? []).filter((h) => h.did === authorDid)) {
+    const log = await verifiesWhole(h.bytes, authorDid);
+    if (log) logs.push({ ...h, log });
+  }
   const named = anchor.state.author.versionId;
-  const namedNumber = Number(named.split('-')[0]);
-  const atNamed = history ? history.log.find((e) => Number(e.versionId.split('-')[0]) === namedNumber) : null;
-  // Missing evidence, never accepting: no log is signer-history-missing, a log
-  // that does not reach the named number is signer-version-missing (P9.33).
-  const gap = !history
-    ? { code: 'signer-history-missing', rule: 'P5.6', item: { kind: 'signer', id: authorDid }, reason: 'The author DID log is not in the evidence set.' }
-    : !atNamed
-      ? { code: 'signer-version-missing', rule: 'P7.8', item: { kind: 'signer', id: authorDid, versionId: named }, reason: 'The resolved author log does not reach the version the entries name.' }
+  const holding = logs.filter((h) => h.log.some((e) => e.versionId === named)).sort((a, b) => cp(a.source, b.source));
+  // Missing evidence, never accepting and never a rejection: no log that is
+  // evidence is signer-history-missing; logs that end short of the named
+  // number, or hold another versionId there (a fork), are
+  // signer-version-missing (P9.33).
+  const gap = !logs.length
+    ? { code: 'signer-history-missing', rule: 'P5.6', item: { kind: 'signer', id: authorDid }, reason: 'No author DID log that verifies is in the evidence set.' }
+    : !holding.length
+      ? { code: 'signer-version-missing', rule: 'P7.8', item: { kind: 'signer', id: authorDid, versionId: named }, reason: 'No verifying author log holds the version the entries name.' }
       : null;
-  if (atNamed && atNamed.versionId !== named) fail('the resolved author log holds the named version number under another versionId (P5.3)');
-  const upToNamed = atNamed ? history.log.slice(0, history.log.indexOf(atNamed) + 1) : null;
-  const authorDoc = upToNamed && !gap ? await checkWebvh(upToNamed, 'regtest: resolved author log at the named version') : null;
-  if (history && !gap) await checkWebvh(history.log, 'regtest: resolved author log');
   if (gap) return incompleteReport(evidence, read, ins, entries, gap, problems, before);
+  const withNamed = holding[0].log;
+  const authorDoc = await checkWebvh(withNamed.slice(0, withNamed.findIndex((e) => e.versionId === named) + 1), 'regtest: author log at the named version');
+  // The latest version reported (P7.8): the highest-numbered among the logs
+  // that are evidence, ties by code-point order of the versionId, with the
+  // source and time obtained of the first log, by source, that holds it.
+  const latest = logs.map((h) => h.log[h.log.length - 1].versionId).sort((a, b) => vnum(b) - vnum(a) || cp(a, b))[0];
+  const history = logs.filter((h) => h.log.some((e) => e.versionId === latest)).sort((a, b) => cp(a.source, b.source))[0];
 
   // Resource bytes the inscriptions carry (P9.17): only a `full` body is a version.
   const resources = {};
@@ -133,7 +172,7 @@ export async function computeReport(evidence) {
       ordering: i < entries.length - 1 ? 'existed-by-block' : 'chain-ordered', block,
     })),
     signers: [{
-      did: authorDid, role: 'author', latestVersionId: history.log[history.log.length - 1].versionId,
+      did: authorDid, role: 'author', latestVersionId: latest,
       source: history.source, obtained: history.obtained, freshness: 'not-established',
     }],
     diagnostics,
@@ -144,7 +183,11 @@ export async function computeReport(evidence) {
   };
 }
 
-const historyInputs = (evidence) => (evidence.signerHistories ?? []).map((h) => ({ kind: 'signer-history', source: h.source, digest: resourceDigest(h.bytes) }));
+// Signer-history inputs in code-point order of source, then digest, so that
+// the order in which they were supplied does not change the report (P7.17).
+const historyInputs = (evidence) => (evidence.signerHistories ?? [])
+  .map((h) => ({ kind: 'signer-history', source: h.source, digest: resourceDigest(h.bytes) }))
+  .sort((a, b) => cp(a.source, b.source) || cp(a.digest, b.digest));
 
 // The anchoring publication with its author's log missing or short: identity
 // evidence is incomplete (P5.6, P9.33), so nothing is accepted, the anchor is
