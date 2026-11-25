@@ -4,7 +4,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 
 ### Proposed minimum test matrix
 
-The matrix has 455 rows, grouped by the section of the first rule each tests. Every row has:
+The matrix has 457 rows, grouped by the section of the first rule each tests. Every row has:
 
 - an **ID**, `T<section>-<number>`. IDs are stable: a row keeps its ID when rows are added or moved, a new row takes the next unused number in its section, and the number of a removed row is never reused. Fixtures and reports cite rows by ID. Retired IDs: T9-110, T9-137, T9-138 and T9-139 (22 November 2026, when comparison against a prior result was removed), T9-069, T9-071 and T9-072 (22 November 2026, when inscribed signer histories were removed, D22), and T9-070 and T14-027 (22 November 2026, whose rows D22 had given new content, now at T9-144 and T14-105);
 - an **actor**: a *verifier* (including a resolver or reader), a *writer* (the part of the SDK that makes entries, packages, carriers and inscriptions), a *host* (P6.7, P9.7, P14.11) or the *SDK* as a whole, including its signing display and storage;
@@ -231,6 +231,7 @@ Rows that concern only the experimental additions are in their own document, wit
 | T7-076 | verifier | Evidence set with the `did:og` and no log entry | `binding` `bound`; `state` `none`; `outcome` `incomplete`; one `target-missing` diagnostic, rule `P3.2`, item the `did:og` | P7.18, P14.25 |
 | T7-077 | verifier | Evidence set with several verifying logs for one did:vh or did:webvh signer: (a) one reaching a higher version number than the others; (b) two branches forked at the same highest number; each in any input order | (a) `latestVersionId` that highest-numbered version, with the `source`, `obtained` and `freshness` of a log that holds it; (b) the versionId first in code-point order at that number; the same report in any input order | P7.8, P14.25, P9.33 |
 | T7-078 | verifier | Report, written as JSON, of an entry for which the verifier warns of a newer signer version that removes its key (T7-006) | The warning is neither a member nor a diagnostic of the P14.25 report; it is presentation only | P7.8, P14.25 |
+| T7-079 | verifier, SDK | Verifier that verified an anchored Original with a did:webvh signer’s resolved log, verifying it again when the host serves a log truncated before the version an inscribed entry names, or none | Its retained copy is in the evidence set with its own source and time obtained; the entry is checked at the version it names, as before | P7.8, P9.33, P7.17 |
 
 #### Private use and fetching (§8)
 
@@ -397,6 +398,7 @@ Rows that concern only the experimental additions are in their own document, wit
 | T9-150 | verifier | Two verifying logs for a did:vh or did:webvh signer that fork at version N: an inscribed entry naming the versionId at N on one branch / naming a versionId at N that neither holds; each supplied in either order | Checked at that version on the branch that holds it: accepted if its proof verifies there, `rejected` if not / `signer-version-missing`, missing evidence as T9-141, never `rejected`; the same results in either order | P9.33, P9.15, P5.3 |
 | T9-151 | verifier | Anchored Original with a did:webvh signer of inscribed entries, verified without the caller’s opt-in to resolve and with no log of that signer supplied | No resolver request; `signer-history-missing` and `identity` `incomplete`, as T9-140 | P9.33, P7.13 |
 | T9-152 | SDK | First part of a publication in two parts confirmed while its final part is not / the publication confirmed but not yet verified | A client that shows the part, or the publication, labels it unverified and does not present it as the Original’s state | P9.5, P9.32 |
+| T9-153 | verifier, SDK | As T9-145, the result shown to a person / such a publication later in chain order than the anchor | A warning beside the report that an earlier claim to the Original on another sat could not be checked, naming its inscription; the JSON report as in T9-145, with no member or diagnostic for it / no warning | P9.16, P7.8, P14.25 |
 
 #### Wire format (§14)
 
