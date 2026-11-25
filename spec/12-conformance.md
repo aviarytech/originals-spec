@@ -404,7 +404,7 @@ Rows that concern only the experimental additions are in their own document, wit
 |---|---|---|---|---|
 | T14-001 | verifier | Later entry whose parameters set `method` to any value, including another method’s | Rejected | P14.1 |
 | T14-002 | verifier | Inscription that does not decode deterministically | Rejected | P14.12 |
-| T14-003 | verifier | Originals inscription whose metadata is a CBOR array of entries, as in earlier drafts, or an object with a member other than `entries`, `part` and the ignored `signers` | Rejected | P14.12 |
+| T14-003 | verifier | Originals inscription whose metadata is a CBOR array of entries, as in earlier drafts, or an object with a member other than `entries` and `part` (a legacy `signers` member is ignored only on mainnet at or below height 977,150; see T14-106) | Rejected | P14.12 |
 | T14-004 | verifier | `preview` whose `mediaType` has a parameter, whose digest is not in P14.7’s encoding, or with a member other than `mediaType`, `size` and `digest` | Rejected | P14.7, P14.5, P14.6 |
 | T14-005 | verifier | Derived DID document of an entry that names a preview | Same as without it; the preview is not in the document, and does not advance the version | P14.9, P4.4, P9.30 |
 | T14-006 | writer | Evidence package of an anchored Original whose entries name previews | Complete without the previews; a writer puts no preview under `resources/` and lists none in `missing` | P14.10, P9.30 |
