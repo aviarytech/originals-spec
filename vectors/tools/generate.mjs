@@ -39,6 +39,10 @@ const author = genesis({
 const AUTHOR = author.entry.state.id;
 const authorRef = { did: AUTHOR, verificationMethod: `${AUTHOR}#key-1`, versionId: author.entry.versionId };
 const authorLog = line(author.entry);
+// Where resolving the author's did:webvh fetches its log (did:webvh 1.0, no
+// path: /.well-known/did.jsonl), and when the vectors' resolution obtained it.
+const AUTHOR_URL = 'https://author.example/.well-known/did.jsonl';
+const RESOLVED_AT = '2026-01-06T00:00:00Z';
 
 // ---------- Resources ----------
 const v1 = utf8('# Field notes\n\nFirst draft.\n');
@@ -258,11 +262,13 @@ const missingDiag = (bytes, e) => ({
 // ---------- bitcoin/ (synthetic regtest) ----------
 {
   const all = [e1, e2, e3, e4];
-  const signers = [{ did: AUTHOR, log: [author.entry] }];
+  // Metadata is {entries, part?}: no signer DID history is inscribed (P14.12,
+  // D22). The author's did:webvh log is resolved from its host (P9.33, P8.5)
+  // and is an evidence-set input with its source and the time obtained (P7.17).
   const meta = (o) => cbor(o);
-  const single = meta({ entries: all, signers }).length + v2.length;
+  const single = meta({ entries: all }).length + v2.length;
   if (single <= 350000) throw new Error('anchoring publication fits in one inscription; parts not justified');
-  const m1 = meta({ entries: [e1, e2, e3], signers, part: [1, 2] });
+  const m1 = meta({ entries: [e1, e2, e3], part: [1, 2] });
   const m2 = meta({ entries: [e4], part: [2, 2] });
   if (m1.length > 350000 || m2.length + v2.length > 350000) throw new Error('part over 350,000 bytes');
   const env1 = envelope({ metaprotocol: 'og', metadata: m1 });
@@ -299,13 +305,21 @@ const missingDiag = (bytes, e) => ({
   // 102, has tip − 102 + 1 confirmations, at least 6, so no insufficient-depth diagnostic.
   if (tip.height - 102 + 1 < 6) throw new Error('bitcoin vector below the transfer depth');
   put('bitcoin/chain.json', json(chain));
+  // The author's log as resolving its did:webvh returned it (P9.33, P8.5): the
+  // response body is author/did.jsonl; resolved.json only says where it is.
+  put('bitcoin/author/did.jsonl', authorLog);
+  put('bitcoin/resolved.json', json({
+    note: 'Where the bytes of each resolved signer-history input are. The source is the URL resolution fetched (did:webvh, no redirects, P8.5); the bytes are the response body.',
+    responses: [{ source: AUTHOR_URL, file: 'author/did.jsonl' }],
+  }));
   const inputs = [
     { kind: 'sat-read', source: 'bitcoin/sat-read.json', digest: digest(files['bitcoin/sat-read.json']) },
     ...chain.inscriptions.map((x) => ({ kind: 'inscription', source: `index:${x.id}`, digest: digest(files[`bitcoin/${x.envelope}`]) })),
+    { kind: 'signer-history', source: AUTHOR_URL, digest: digest(utf8(authorLog)) },
   ];
   put('bitcoin/evidence-set.json', json({
-    original: OG, checkpoint: null, inputs, signerHistories: [], network: 'regtest', tip, depth: 1,
-    note: 'Exactly the P9.18 evidence set: the index read of the anchoring sat and its inscriptions at the stated network and tip, and nothing else.',
+    original: OG, checkpoint: null, inputs, signerHistories: [{ did: AUTHOR, source: AUTHOR_URL, obtained: RESOLVED_AT }], network: 'regtest', tip, depth: 1,
+    note: 'The P9.18 evidence set: the index read of the anchoring sat and its inscriptions at the stated network and tip, and the author\'s did:webvh log as resolved from its host (P9.33), and nothing else.',
   }));
   put('bitcoin/expected-report.json', json({
     type: 'OriginalsVerificationReport', profile: PROFILE, original: OG, checkpoint: vid(e4),
@@ -315,7 +329,7 @@ const missingDiag = (bytes, e) => ({
       state: 'current', availability: 'partial', offline: offlineOf([missingDiag(v1, e1)]), bitcoin: 'anchored',
     },
     entries: all.map((e, i, a) => entryLabel(e, i, a, i < 3 ? { ordering: 'existed-by-block', block: 102 } : { ordering: 'chain-ordered', block: 102 })),
-    signers: [{ did: AUTHOR, role: 'author', latestVersionId: vid(author.entry), source: `inscribed:${tx1}i0`, freshness: 'established' }],
+    signers: [{ did: AUTHOR, role: 'author', latestVersionId: vid(author.entry), source: AUTHOR_URL, obtained: RESOLVED_AT, freshness: 'not-established' }],
     diagnostics: [missingDiag(v1, e1)],
     bitcoin: { sat: BTCO, holder: { address: satRead.holder.address, uniqueness: 'provisional' }, conflictingAnchors: [], unverifiable: [], waiting: [] },
   }));

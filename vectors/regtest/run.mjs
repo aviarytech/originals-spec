@@ -116,8 +116,9 @@ async function main() {
   await ordSync();
 
   // ---------- The publication's parts ----------
-  // Part 1 is the vector's, byte for byte: entries 1–3 and the author's
-  // inscribed did:webvh history. Part 2 carries the anchoring entry, which
+  // Part 1 is the vector's, byte for byte: entries 1–3, with no signer DID
+  // history (P14.12, D22); the author's did:webvh log is the vector's resolved
+  // signer-history input (P9.33). Part 2 carries the anchoring entry, which
   // names the sat; the vector's sat is synthetic, so entry 4 is re-signed with
   // the vector's deterministic author key for the real sat.
   const env1 = vread('bitcoin/inscriptions/part-1.envelope.bin');
@@ -233,6 +234,11 @@ async function main() {
   const evidence = {
     network: 'regtest', tip, depth: 1, satRead: { source: 'bitcoin/sat-read.json', bytes: satReadBytes },
     inscriptions: ordered.map((x) => ({ id: x.id, envelope: x.envelope, metaprotocol: x.metaprotocol, contentType: x.contentType })),
+    // The author's log as the vector's evidence set supplies it: resolved from
+    // its did:webvh host, with its source and the time obtained (P9.33, P7.17).
+    signerHistories: vjson('bitcoin/evidence-set.json').signerHistories.map((h) => ({
+      ...h, bytes: vread(`bitcoin/${vjson('bitcoin/resolved.json').responses.find((r) => r.source === h.source).file}`),
+    })),
   };
   const report = await computeReport(evidence);
 

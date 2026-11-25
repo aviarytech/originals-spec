@@ -48,9 +48,6 @@
 [[def: publication, publications]]:
 ~ One or more consecutive Originals inscriptions on an anchoring sat that together carry one step of an Original’s log: the anchoring publication carries the log through the anchoring entry, and each later one a single entry ([P9.32](#p9.32)).
 
-[[def: inscribed signer history]]:
-~ The DID log entries of a did:vh or did:webvh signer inscribed on an anchoring sat, from that DID’s genesis, against which every inscribed entry that signer signed is checked ([P9.33](#p9.33)).
-
 [[def: holder]]:
 ~ Whoever holds the anchoring sat of an anchored Original. Holding confers no authority to change the Original, and is provisional until the anchor’s uniqueness is established ([P9.11](#p9.11), [P9.16](#p9.16)).
 
