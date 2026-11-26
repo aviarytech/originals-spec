@@ -5,7 +5,7 @@ These rows were in the core’s test matrix (§12 of the core) at revision aeab9
 | ID | Test | Required result |
 |---|---|---|
 | A-001 | Original whose state has no `readers` list, requested without a read request | Served (P8.6) |
-| A-002 | Private Original’s log, entries, resource versions, package or carried file, requested without an accepted read request, including through `#files` or by digest | Refused; a resolver or verifier reports missing evidence, not invalid evidence (P8.7, P3.3) |
+| A-002 | Private Original’s log, entries, resource versions, bundle or carried file, requested without an accepted read request, including through `#files` or by digest | Refused; a resolver or verifier reports missing evidence, not invalid evidence (P8.7, P3.3) |
 | A-003 | Private Original with an empty `readers` list, requested by its author or an editor with an accepted read request / by any other DID | Served / refused (P8.6) |
 | A-004 | Private set Original requested by any member of its signer set with an accepted read request | Served (P8.6, P5.30) |
 | A-005 | Private Original requested by a DID in `readers` with an accepted read request | Served (P8.6, P8.9) |
@@ -26,8 +26,8 @@ These rows were in the core’s test matrix (§12 of the core) at revision aeab9
 | A-020 | Child Original whose parent’s state the host does not hold | Served only to the child’s author or signer set members and its editors (P8.10) |
 | A-021 | Digest named only by private Originals the requester may not read / also named by a public Original | Answered exactly as a digest the host does not hold / served (P8.11) |
 | A-022 | Session credential sent automatically by a browser to an origin that serves active content | Not permitted (P8.9, P9.7) |
-| A-023 | Writing an evidence package or carried file of a private Original for sharing | User told that the recipient can read all of it and that no host’s read grants apply (P8.12) |
-| A-024 | Revoking a read grant after a package was shared | Package still readable; the SDK does not describe the revocation as withdrawing it (P8.12) |
+| A-023 | Writing a bundle or carried file of a private Original for sharing | User told that the recipient can read all of it and that no host’s read grants apply (P8.12) |
+| A-024 | Revoking a read grant after a bundle was shared | Bundle still readable; the SDK does not describe the revocation as withdrawing it (P8.12) |
 | A-025 | Anchoring a private Original | Author told that the whole log, its grants and the inscribed body become public permanently; not signed without explicit confirmation (P8.13) |
 | A-026 | Resource version of an anchored private Original that no inscription carries | Served only under P8.7 (P8.13) |
 | A-027 | Genesis of a set Original signed by every member / with one member’s proof or reference missing | Accepted / rejected (P5.19) |
@@ -59,7 +59,7 @@ These rows were in the core’s test matrix (§12 of the core) at revision aeab9
 | A-053 | Child entry signed by the parent Original’s author, a member of its signer set or its sat holder, with no grant covering the change | Rejected; the parent contributes grants only (P5.24) |
 | A-054 | Child editor entry relying on a grant that the parent itself inherits from its own parent | Rejected; only the parent’s own `editors` are inherited (P5.24) |
 | A-055 | Child editor entry under a metadata-only grant that also advances the pin | Accepted; advancing the pin needs no grant (P5.16, P5.24) |
-| A-056 | Evidence package of a child Original that omits the parent’s log through the highest pin | Partial; lists a `parent` missing item (P7.1, P14.10) |
+| A-056 | Bundle of a child Original that omits the parent’s log through the highest pin | Partial; lists a `parent` missing item (P7.1, P14.10) |
 | A-057 | Editor entry under a `paths` scope whose changed paths all match a pattern / one changed path matches none | Accepted / rejected, listing the path (P5.28, P5.29) |
 | A-058 | Rename from a path inside a `paths` scope to one outside it | Rejected; both paths are touched (P5.29) |
 | A-059 | Change of a path’s file mode only, in a media type whose path view records the mode | The path is touched (P5.29) |

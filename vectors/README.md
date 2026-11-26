@@ -38,13 +38,13 @@ Covers entries 1–2.
 - `author/did.jsonl`: the author's DID log.
 - `asset/did.jsonl`: the asset log.
 - `resources/`: the two resource versions.
-- `package/evidence.zip`: the evidence package, built as P14.10 fixes it, with `package/originals-evidence.json` as its manifest.
-- `evidence-set.json`: the declared evidence set, which is the package alone with no network (P7.17).
+- `bundle/bundle.zip`: the bundle, built as P14.10 fixes it, with `bundle/originals-bundle.json` as its manifest.
+- `evidence-set.json`: the declared evidence set, which is the bundle alone with no network (P7.17).
 - `expected-report.json`: the report (P14.25). The state is `valid-as-of` entry 2, `offline` is `self-contained` and `bitcoin` is `not-read`.
 
 ### `hosted/`
 
-- `served/`: the files a host serves under the alias (P14.11). These are the alias's own `did.jsonl` and, under `originals/`, the unpacked package through entry 3.
+- `served/`: the files a host serves under the alias (P14.11). These are the alias's own `did.jsonl` and, under `originals/`, the unpacked bundle through entry 3.
 - `layout.json`: the URLs and the response headers for the resources (P9.7).
 - `exchanges.json`: three shared-host saves (P6.7), starting from head entry 2:
   1. Entry 3 is `accepted`.

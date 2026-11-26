@@ -169,12 +169,12 @@ export function readZip(b) {
   return files;
 }
 
-export function checkPackage(files, ogDid, label) {
-  const mBytes = files['originals-evidence.json'];
+export function checkBundle(files, ogDid, label) {
+  const mBytes = files['originals-bundle.json'];
   const m = JSON.parse(td.decode(mBytes));
   ok(bytesEq(mBytes, J(m)), `${label}: manifest is its JCS form`);
   eq(Object.keys(m).sort(), ['checkpoint', 'completeness', 'format', 'head', 'missing', 'original', 'profile'], `${label}: manifest members`);
-  ok(m.format === 'originals-evidence/0.1' && m.profile === 'og:1.0-draft.1' && m.original === ogDid, `${label}: manifest values`);
+  ok(m.format === 'originals-bundle/0.1' && m.profile === 'og:1.0-draft.1' && m.original === ogDid, `${label}: manifest values`);
   const log = parseLines(files['asset/did.jsonl'], `${label} asset log`);
   ok(m.head === log[log.length - 1].versionId, `${label}: head is the log's last entry`);
   ok(log.some((e) => e.versionId === m.checkpoint), `${label}: checkpoint is an entry in the log`);

@@ -6,7 +6,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  ASSET_OPT, ASSET_REQ, J, STATE, bytesEq, checkChain, checkOgLog, checkPackage, checkWebvh, counts, decodeCbor, decodeMultikey, eq, multihash, ok, parseEnvelope, parseLines, readZip, resourceDigest, sha, stats, td, te, verifyProof,
+  ASSET_OPT, ASSET_REQ, J, STATE, bytesEq, checkChain, checkOgLog, checkBundle, checkWebvh, counts, decodeCbor, decodeMultikey, eq, multihash, ok, parseEnvelope, parseLines, readZip, resourceDigest, sha, stats, td, te, verifyProof,
 } from './verify-lib.mjs';
 import { CODES, TRANSFER_DEPTH, anchorAbsentReport, canonicalLog, defaultCheck, offChainReport, sameReport, satReadProblems, transferCheck, unreadInscriptions, unsupportedReport } from './report-lib.mjs';
 // Whole-report comparison (P14.25): equal as JSON values, ignoring each diagnostic's reason.
@@ -34,17 +34,17 @@ const v1 = read('local/resources/v1.md'), v2 = read('local/resources/v2.md');
 const resources = { [resourceDigest(v1)]: v1, [resourceDigest(v2)]: v2 };
 const localLog = parseLines(read('local/asset/did.jsonl'), 'local asset log');
 const { did: OG } = checkOgLog(localLog, authorDoc, resources, 'local');
-const zipBytes = read('local/package/evidence.zip');
+const zipBytes = read('local/bundle/bundle.zip');
 const zfiles = readZip(zipBytes);
-const lp = checkPackage(zfiles, OG, 'local package');
-ok(bytesEq(zfiles['asset/did.jsonl'], read('local/asset/did.jsonl')), 'local: package log equals asset/did.jsonl');
-ok(bytesEq(zfiles['originals-evidence.json'], read('local/package/originals-evidence.json')), 'local: manifest file equals the packaged one');
-eq(lp.authorLog, authorEntries, 'local: packaged author log');
+const lp = checkBundle(zfiles, OG, 'local bundle');
+ok(bytesEq(zfiles['asset/did.jsonl'], read('local/asset/did.jsonl')), 'local: bundle log equals asset/did.jsonl');
+ok(bytesEq(zfiles['originals-bundle.json'], read('local/bundle/originals-bundle.json')), 'local: manifest file equals the bundled one');
+eq(lp.authorLog, authorEntries, 'local: bundled author log');
 const lr = readJSON('local/expected-report.json');
 const lev = readJSON('local/evidence-set.json');
-ok(lev.inputs[0].digest === resourceDigest(zipBytes), 'local: evidence-set digest of the package');
+ok(lev.inputs[0].digest === resourceDigest(zipBytes), 'local: evidence-set digest of the bundle');
 {
-  // The whole report, derived from the evidence set alone: the package's log,
+  // The whole report, derived from the evidence set alone: the bundle's log,
   // its author history and the resource bytes it carries (P7.17, P14.25).
   const pkgResources = Object.fromEntries(Object.entries(zfiles).filter(([k]) => k.startsWith('resources/')).map(([k, v]) => [k.slice('resources/'.length), v]));
   const derived = await offChainReport({ evidenceSet: lev, log: lp.log, authorLog: lp.authorLog, resources: pkgResources });
@@ -59,8 +59,8 @@ const aliasEntries = parseLines(served('did.jsonl'), 'alias log');
 const aliasDoc = await checkWebvh(aliasEntries, 'alias did:webvh');
 ok(aliasDoc.alsoKnownAs?.includes(OG), 'alias: DID document lists the did:og (P3.6)');
 const walk = (d) => readdirSync(d).flatMap((n) => statSync(join(d, n)).isDirectory() ? walk(join(d, n)) : [join(d, n)]);
-const servedPkg = Object.fromEntries(walk(join(ROOT, 'hosted/served/originals')).map((p) => [relative(join(ROOT, 'hosted/served/originals'), p), new Uint8Array(readFileSync(p))]));
-const hp = checkPackage(servedPkg, OG, 'hosted package');
+const servedBundle = Object.fromEntries(walk(join(ROOT, 'hosted/served/originals')).map((p) => [relative(join(ROOT, 'hosted/served/originals'), p), new Uint8Array(readFileSync(p))]));
+const hp = checkBundle(servedBundle, OG, 'hosted bundle');
 checkOgLog(hp.log, authorDoc, resources, 'hosted');
 ok(hp.log[2].state.asset.aliases.includes(aliasDoc.id), 'hosted: entry 3 lists the alias, completing P3.6');
 const ex = readJSON('hosted/exchanges.json');

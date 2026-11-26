@@ -42,7 +42,7 @@ Within that log format, `did:og`:
 Originals adds, outside the log:
 
 - Author identity, verified against the author DID’s own history (section 5).
-- Resource bytes and evidence packages that verify offline (sections 4 and 7).
+- Resource bytes and bundles that verify offline (sections 4 and 7).
 - A holder, whoever holds the anchoring sat, with no authority to change the Original (P9.11, P9.12).
 - A did:webvh alias, a small did:webvh log of its own that points to the `did:og` (P3.6).
 - A verification report that keeps Originals verification distinct from generic resolution (P3.5, section 7).
