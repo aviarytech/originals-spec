@@ -105,16 +105,16 @@ const e4 = next(e3, {
 const logOf = (...es) => es.map(line).join('');
 const vid = (e) => e.versionId;
 
-// ---------- Evidence package (P14.10) ----------
+// ---------- Bundle (P14.10) ----------
 const signerDir = (did) => `signers/${hex(sha256(utf8(did)))}/did.jsonl`;
 function pkg(entries) {
   const last = entries[entries.length - 1];
   const manifest = {
-    format: 'originals-evidence/0.1', profile: PROFILE, original: OG,
+    format: 'originals-bundle/0.1', profile: PROFILE, original: OG,
     checkpoint: vid(last), head: vid(last), completeness: 'complete', missing: [],
   };
   const contents = {
-    'originals-evidence.json': utf8(jcs(manifest)),
+    'originals-bundle.json': utf8(jcs(manifest)),
     'asset/did.jsonl': utf8(logOf(...entries)),
     [signerDir(AUTHOR)]: utf8(authorLog),
   };
@@ -185,12 +185,12 @@ const missingDiag = (bytes, e) => ({
   put('local/asset/did.jsonl', logOf(e1, e2));
   put('local/resources/v1.md', v1);
   put('local/resources/v2.md', v2);
-  put('local/package/originals-evidence.json', p.contents['originals-evidence.json']);
-  put('local/package/evidence.zip', p.bytes);
+  put('local/bundle/originals-bundle.json', p.contents['originals-bundle.json']);
+  put('local/bundle/bundle.zip', p.bytes);
   const evidence = {
     original: OG, checkpoint: null,
-    inputs: [{ kind: 'package', source: 'local/package/evidence.zip', digest: digest(p.bytes) }],
-    signerHistories: [{ did: AUTHOR, source: 'package', obtained: '2026-01-06T00:00:00Z' }],
+    inputs: [{ kind: 'bundle', source: 'local/bundle/bundle.zip', digest: digest(p.bytes) }],
+    signerHistories: [{ did: AUTHOR, source: 'bundle', obtained: '2026-01-06T00:00:00Z' }],
     network: null, tip: null, depth: null,
   };
   put('local/evidence-set.json', json(evidence));
@@ -202,7 +202,7 @@ const missingDiag = (bytes, e) => ({
       state: 'valid-as-of', availability: 'complete', offline: offlineOf([]), bitcoin: 'not-read',
     },
     entries: [e1, e2].map((e, i, a) => entryLabel(e, i, a, { ordering: 'claimed' })),
-    signers: [{ did: AUTHOR, role: 'author', latestVersionId: vid(author.entry), source: 'package', obtained: '2026-01-06T00:00:00Z', freshness: 'not-established' }],
+    signers: [{ did: AUTHOR, role: 'author', latestVersionId: vid(author.entry), source: 'bundle', obtained: '2026-01-06T00:00:00Z', freshness: 'not-established' }],
     diagnostics: [],
   }));
 }
@@ -240,7 +240,7 @@ const missingDiag = (bytes, e) => ({
   put('hosted/served/did.jsonl', line(alias.entry));
   for (const [name, data] of Object.entries(p.contents)) put(`hosted/served/originals/${name}`, data);
   put('hosted/layout.json', json({
-    alias: ALIAS, aliasLog: `${base}did.jsonl`, packageRoot: `${base}originals/`,
+    alias: ALIAS, aliasLog: `${base}did.jsonl`, bundleRoot: `${base}originals/`,
     resources: [v1, v2].map((b) => ({
       url: `${base}originals/resources/${digest(b)}`,
       headers: { 'Content-Type': 'text/markdown', 'X-Content-Type-Options': 'nosniff' },

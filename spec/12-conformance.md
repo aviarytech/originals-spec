@@ -7,7 +7,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 The matrix has 457 rows, grouped by the section of the first rule each tests. Every row has:
 
 - an **ID**, `T<section>-<number>`. IDs are stable: a row keeps its ID when rows are added or moved, a new row takes the next unused number in its section, and the number of a removed row is never reused. Fixtures and reports cite rows by ID. Retired IDs: T9-110, T9-137, T9-138 and T9-139 (22 November 2026, when comparison against a prior result was removed), T9-069, T9-071 and T9-072 (22 November 2026, when inscribed signer histories were removed, D22), and T9-070 and T14-027 (22 November 2026, whose rows D22 had given new content, now at T9-144 and T14-105);
-- an **actor**: a *verifier* (including a resolver or reader), a *writer* (the part of the SDK that makes entries, packages, carriers and inscriptions), a *host* (P6.7, P9.7, P14.11) or the *SDK* as a whole, including its signing display and storage;
+- an **actor**: a *verifier* (including a resolver or reader), a *writer* (the part of the SDK that makes entries, bundles, carriers and inscriptions), a *host* (P6.7, P9.7, P14.11) or the *SDK* as a whole, including its signing display and storage;
 - a **given**: the input and preconditions. Unless the row says otherwise, the evidence set (P7.17) holds the complete log, the history of every signer DID that the log names, the bytes of every version, and, for an anchored Original or a did:btco signer, the genesis entry’s network, a tip, and the full inscription lists of the sats involved, read by indexes that agree on them (P9.31). A row states only how its input departs from that default;
 - an **expected** result, in the vocabulary of P7.18 and P7.19 wherever it is a verification result. “Rejected” means the entry or publication is labelled `rejected` with the rule it fails; “accepted” means `accepted`. A result given as “A / B” pairs with a given of the form “X / Y”;
 - the **rules** it tests. Every row cites at least one rule.
@@ -90,8 +90,8 @@ Rows that concern only the experimental additions are in their own document, wit
 | T5-037 | verifier | Editor’s earlier entries after its grant is revoked | Remain valid | P5.17 |
 | T5-038 | verifier | Grant naming the author DID, a DID of the author’s identity, a duplicate editor or an unlisted DID method | Rejected | P5.15 |
 | T5-039 | verifier | did:webvh author moved under DID portability, then rotated; new entry signed with the new key naming a version after the move | Accepted; entries before the move still verify against versions before it | P5.14 |
-| T5-040 | writer, verifier | Moved author: package, import into a fresh reader, verify, then continue editing with the new key | Same result in the fresh reader; editing continues with authority | P5.14 |
-| T5-041 | verifier | Moved author whose latest asset entry is an editor entry, read by a fresh reader with no package | Author freshness `not-established` unless the moved author log is found; not reported as currently authorized | P5.14, P7.8 |
+| T5-040 | writer, verifier | Moved author: bundle, import into a fresh reader, verify, then continue editing with the new key | Same result in the fresh reader; editing continues with authority | P5.14 |
+| T5-041 | verifier | Moved author whose latest asset entry is an editor entry, read by a fresh reader with no bundle | Author freshness `not-established` unless the moved author log is found; not reported as currently authorized | P5.14, P7.8 |
 | T5-042 | verifier | Verification method at a version after a move whose controller is the old DID | Entry `rejected`; `identity` `failed` | P5.3, P5.14 |
 | T5-043 | verifier | Log with a different SCID whose `alsoKnownAs` lists the author DID | Not the author’s identity; entries signed with its keys rejected | P5.14 |
 | T5-044 | verifier | Old author DID location redirecting to a new host | Redirect not followed; no continuity established | P5.14, P8.5, P3.4 |
@@ -143,7 +143,7 @@ Rows that concern only the experimental additions are in their own document, wit
 | T6-023 | verifier | Editor entry with a `supersedes` member | Rejected | P6.9, P14.4 |
 | T6-024 | verifier | Superseding author entry labelled `key-removed-since` and not endorsed | Settles nothing; `state` `conflict` | P6.9 |
 | T6-025 | verifier | Revoked editor forks again from an entry before the superseded branch | New `conflict` until superseded or anchored | P6.9 |
-| T6-026 | SDK | Unsigned draft | Marked unsigned; never packaged as accepted history, counted as a resource version or published as a signed Original | P6.3 |
+| T6-026 | SDK | Unsigned draft | Marked unsigned; never bundled as accepted history, counted as a resource version or published as a signed Original | P6.3 |
 | T6-027 | verifier | Entry with `deactivated: true` and status deactivated whose `operation` is `update` | Rejected | P6.5, P14.4 |
 | T6-028 | verifier | Entry that is not a deactivation whose `operation` is `deactivate` | Rejected | P6.5, P14.4 |
 | T6-029 | host | Submission whose parent is the host's head but whose proof does not verify | Refused as `{result: "rejected", rule, reason}` naming the failing rule; not published; head unchanged | P6.7 |
@@ -153,7 +153,7 @@ Rows that concern only the experimental additions are in their own document, wit
 
 | ID | Actor | Given | Expected | Rules |
 |---|---|---|---|---|
-| T7-001 | writer, verifier | Fresh create, edit and package; then verify the complete package of a never-anchored Original with a did:vh or did:webvh author in a fresh reader process, with no private keys and without network dependencies | Same asset checkpoint and resource versions; `outcome` `verified`; `offline` `self-contained`; no private key in the reader | P7.1, P7.3, P7.21, P8.4, P8.5 |
+| T7-001 | writer, verifier | Fresh create, edit and bundle; then verify the complete bundle of a never-anchored Original with a did:vh or did:webvh author in a fresh reader process, with no private keys and without network dependencies | Same asset checkpoint and resource versions; `outcome` `verified`; `offline` `self-contained`; no private key in the reader | P7.1, P7.3, P7.21, P8.4, P8.5 |
 | T7-002 | verifier | Missing historical resource bytes | `availability` `partial`, listing the missing versions; supplied bytes still checked | P7.4 |
 | T7-003 | SDK | Import then edit without authority | Read succeeds where evidence valid; edit authorization fails | P7.5, P8.4 |
 | T7-004 | verifier | Old valid prefix served as current | Reported with `state` `valid-as-of` its checkpoint, never `current` | P7.10, P2.1, P7.6 |
@@ -183,7 +183,7 @@ Rows that concern only the experimental additions are in their own document, wit
 | T7-028 | verifier | JSON document whose root is an array, or has a root member named `originalLog` anywhere | Writer refuses | P7.15, P14.17 |
 | T7-029 | verifier | Writer asked to carry a draft, a version other than the last entry’s, or, after anchoring, an entry not accepted on the anchor | Refused | P7.15 |
 | T7-030 | verifier | Writer about to write a carrier | User told what the file discloses first; a JSON carrier says the data gains a member | P7.15 |
-| T7-031 | SDK | Carried file presented by an SDK or UI | Never labelled an evidence package or complete | P7.11 |
+| T7-031 | SDK | Carried file presented by an SDK or UI | Never labelled a bundle or complete | P7.11 |
 | T7-032 | verifier | Carrier added or removed | No entry signed; the version is unchanged | P7.16 |
 | T7-033 | SDK | Carried log older than the reader’s local history, or on another branch | Local history kept; a branch reported as a conflict | P7.14, P7.5 |
 | T7-034 | verifier | Anchored Original whose carried log disagrees with its anchor | State from the anchor; the carried log is not preferred | P7.14, P9.13 |
@@ -191,8 +191,8 @@ Rows that concern only the experimental additions are in their own document, wit
 | T7-036 | verifier | Carried log that holds no anchoring entry | `state` `valid-as-of` its last entry; no statement about later anchoring | P7.14, P7.18 |
 | T7-037 | writer | Writer asked to inscribe a carried file as a body | The carrier is removed first; the body is the version’s bytes | P7.16, P9.17 |
 | T7-038 | writer | Writer making a carried file from the body and entries of an accepted inscription whose body is the full version | Allowed, as for any accepted checkpoint | P7.16, P7.15 |
-| T7-039 | verifier | Complete evidence package of an anchored Original, read without access to the anchor | `bitcoin` `missing-evidence`; at most the entries before the first anchoring entry, with `state` `historical-checkpoint`; the package not preferred to the anchor | P7.1, P7.14, P7.18 |
-| T7-040 | verifier | Complete evidence package of an Original with a did:btco signer, read offline | That signer’s history is not in the package; `identity` `incomplete` and `offline` `needs-external` until it is read from Bitcoin | P7.1, P14.10, P5.6, P7.21 |
+| T7-039 | verifier | Complete bundle of an anchored Original, read without access to the anchor | `bitcoin` `missing-evidence`; at most the entries before the first anchoring entry, with `state` `historical-checkpoint`; the bundle not preferred to the anchor | P7.1, P7.14, P7.18 |
+| T7-040 | verifier | Complete bundle of an Original with a did:btco signer, read offline | That signer’s history is not in the bundle; `identity` `incomplete` and `offline` `needs-external` until it is read from Bitcoin | P7.1, P14.10, P5.6, P7.21 |
 | T7-041 | verifier | Carried file imported, then read again with no separate opt-in to resolve | No resolver request; the import is not an opt-in | P7.13 |
 | T7-042 | verifier | Carried file read with the caller’s opt-in to resolve, then read again without one | The first read resolves; the second makes no resolver request | P7.13 |
 | T7-043 | verifier | Caller’s opt-in recorded as a standing or default setting for carried files | Not an opt-in; each read needs its own | P7.13 |
@@ -206,20 +206,20 @@ Rows that concern only the experimental additions are in their own document, wit
 | T7-051 | verifier | Unanchored Original whose editor’s key was removed from the editor DID, followed by an author entry with a current key | Editor entry `endorsed`; default check passes | P7.20 |
 | T7-052 | verifier | Host given an editor entry extending an entry that is neither `current-key` nor endorsed | Refused | P7.20 |
 | T7-053 | verifier | Host given a `current-key` author entry extending such an entry | Accepted; it endorses it | P7.20 |
-| T7-054 | verifier | Complete package, all entries `accepted`, bytes of one version missing | Default check passes; `availability` `partial` | P7.22 |
+| T7-054 | verifier | Complete bundle, all entries `accepted`, bytes of one version missing | Default check passes; `availability` `partial` | P7.22 |
 | T7-055 | verifier | Transfer check with one inscription on the anchoring sat `unverifiable` | Fails; default check passes with the inscription listed | P7.22 |
 | T7-056 | verifier | Transfer check with a conflicting anchor reported | Fails | P7.22 |
 | T7-057 | SDK | Application showing a single “verified” for `outcome` `verified` with `authority` `historical` | Not conforming | P7.22 |
-| T7-058 | verifier | Complete package of a never-anchored Original with a did:webvh author, signer history included, network disabled | `offline` `self-contained`; `outcome` `verified` | P7.21, P8.5 |
-| T7-059 | verifier | Complete package of a never-anchored Original with a did:btco author, with no read of the author’s sat | `offline` `needs-external`, with a `signer-sat-not-read` diagnostic naming the author’s sat; not verified offline | P7.21, P8.5, P14.25 |
-| T7-060 | verifier | Complete package of an anchored Original, with no read of the anchoring sat | `offline` `needs-external`, with an `anchoring-sat-not-read` diagnostic naming the anchoring sat | P7.21, P14.25 |
-| T7-061 | writer | Writer asked to package an entry it has re-serialised, normalised or given another envelope discriminator | Never presented as preserving the entry’s signature; the package holds the signed bytes, or the entry is reported as not the signed one | P7.2 |
+| T7-058 | verifier | Complete bundle of a never-anchored Original with a did:webvh author, signer history included, network disabled | `offline` `self-contained`; `outcome` `verified` | P7.21, P8.5 |
+| T7-059 | verifier | Complete bundle of a never-anchored Original with a did:btco author, with no read of the author’s sat | `offline` `needs-external`, with a `signer-sat-not-read` diagnostic naming the author’s sat; not verified offline | P7.21, P8.5, P14.25 |
+| T7-060 | verifier | Complete bundle of an anchored Original, with no read of the anchoring sat | `offline` `needs-external`, with an `anchoring-sat-not-read` diagnostic naming the anchoring sat | P7.21, P14.25 |
+| T7-061 | writer | Writer asked to bundle an entry it has re-serialised, normalised or given another envelope discriminator | Never presented as preserving the entry’s signature; the bundle holds the signed bytes, or the entry is reported as not the signed one | P7.2 |
 | T7-062 | SDK | Archive with an entry whose name is an absolute path | Rejected before extraction | P7.5, P14.10 |
 | T7-063 | SDK | Archive of 20,000 / 20,001 entries | Imported, if otherwise valid / rejected before extraction | P7.5, P14.10 |
 | T7-064 | SDK | Archive whose entries total 512 MiB / more than 512 MiB | Imported, if otherwise valid / rejected before extraction | P7.5, P14.10 |
 | T7-065 | verifier | Unanchored Original: editor entry, then the editor DID deactivated, then a later author entry on the same branch whose author DID is active and whose key is current | The editor entry labelled `did-deactivated-since` and `endorsed`; `authority` `current`; default acceptance check passes | P7.9, P7.19, P7.20, P7.22 |
 | T7-066 | verifier | As T7-065 with no later author entry, or with the author DID (not the editor’s) deactivated after the editor entry | Editor entry `did-deactivated-since`, not endorsed; `authority` `historical`; default check fails. With the author DID deactivated no later author entry can be `current-key`, so it never passes | P7.9, P7.20, P7.22, P5.18 |
-| T7-067 | verifier | Complete loose evidence set with no package: the asset log, the author’s did:webvh history and every resource version through the checkpoint (`vectors/og-1.0-draft.1/genesis/`) | `offline` `self-contained`; no diagnostics | P7.21, P14.25 |
+| T7-067 | verifier | Complete loose evidence set with no bundle: the asset log, the author’s did:webvh history and every resource version through the checkpoint (`vectors/og-1.0-draft.1/genesis/`) | `offline` `self-contained`; no diagnostics | P7.21, P14.25 |
 | T7-068 | verifier | Loose evidence set missing the bytes of one resource version through the checkpoint (`vectors/og-1.0-draft.1/missing-resource/`) | `availability` `partial`; `offline` `needs-external`, derived from the one `resource-missing` diagnostic naming that version’s digest and entry; `outcome` still `verified` | P7.21, P7.4, P14.25 |
 | T7-069 | verifier | Anchored Original whose evidence set holds the anchoring sat read in full at a tip, the resolved log of each did:vh or did:webvh signer, and the bytes of every resource version through the checkpoint | `offline` `self-contained`; the same report with the network disabled | P7.21, P9.18, P9.33, P8.5 |
 | T7-070 | verifier | Evidence set holding a supplied resource whose bytes do not match the descriptor its entry names | `availability` not `complete`; a `resource-mismatch` diagnostic for that version; `offline` `needs-external` | P7.21, P7.4, P14.25 |
@@ -240,7 +240,7 @@ Rows that concern only the experimental additions are in their own document, wit
 | T8-001 | verifier | Log file larger than the profile cap | Fetch refused, with the cap as its reason; nothing from that file enters the evidence set | P8.5, P14.13 |
 | T8-002 | verifier | Locator resolving or redirecting to a private address | Fetch refused, with the reason; nothing from that address enters the evidence set | P8.5 |
 | T8-003 | SDK | Plaintext metadata, base64 content or raw storage | Never labelled encrypted | P8.2 |
-| T8-004 | SDK | SDK about to share or publish an evidence package for the first time | Identifies the evidence and content included, and warns about embedded metadata such as EXIF location and device identifiers, before it is shared | P8.3 |
+| T8-004 | SDK | SDK about to share or publish a bundle for the first time | Identifies the evidence and content included, and warns about embedded metadata such as EXIF location and device identifiers, before it is shared | P8.3 |
 | T8-005 | SDK | Storage adapter returning, with a success status, bytes that differ from the signed descriptor, or reporting success for a write that failed | Bytes not treated as verified; digest failure or failed write surfaced; the success response certifies nothing | P8.1 |
 | T8-006 | SDK | Later metadata correction of an Original whose history has been shared | Never described as removing a secret from the history already distributed | P8.3 |
 | T8-007 | verifier | Locator whose host is an IP literal | Fetch refused | P8.5 |
@@ -409,7 +409,7 @@ Rows that concern only the experimental additions are in their own document, wit
 | T14-003 | verifier | Originals inscription whose metadata is a CBOR array of entries, as in earlier drafts, or an object with a member other than `entries` and `part` (a legacy `signers` member is ignored only on mainnet at or below height 977,150; see T14-106) | Rejected | P14.12 |
 | T14-004 | verifier | `preview` whose `mediaType` has a parameter, whose digest is not in P14.7’s encoding, or with a member other than `mediaType`, `size` and `digest` | Rejected | P14.7, P14.5, P14.6 |
 | T14-005 | verifier | Derived DID document of an entry that names a preview | Same as without it; the preview is not in the document, and does not advance the version | P14.9, P4.4, P9.30 |
-| T14-006 | writer | Evidence package of an anchored Original whose entries name previews | Complete without the previews; a writer puts no preview under `resources/` and lists none in `missing` | P14.10, P9.30 |
+| T14-006 | writer | Bundle of an anchored Original whose entries name previews | Complete without the previews; a writer puts no preview under `resources/` and lists none in `missing` | P14.10, P9.30 |
 | T14-007 | verifier | Inscription metadata containing a CBOR tag, byte string, indefinite-length item, non-text map key or duplicate key | Rejected | P14.12 |
 | T14-008 | verifier | Entry whose metadata holds a non-integer number, inscribed as a half-, single- or double-precision float | Accepted; hashes and proof checked over its JCS form | P14.3, P14.12 |
 | T14-009 | verifier | Inscription metadata holding a NaN, infinite or negative-zero float, or one above P14.3’s bound | Rejected | P14.3, P14.12 |
@@ -421,14 +421,14 @@ Rows that concern only the experimental additions are in their own document, wit
 | T14-015 | verifier | Resource descriptor whose `size` changes without its `digest` | Rejected | P14.6 |
 | T14-016 | verifier | Entry whose JCS form is 65,536 / 65,537 UTF-8 bytes, in `did.jsonl`, an inscription or any carrier | Accepted / rejected | P14.13 |
 | T14-017 | verifier | Derived DID document compared with section 14’s template | Identical for every resolver | P14.9 |
-| T14-018 | writer | Evidence package built twice from the same contents | Byte-identical archives | P14.10 |
-| T14-019 | verifier | Evidence package with a compressed archive entry or a name over 255 bytes | Rejected | P14.10 |
+| T14-018 | writer | Bundle built twice from the same contents | Byte-identical archives | P14.10 |
+| T14-019 | verifier | Bundle with a compressed archive entry or a name over 255 bytes | Rejected | P14.10 |
 | T14-020 | verifier | Transitions in the genesis entry / an entry changing the resource / any other entry | `[{from: null, to}]` / `[{from, to}]` / `[]` | P14.4 |
 | T14-021 | verifier | Number such as `1e16` or `9007199254740993.0` in an entry | Rejected | P14.3 |
 | T14-022 | verifier | Asset log with a carriage return, non-compact JSON or no final line feed | Rejected | P14.2 |
 | T14-023 | verifier | Proof with a member other than those P14.8 lists | Rejected | P14.8 |
-| T14-024 | writer, verifier | Evidence package whose entries are unsorted or carry other dates or flags | A reader may accept it; a writer never produces it | P14.10 |
-| T14-025 | verifier | Evidence package with a name that is not valid UTF-8, or an entry whose mode is not a regular file | Rejected | P14.10, P7.5 |
+| T14-024 | writer, verifier | Bundle whose entries are unsorted or carry other dates or flags | A reader may accept it; a writer never produces it | P14.10 |
+| T14-025 | verifier | Bundle with a name that is not valid UTF-8, or an entry whose mode is not a regular file | Rejected | P14.10, P7.5 |
 | T14-026 | verifier | `name` of 1,024 / 1,025 UTF-16 code units, counting a non-BMP character as two | Accepted / rejected | P14.5 |
 | T14-028 | verifier | Asset log line with whitespace outside JSON strings / with keys in non-JCS order | Rejected / accepted | P14.2 |
 | T14-029 | verifier | `mediaType` `image/PNG` / `application/javascript` / `application/pdf` / `application/vc+json` | Trailer / no carrier / no carrier / no carrier | P14.14 |
@@ -465,7 +465,7 @@ Rows that concern only the experimental additions are in their own document, wit
 | T14-060 | verifier | Writer with no parser for the version’s syntax asked for a text block | Refused | P14.16 |
 | T14-061 | verifier | Two entries whose `versionTime` values differ by less than one millisecond, or a `versionTime` with more than three fractional digits | Rejected | P14.2 |
 | T14-062 | verifier | `supersedes` with 9 versionIds, or a repeated one | Rejected | P14.4, P14.13 |
-| T14-063 | host | Host of a did:webvh alias serving the evidence package unpacked under `originals/` and each resource with its signed media type and P9.7’s headers | Found from the alias and verified as the package | P14.11, P9.7 |
+| T14-063 | host | Host of a did:webvh alias serving the bundle unpacked under `originals/` and each resource with its signed media type and P9.7’s headers | Found from the alias and verified as the bundle | P14.11, P9.7 |
 | T14-064 | verifier | Resource served under a did:webvh alias’s `originals/` with a media type other than its signed `mediaType` | The signed `mediaType` is used; the served type is never trusted | P14.11, P9.7 |
 | T14-065 | verifier | Ed25519 proof whose public key or signature point `R` is a small-order point | Entry `rejected`; `identity` `failed` | P14.8 |
 | T14-066 | verifier | `proofValue` that is not `z` followed by base58btc, or that decodes to a signature of other than 64 bytes | Entry `rejected` | P14.8 |
@@ -478,8 +478,8 @@ Rows that concern only the experimental additions are in their own document, wit
 | T14-073 | verifier | `editors` with 32 / 33 grants | Accepted, if otherwise valid / rejected | P14.13, P5.15 |
 | T14-074 | verifier | `supersedes` with 8 distinct versionIds of entries it may supersede | Accepted, if otherwise valid | P14.13, P6.9 |
 | T14-075 | verifier | Each evidence set in `vectors/og-1.0-draft.1/` (`genesis/`, `local/`, `missing-resource/`, `bitcoin/`, `anchor-absent/`), with no network | A report equal to that vector’s `expected-report.json` | P14.25, P14.26, P7.17 |
-| T14-076 | writer | The vector Original’s entries, resources and signer log, packaged and inscribed as in `vectors/og-1.0-draft.1/` | Byte-identical `evidence.zip`; envelopes with the same fields in the same order; metadata that decodes to the same JSON values as the vector’s, its map members in any order | P14.26, P14.10, P14.12 |
-| T14-077 | verifier | Evidence package whose manifest `checkpoint` is not an entry of `asset/did.jsonl`, or whose `head` is not its last entry | Rejected | P14.10 |
+| T14-076 | writer | The vector Original’s entries, resources and signer log, bundled and inscribed as in `vectors/og-1.0-draft.1/` | Byte-identical `bundle.zip`; envelopes with the same fields in the same order; metadata that decodes to the same JSON values as the vector’s, its map members in any order | P14.26, P14.10, P14.12 |
+| T14-077 | verifier | Bundle whose manifest `checkpoint` is not an entry of `asset/did.jsonl`, or whose `head` is not its last entry | Rejected | P14.10 |
 | T14-078 | writer | Inscription metadata and envelope fields | Map members in any order, at every level; envelope fields in ord 0.29.1’s order; a reader accepts any order of members, and of fields that ord accepts | P14.12 |
 | T14-079 | host | The shared-host saves in `vectors/og-1.0-draft.1/hosted/exchanges.json`, applied in order | `accepted`, then `stale-parent` with the new head, then `already-accepted` | P6.7, P14.26 |
 | T14-080 | verifier | Genesis entry whose parameters are exactly `method`, `scid` and `updateKeys` `[]` | Accepted; `updateKeys` authorizes nothing, and the author entry is checked under P5.3 | P14.1, P5.3 |
@@ -487,7 +487,7 @@ Rows that concern only the experimental additions are in their own document, wit
 | T14-082 | verifier | Genesis or later author entry whose `updateKeys` is non-empty, even listing the author’s own signing key | Rejected; a non-empty `updateKeys` is reserved for a later method version | P14.1 |
 | T14-083 | verifier | Editor entry whose parameters carry `updateKeys`, even `[]` | Rejected | P14.1, P5.16 |
 | T14-084 | verifier | Later author entry whose parameters are exactly `{"updateKeys": []}`; deactivation whose parameters are `{"deactivated": true, "updateKeys": []}` | Accepted | P14.1, P6.5 |
-| T14-085 | verifier | Log, package or inscription under another `method` value, such as the mainnet acceptance Original of 1 November 2026 (`originals:1.0`, `vectors/prior-format/`) | outcome `unsupported`; neither `verified` nor `invalid`; no state reported: `axes` holds `outcome` only and `entries`, `signers` and `diagnostics` are empty | P14.1, P3.3, P7.18, P14.25 |
+| T14-085 | verifier | Log, bundle or inscription under another `method` value, such as the mainnet acceptance Original of 1 November 2026 (`originals:1.0`, `vectors/prior-format/`) | outcome `unsupported`; neither `verified` nor `invalid`; no state reported: `axes` holds `outcome` only and `entries`, `signers` and `diagnostics` are empty | P14.1, P3.3, P7.18, P14.25 |
 | T14-086 | verifier | Entry with a member other than `versionId`, `versionTime`, `parameters`, `state` and `proof`, without one of them, or with `proof` not an array of one proof | Rejected | P14.27 |
 | T14-087 | verifier | Log whose version numbers skip, repeat or start other than at 1, or have a leading zero | Rejected | P14.27 |
 | T14-088 | verifier | Genesis entry whose SCID does not match the hash of the entry with `{SCID}` placeholders; or whose `state.id` is not `did:og:` and the SCID | Rejected | P14.28, P3.1 |
@@ -509,7 +509,8 @@ Rows that concern only the experimental additions are in their own document, wit
 | T14-104 | writer | Writer encoding an Originals inscription’s metadata | `{entries}` or `{entries, part}`; no `signers` member | P14.12 |
 | T14-105 | verifier | Resolved did:vh or did:webvh signer log above the P14.13 limit on versions of one signer DID | The limit enforced: `history` `limit-exceeded`, and no entry naming a version beyond it accepted | P14.13, P7.7, P9.33 |
 | T14-106 | verifier | Originals inscription whose metadata has a `signers` member, on regtest, signet or testnet, or on mainnet in a block above height 977,150 | The metadata invalid and the publication rejected, as for any other unknown member | P14.12 |
-| T14-107 | verifier | Evidence set holding a did:webvh signer’s log resolved from its URL, and another inside a package | The first a `signer-history` input whose source is the URL; the second part of the `package` input, with source `package`; each recorded with its DID and the time obtained | P14.25, P7.17 |
+| T14-107 | verifier | Evidence set holding a did:webvh signer’s log resolved from its URL, and another inside a bundle | The first a `signer-history` input whose source is the URL; the second part of the `bundle` input, with source `bundle`; each recorded with its DID and the time obtained | P14.25, P7.17 |
+| T14-108 | verifier | Archive laid out as P14.10 fixes it, whose manifest is `originals-evidence.json` with `format` `originals-evidence/0.1`, as written before D23 | Rejected; as an evidence-set input, `input-unusable`, and nothing inside it used | P14.10, P14.25 |
 
 ### Coverage
 
@@ -532,7 +533,7 @@ Not covered, because the requirement is out of the core: the read-authorization 
 Release evidence should include positive and negative fixtures, pinned profile decisions, deterministic results and a dependency inventory. Before interoperability is claimed:
 
 - an independent verifier reproduces every positive checkpoint and produces the same report for each fixture’s evidence set (P7.17), row by row, citing row IDs;
-- fresh-process tests run with no private key in the reader and without network dependencies, from complete packages whose `offline` result is `self-contained` (T7-001), beside partial-package tests;
+- fresh-process tests run with no private key in the reader and without network dependencies, from complete bundles whose `offline` result is `self-contained` (T7-001), beside partial-package tests;
 - the application’s own hosted publication paths, not only the SDK’s adapters, publish through this profile and pass exact-snapshot reader regressions: a fresh reader of each published snapshot reaches the writer’s checkpoint (P9.1, P9.2);
 - the Bitcoin rows run against a test network before any mainnet anchoring (P9.18): first a scripted regtest run under `vectors/regtest/`, which starts bitcoind and ord 0.29.x on regtest, inscribes the vector’s publications, reads them back through ord and checks the expected report (P9.31, P14.26); then a fresh mainnet inscription in the current format, made by the owner. `npm run regtest` runs the first step and writes `vectors/regtest/last-run.json`; it passed on 21 November 2026 and again under D22 on 22 November 2026, and the register records its transaction ids. The second step, a mainnet inscription made by the owner, passed on 22 November 2026 (`vectors/mainnet/last-run.json`) and again under D22, with the body inscribed in full and the author's log resolved, the same day (`vectors/mainnet/og-test-2.last-run.json`); the register records their transaction ids and reports;
 - the Originals SDK reproduces the genesis vector (T14-091), so that it and the vectors checker are two implementations that agree on it.

@@ -3,15 +3,15 @@
   "checkpoint": null,
   "inputs": [
     {
-      "kind": "package",
-      "source": "local/package/evidence.zip",
-      "digest": "zQmZ1GtNCnNpkBUeCHHaqY4dR4rCUCtZ9RdwARPYJoGEDPm"
+      "kind": "bundle",
+      "source": "local/bundle/bundle.zip",
+      "digest": "zQmbvdXtFGkyWZ2UomucVHK524TpDmrfjU5hRTWFXWcYXcs"
     }
   ],
   "signerHistories": [
     {
       "did": "did:webvh:QmZ3f6CT8tzVfdx22EhRFEYbyh6VXc22hYCEk7xoQM17YQ:author.example",
-      "source": "package",
+      "source": "bundle",
       "obtained": "2026-01-06T00:00:00Z"
     }
   ],

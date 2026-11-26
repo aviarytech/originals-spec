@@ -45,5 +45,5 @@ The design review of 21 November 2026 found open problems in this text, among th
 | Minor | Reader lists are public in the signed log; read grants freeze behind the sat holder after anchoring; a host may serve while a revocation is pending (P8.6–P8.14) | [#78](https://github.com/aviarytech/originals-spec/issues/78) |
 | Minor | A 32-of-32 set cannot replace a member in one entry, which needs 33 signer references (P5.20, P14.4) | [#79](https://github.com/aviarytech/originals-spec/issues/79) |
 | Minor | Path and item views ignore collection-wide state, such as order, and a change of media type (P5.29) | [#80](https://github.com/aviarytech/originals-spec/issues/80) |
-| Minor | Carried bytes that match their descriptor are not used for scope checks, so a carried file and a package of the same checkpoint give different results (P5.28) | [#81](https://github.com/aviarytech/originals-spec/issues/81) |
+| Minor | Carried bytes that match their descriptor are not used for scope checks, so a carried file and a bundle of the same checkpoint give different results (P5.28) | [#81](https://github.com/aviarytech/originals-spec/issues/81) |
 | Minor | The read request still allows `bip340-jcs-2025`, which the core no longer permits (P14.24; core P5.12) | [#82](https://github.com/aviarytech/originals-spec/issues/82) |

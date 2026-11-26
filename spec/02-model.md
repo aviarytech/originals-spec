@@ -51,6 +51,9 @@
 [[def: holder]]:
 ~ Whoever holds the anchoring sat of an anchored Original. Holding confers no authority to change the Original, and is provisional until the anchor’s uniqueness is established ([P9.11](#p9.11), [P9.16](#p9.16)).
 
+[[def: bundle, bundles]]:
+~ One file that carries an Original for a fresh reader: a ZIP archive holding its asset log through a checkpoint, the did:vh and did:webvh signer histories that log depends on, the resource bytes it includes, and a manifest that says what is complete and what is missing ([P7.1](#p7.1), [P14.10](#p14.10)). A bundle is one input of an evidence set, not the evidence set itself. Formerly called an evidence package (D23).
+
 [[def: evidence set]]:
 ~ Everything a verifier is given for one verification: the copies of the log, bytes, signer DID histories, the Bitcoin network, tip and index reads. A report is a function of it alone ([P7.17](#p7.17)).
 
@@ -92,7 +95,7 @@ This is not a normative wire format or test vector.
 - Application state → name, metadata, lifecycle, the resource descriptor, aliases, and editor grants
 - Resource descriptor → mediaType, size, exact-byte digest
 - VH entry → Original identity, parent entry, resulting application state, author identity reference, an editor reference for an editor entry, one proof by the signer’s key
-- Evidence package → VH history, author identity evidence, resource bytes
+- Bundle → VH history, author identity evidence, resource bytes
 
 The asset log’s state is the full asset state in every entry, not a delta and not a DID document (D1). The DID document for each version is derived, never stored: its `id` is the `did:og`, its `controller` is the author DID, its `alsoKnownAs` lists the aliases in the asset state, and its `#files` service is built from the resource descriptor. The asset itself is not placed in the DID document. Resource bytes are not in any state: they are files bound by the digests in their descriptors.
 
