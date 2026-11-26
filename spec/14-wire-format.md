@@ -81,6 +81,8 @@ A preview (P9.30) is not a version of the resource: a writer MUST NOT put one un
 
 Import MUST apply P7.5, with at most 20,000 archive entries and 512 MiB in total.
 
+A writer SHOULD name a bundle file with the extension `.zip` and serve it as `application/zip`. A reader MUST recognise a bundle by its manifest, not by its file name or media type (D23).
+
 A reader MUST reject an archive with no `originals-bundle.json`, including one whose manifest is `originals-evidence.json` with `format` `originals-evidence/0.1`, the name and format before D23 (26 November 2026). Such an archive is `input-unusable` in an evidence set (P14.25); the logs and bytes inside it are not used.
 
 The SDK names the signer directory `authors/` and writes an `asset/did-witness.json`; this section uses `signers/` and none, because editors are signers too and asset logs have no witnesses.
