@@ -4,7 +4,7 @@
 // author, author entries only, no did:btco signers off Bitcoin. Anything the
 // vectors don't exercise is reported `invalid` rather than guessed at, so a
 // vector that needs more fails the check instead of passing by accident.
-import { checkOgLog, checkWebvh, resourceDigest, stats, J, td } from './verify-lib.mjs';
+import { checkOgLog, checkWebvh, webvhVersions, resourceDigest, stats, J, td } from './verify-lib.mjs';
 
 export const PROFILE = 'og:1.0-draft.1';
 
@@ -104,7 +104,7 @@ export async function offChainReport({ evidenceSet, log, authorLog, resources })
   const before = stats().failures;
   const problems = [];
   const authorDoc = await checkWebvh(authorLog, 'report: author history');
-  const { did, anchored } = checkOgLog(log, authorDoc, resources, 'report');
+  const { did, anchored } = checkOgLog(log, await webvhVersions(authorLog, 'report: author history'), resources, 'report');
   if (anchored) problems.push('an anchored log is outside the off-Bitcoin report');
   if (log.some((e) => e.state.editor)) problems.push('editor entries are outside what this deriver covers');
   if (evidenceSet.original !== did) problems.push('evidence set names another did:og');
@@ -162,7 +162,7 @@ export async function anchorAbsentReport({ evidenceSet, log, authorLog, resource
   const before = stats().failures;
   const problems = [];
   const authorDoc = await checkWebvh(authorLog, 'anchor-absent report: author history');
-  const { did } = checkOgLog(log, authorDoc, resources, 'anchor-absent report');
+  const { did } = checkOgLog(log, await webvhVersions(authorLog, 'anchor-absent report: author history'), resources, 'anchor-absent report');
   const prefix = { mainnet: '', signet: 'sig:', testnet: 'test:', regtest: 'reg:' }[satRead.network];
   const btco = `did:btco:${prefix}${satRead.sat}`;
   const anchorAt = log.findIndex((e) => e.state.asset.aliases.includes(btco));

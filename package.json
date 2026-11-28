@@ -6,7 +6,7 @@
     "build": "node -e \"import('spec-up').then(m => m.default({ nowatch: true }))\" && cp security-review.html docs/",
     "edit": "mkdir -p docs && cp security-review.html docs/ && node -e \"import('spec-up').then(m => m.default())\"",
     "vectors": "node vectors/tools/generate.mjs",
-    "vectors:check": "node vectors/tools/check.mjs",
+    "vectors:check": "node vectors/tools/check.mjs && node vectors/tools/check-mutations.mjs",
     "regtest": "node vectors/regtest/run.mjs"
   },
   "devDependencies": {
