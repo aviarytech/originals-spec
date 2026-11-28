@@ -84,11 +84,23 @@ export async function checkWebvh(entries, label) {
   return r.didDocument;
 }
 
+// Every version of a did:webvh log, by versionId: the document each prefix resolves to.
+// An entry is checked against the version it names, never only the newest (P5.3).
+export async function webvhVersions(entries, label) {
+  const versions = new Map();
+  for (let i = 0; i < entries.length; i++) versions.set(entries[i].versionId, await checkWebvh(entries.slice(0, i + 1), `${label} version ${i + 1}`));
+  return versions;
+}
+const versionNumber = (versionId) => Number.parseInt(versionId, 10);
+
 // ---------- did:og asset log under the profile (the checks the vectors exercise) ----------
 export const STATE = ['asset', 'author', 'id', 'operation', 'transitions'];
 export const ASSET_REQ = ['aliases', 'name', 'network', 'resource', 'status'];
 export const ASSET_OPT = ['body', 'editors', 'metadata', 'preview'];
-export function checkOgLog(entries, authorDoc, resources, label) {
+// `author` is the author DID's versions by versionId (webvhVersions), so each entry is
+// checked at the version it names (P5.3), or one document when the caller has already
+// resolved the one version every entry names (the regtest gate).
+export function checkOgLog(entries, author, resources, label) {
   const scid = checkChain(entries, label);
   const did = `did:og:${scid}`;
   eq(entries[0].parameters, { method: 'og:1.0-draft.1', scid, updateKeys: [] }, `${label}: genesis parameters, updateKeys [] (P14.1)`);
@@ -108,17 +120,21 @@ export function checkOgLog(entries, authorDoc, resources, label) {
     eq(Object.keys(s).sort(), STATE, `${L}: state members (P14.4)`);
     ok(s.id === did, `${L}: id`);
     ok(s.operation === (i === 0 ? 'create' : 'update'), `${L}: operation`);
-    eq(s.author, entries[0].state.author, `${L}: author fixed at genesis (P5.8)`);
+    // The author DID is fixed; the version it names and the key may move on, never back (P5.8, T5-012, T5-039).
+    ok(s.author.did === entries[0].state.author.did, `${L}: author DID fixed at genesis (P5.8)`);
+    if (i > 0) ok(versionNumber(s.author.versionId) >= versionNumber(entries[i - 1].state.author.versionId), `${L}: author version not older than the previous entry's (P5.8, T5-012)`);
     const keys = Object.keys(s.asset);
     ok(ASSET_REQ.every((k) => keys.includes(k)) && keys.every((k) => ASSET_REQ.includes(k) || ASSET_OPT.includes(k)), `${L}: asset members (P14.5)`);
     ok(s.asset.network === 'regtest' && s.asset.network === entries[0].state.asset.network, `${L}: network fixed (P9.34)`);
     const btco = s.asset.aliases.filter((a) => a.startsWith('did:btco:'));
     ok(('body' in s.asset) === (btco.length > 0), `${L}: body present exactly with a did:btco alias (P14.5)`);
     if (btco.length) { ok(/^did:btco:reg:(0|[1-9][0-9]{0,15})$/.test(btco[0]), `${L}: did:btco alias names the genesis network (P9.10)`); anchored = true; }
-    const prevDigest = i ? entries[i - 1].state.asset.resource.digest : null;
+    // One transition exactly when the digest or the mediaType changes; `to` equals `from` when only the mediaType does (P14.4, P14.6).
+    const prev = i ? entries[i - 1].state.asset.resource : null;
     const d = s.asset.resource.digest;
-    if (d !== prevDigest) eq(s.transitions, [{ from: prevDigest, to: d }], `${L}: transition`);
+    if (!prev || d !== prev.digest || s.asset.resource.mediaType !== prev.mediaType) eq(s.transitions, [{ from: prev ? prev.digest : null, to: d }], `${L}: transition (P14.6)`);
     else eq(s.transitions, [], `${L}: no transition`);
+    if (prev && d === prev.digest) ok(s.asset.resource.size === prev.size, `${L}: size changes only with the digest (P14.6)`);
     if (resources[d]) {
       ok(resourceDigest(resources[d]) === d && resources[d].length === s.asset.resource.size, `${L}: resource bytes match descriptor`);
     }
@@ -126,6 +142,9 @@ export function checkOgLog(entries, authorDoc, resources, label) {
     ok(entry.proof.length === 1, `${L}: one proof`);
     const p = entry.proof[0];
     ok(p.verificationMethod === s.author.verificationMethod, `${L}: proof verificationMethod is the signer reference's`);
+    const authorDoc = author instanceof Map ? author.get(s.author.versionId) : author;
+    ok(!!authorDoc, `${L}: names a version of the author DID that the author log contains (P5.3)`);
+    if (!authorDoc) return;
     const vm = authorDoc.verificationMethod.find((v) => v.id === p.verificationMethod);
     ok(vm && vm.type === 'Multikey' && vm.controller === authorDoc.id && authorDoc.assertionMethod.includes(vm.id), `${L}: assertionMethod Multikey in the author's DID document`);
     const { proof, ...doc } = entry;

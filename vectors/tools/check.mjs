@@ -6,7 +6,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  ASSET_OPT, ASSET_REQ, J, STATE, bytesEq, checkChain, checkOgLog, checkPackage, checkWebvh, counts, decodeCbor, decodeMultikey, eq, multihash, ok, parseEnvelope, parseLines, readZip, resourceDigest, sha, stats, td, te, verifyProof,
+  ASSET_OPT, ASSET_REQ, J, STATE, bytesEq, checkChain, checkOgLog, checkPackage, checkWebvh, webvhVersions, counts, decodeCbor, decodeMultikey, eq, multihash, ok, parseEnvelope, parseLines, readZip, resourceDigest, sha, stats, td, te, verifyProof,
 } from './verify-lib.mjs';
 import { CODES, TRANSFER_DEPTH, anchorAbsentReport, canonicalLog, defaultCheck, offChainReport, sameReport, satReadProblems, transferCheck, unreadInscriptions, unsupportedReport } from './report-lib.mjs';
 // Whole-report comparison (P14.25): equal as JSON values, ignoring each diagnostic's reason.
@@ -27,13 +27,14 @@ const readJSON = (p) => JSON.parse(readFileSync(join(ROOT, p), 'utf8'));
 // ======================= run =======================
 const authorEntries = parseLines(read('local/author/did.jsonl'), 'author log');
 const authorDoc = await checkWebvh(authorEntries, 'author did:webvh');
+const authorVersions = await webvhVersions(authorEntries, 'author did:webvh');
 ok(authorDoc.verificationMethod[0].publicKeyMultibase !== authorEntries[0].parameters.updateKeys[0], 'author: signing key is not an updateKey (P5.3)');
 
 // local
 const v1 = read('local/resources/v1.md'), v2 = read('local/resources/v2.md');
 const resources = { [resourceDigest(v1)]: v1, [resourceDigest(v2)]: v2 };
 const localLog = parseLines(read('local/asset/did.jsonl'), 'local asset log');
-const { did: OG } = checkOgLog(localLog, authorDoc, resources, 'local');
+const { did: OG } = checkOgLog(localLog, authorVersions, resources, 'local');
 const zipBytes = read('local/package/evidence.zip');
 const zfiles = readZip(zipBytes);
 const lp = checkPackage(zfiles, OG, 'local package');
@@ -61,7 +62,7 @@ ok(aliasDoc.alsoKnownAs?.includes(OG), 'alias: DID document lists the did:og (P3
 const walk = (d) => readdirSync(d).flatMap((n) => statSync(join(d, n)).isDirectory() ? walk(join(d, n)) : [join(d, n)]);
 const servedPkg = Object.fromEntries(walk(join(ROOT, 'hosted/served/originals')).map((p) => [relative(join(ROOT, 'hosted/served/originals'), p), new Uint8Array(readFileSync(p))]));
 const hp = checkPackage(servedPkg, OG, 'hosted package');
-checkOgLog(hp.log, authorDoc, resources, 'hosted');
+checkOgLog(hp.log, authorVersions, resources, 'hosted');
 ok(hp.log[2].state.asset.aliases.includes(aliasDoc.id), 'hosted: entry 3 lists the alias, completing P3.6');
 const ex = readJSON('hosted/exchanges.json');
 const reqEntry = (k) => JSON.parse(ex.exchanges[k].request.entry);
@@ -72,7 +73,7 @@ ok(hp.log[1].versionId === head, 'hosted: initial head is entry 2');
   // Parent of an entry = predecessor versionId: recompute from its hash input.
   const parentOk = (e, parent) => { const { proof, ...x } = e; return multihash(J({ ...x, versionId: parent })) === e.versionId.split('-')[1]; };
   ok(parentOk(e3, head) && ex.exchanges[0].response.result === 'accepted', 'hosted: entry 3 extends the head and is accepted');
-  checkOgLog([...hp.log.slice(0, 2), stale], authorDoc, resources, 'hosted stale candidate');
+  checkOgLog([...hp.log.slice(0, 2), stale], authorVersions, resources, 'hosted stale candidate');
   head = e3.versionId;
   ok(parentOk(stale, ex.initialHead) && !parentOk(stale, head) && ex.exchanges[1].response.result === 'stale-parent' && ex.exchanges[1].response.head === head, 'hosted: stale candidate refused with the head');
   ok(ex.exchanges[2].request.entry === ex.exchanges[0].request.entry && ex.exchanges[2].response.result === 'already-accepted', 'hosted: byte-identical resubmission already accepted');
@@ -129,7 +130,7 @@ parts.forEach((p, k) => {
 });
 ok(parts[0].body === null && parts[0].contentType === null, 'bitcoin: only the final part has a body or content type (P9.32)');
 const inscribed = parts.flatMap((p) => p.metadata.entries);
-checkOgLog(inscribed, authorDoc, resources, 'bitcoin');
+checkOgLog(inscribed, authorVersions, resources, 'bitcoin');
 const last = inscribed[inscribed.length - 1];
 ok(last.state.asset.body === 'full' && parts[1].contentType === last.state.asset.resource.mediaType, 'bitcoin: body mode full and content type (P9.17)');
 ok(resourceDigest(parts[1].body) === last.state.asset.resource.digest, 'bitcoin: body is the exact resource version');
@@ -258,7 +259,7 @@ chain.inscriptions.forEach((x, k) => ok(br.evidence.inputs[k + 1].digest === res
   const gl = parseLines(read('genesis/did.jsonl'), 'genesis log');
   ok(gl.length === 1, 'genesis: one entry');
   const ge = gl[0];
-  checkOgLog(gl, authorDoc, { [resourceDigest(v1)]: read('genesis/resources/v1.md') }, 'genesis');
+  checkOgLog(gl, authorVersions, { [resourceDigest(v1)]: read('genesis/resources/v1.md') }, 'genesis');
   eq(ge, localLog[0], 'genesis: the same entry as local entry 1');
   const scid = ge.parameters.scid;
   // P14.28 verification steps, written out independently of checkChain.
