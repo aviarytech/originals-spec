@@ -11,9 +11,9 @@ Each Original is a `did:og`, `did:og:<SCID>`, whose log is its [[ref: asset log]
 The Original gains aliases, listed in its asset state and in the derived `alsoKnownAs`:
 
 - a did:webvh once it is published on the web. This is a small did:webvh log of its own that points to the `did:og`, and its implicit `#files` service maps DID URLs such as `did:webvh:<SCID>:example.com/photo` to files at that host;
-- a did:btco once it is anchored, naming the anchoring sat (P9.10). Once anchored, resolution should go through this alias. Originals inscriptions on that sat carry log entries, not a did:btco DID document, in their metadata (P9.17, P14.12), so the alias is resolved only by a verifier applying this profile (P3.5).
+- a did:btco once it is anchored, naming the anchoring sat (P9.10). Use that sat to find the Original’s anchored log. Originals inscriptions carry log entries, not a did:btco DID document, in their metadata (P9.17, P14.12).
 
-Every alias is a DID, so at each layer an Original has an identifier that resolves to it (P3.9).
+Every alias is a DID. It offers a way to find the Original without changing what the alias DID’s own method resolves (P3.9).
 
 The derived DID document of the `did:og` carries a `#files` service built from the resource descriptor, so the `did:og` can locate the Original’s files itself.
 
@@ -29,18 +29,26 @@ P3.3 A resolver MUST distinguish verified state, missing evidence, unsupported p
 
 P3.4 Publication URLs and redirects MUST NOT independently transfer author or log-control authority. Any continuity claim after relocation MUST be supported by the selected profile’s authenticated evidence.
 
-P3.5 A successful generic VH Log, did:vh, did:webvh or did:btco resolution MUST NOT be reported as Originals verification. Originals state MUST be derived only by a verifier that applies this profile, because generic resolvers ignore the profile’s additional rules. A processor for VH Log [S2], whose entry shape the asset log shares (P14.27), rejects an asset log by its unrecognised `method` value and its empty `updateKeys` (P14.1), and a did:vh resolver of either kind [S3] rejects a `did:og` as another method, so each fails closed rather than showing a different current state. A generic did:btco resolver finds no DID document on an anchoring sat, because the metadata of an Originals inscription is an object holding log entries, not a DID document (P9.17, P14.12); if the sat’s holder inscribes one there, a generic did:btco resolver returns it, and it MUST NOT be used for the Original (P3.8).
+P3.5 A successful generic VH Log, did:vh, did:webvh or did:btco resolution MUST NOT be reported as Originals verification. Originals state MUST be derived only by a verifier that applies this profile, because generic resolvers ignore the profile’s additional rules. A processor for VH Log [S2], whose entry shape the asset log shares (P14.27), rejects an asset log by its unrecognised `method` value and its empty `updateKeys` (P14.1), and a did:vh resolver of either kind [S3] rejects a `did:og` as another method, so each fails closed rather than showing a different current state. A generic did:btco resolver finds no DID document on an anchoring sat, because the metadata of an Originals inscription is an object holding log entries, not a DID document (P9.17, P14.12); a did:btco resolver can return a separate, method-valid document for that sat if the method supplies one, and it MUST NOT be used for the Original (P3.8, P3.9).
 
-P3.6 A did:webvh is an alias of an Original only if its DID document points to the Original’s `did:og` and the Original’s asset state lists the did:webvh. A verifier MUST NOT accept either direction alone. A did:webvh DID document MUST NOT be used to derive the Original’s state, resource versions, authority or holder.
+P3.6 A did:webvh is an alias of an Original only if its verified DID document lists the Original’s `did:og` in `alsoKnownAs` and the Original’s verified asset state lists that same did:webvh. A verifier MUST NOT accept either direction alone. A did:webvh DID document MUST NOT be used to derive the Original’s state, resource versions, authority or holder.
 
 P3.7 The did:webvh alias log SHOULD be controlled by the author. Whoever controls it can stop it pointing to the `did:og`, but cannot change the Original or make another log its history (P3.6).
 
 P3.8 The DID document of an Original’s `did:og` MUST be derived from the asset log as section 2 describes, and a resolver MUST derive the same document from the same log. A stored or served DID document for the `did:og`, including a did:btco DID document inscribed on the anchoring sat, MUST NOT be used.
 
-P3.9 (proposed) At every layer an Original has a DID that resolves to it: its `did:og`, from a copy of its log, a `src` location or a carried file (P7.11); on the web, its did:webvh alias (P3.6); on Bitcoin, its did:btco alias (P9.10), which names a sat that holds at most one Original (P9.34). Every alias in the asset state MUST be a DID. Given any of these DIDs, a resolver applying this profile MUST read the asset log from that layer’s source, verify it under this profile, and return the Original’s `did:og` with its state and report, or report why it cannot (P3.3, P3.5).
+P3.9 (proposed) DID resolution and Originals lookup are distinct operations. DID resolution MUST apply the requested DID’s own method. For the same DID, requested version and method-verified history, conforming resolvers MUST return the same DID document for that DID, or report why they cannot. A resolver MUST NOT substitute another DID’s document, or silently substitute another version for an exact version request (P3.2, P3.8). For did:webvh and did:btco, version selection and the method’s resolution result remain governed by the respective DID method; this profile defines neither method’s DID document.
+
+Every alias in the asset state MUST be a DID (P14.5). An Originals lookup starting at an alias MUST verify the applicable binding below and return the canonical `did:og` identifier, or report why the binding cannot be verified (P3.3, P3.5). The lookup MAY return the verified Originals state and report alongside the identifier, but MUST NOT present the `did:og` document as the alias’s DID resolution result. A caller that wants the Original’s DID document resolves the identified `did:og` at the desired Original checkpoint. An alias DID’s method version is not a version of the Original.
+
+| Input | DID resolution | Originals lookup |
+|---|---|---|
+| `did:og` | Verify the asset log and derive the document for this `did:og` at the selected checkpoint. A caller can supply a log, a `src` location or a carried file (P3.2, P3.8, P7.11). | Already the canonical identifier; no alias lookup is needed. |
+| did:webvh | Resolve under did:webvh; return that DID’s own document or the method’s failure. | Verify the did:webvh document under its method, take the candidate `did:og` from its `alsoKnownAs`, then verify the asset log at the alias’s publication under P14.11, including that same did:webvh’s listing in the asset state (P3.1, P3.6). |
+| did:btco | Resolve under did:btco; return that DID’s own document if the method supplies one, or its failure. | Read the named sat on the specified network and verify the Originals publications and sat binding (P9.10, P9.16, P9.31, P9.34). The lookup does not require or use a did:btco DID document. A lookup does not by itself establish anchor uniqueness, current state or holder status. |
 
 ::: note
-The aliases overlap the `src` locations that the asset log already records, and the did:btco alias cannot be resolved by the did:btco method alone: a did:btco resolver reads the sat’s DID document, which an Original does not use (P3.8), not its asset log, so only a resolver applying this profile returns the Original (P3.5, P3.9). They are kept because each does work a location cannot: adding the did:btco alias is how an Original is anchored and how a sat is bound to one Original (P9.10, P9.34), and the did:webvh alias gives the Original a DID that ordinary web resolution reaches, bound in both directions (P3.6). Owner ruling, 21 November 2026: no rule change.
+An application can still accept an alias in an existing share URL, look up the verified `did:og`, and show the Original. A DID resolver and a share page need not expose the same operation. No change to the alias fields, log format, publishing or transfer rules is required.
 :::
 
 ### Identity history and time

@@ -16,13 +16,13 @@ The SDK’s history implementation is replaced whole, including its types, codec
 | 6 | The evidence set and the verification report | P7.1–P7.10, P7.17–P7.23, P14.25 | Replaces replay verification and status reporting |
 | 7 | Local operations: create, update, deactivate, forks and superseding, durable commit | P6.1–P6.9, P2.1 | Replaces OriginalsSDK create, load and in-memory commit |
 | 8 | Evidence packages, manifests and carried logs | P7.11–P7.16, P8.1–P8.5, P14.10, P14.14–P14.17 | Replaces the envelope; keeps the portable evidence boundary |
-| 9 | Hosting: the did:webvh alias, shared-host append, serving layout | P3.6, P3.7, P6.7, P6.8, P9.1–P9.9, P14.11 | Replaces hosted adapters; keeps StorageAdapter and exact-snapshot delivery |
-| 10 | Bitcoin reading: ord 0.29.x rules, chain order, the network and the one-Original-per-sat binding | P9.10, P9.13, P9.31, P9.34, P3.9 | Replaces publications.ts resolution and holder snapshots |
+| 9 | Hosting: the did:webvh alias, shared-host append, serving layout | P3.6, P3.7, P3.9, P6.7, P6.8, P9.1–P9.9, P14.11 | Replaces hosted adapters; keeps StorageAdapter and exact-snapshot delivery |
+| 10 | Bitcoin reading: ord 0.29.x rules, chain order, the network and the one-Original-per-sat binding | P9.10, P9.13, P9.31, P9.34, P3.9 | Replaces publications.ts anchor lookup and holder snapshots |
 | 11 | Bitcoin verification: publications in parts, resolved signer logs, head selection and the anchor | P9.11, P9.12, P9.15–P9.18, P9.32, P9.33, P9.35, P9.36 | Replaces Bitcoin verification |
 | 12 | Bitcoin writing: inscription encoding, previews and the signed body mode, broadcasting and replacement | P9.14, P9.17, P9.30, P14.12, P9.6 | Replaces current payloads and metadata; keeps the durable boundary, retry intent and one-way layer order |
 | 13 | Signing display and SDK diagnostics | P5.11, section 6 error categories | Extends the signer interface |
 
-Existing callers may need explicit profile, identity-evidence or authorization arguments; this is a semantic plan, not a final API diff.
+Existing callers may need explicit profile, identity-evidence or authorization arguments; this is a semantic plan, not a final API diff. An SDK operation that currently accepts any alias and returns an Original should be exposed as Originals lookup rather than DID resolution. Existing share URLs can keep using that lookup. Callers that need the alias DID document use its own method’s resolution instead (P3.9).
 
 ### Deliberate departures from the SDK
 

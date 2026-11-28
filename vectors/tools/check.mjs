@@ -5,6 +5,7 @@
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { resolveDIDFromLog } from 'didwebvh-ts';
 import {
   ASSET_OPT, ASSET_REQ, J, STATE, bytesEq, checkChain, checkOgLog, checkPackage, checkWebvh, counts, decodeCbor, decodeMultikey, eq, multihash, ok, parseEnvelope, parseLines, readZip, resourceDigest, sha, stats, td, te, verifyProof,
 } from './verify-lib.mjs';
@@ -63,6 +64,22 @@ const servedPkg = Object.fromEntries(walk(join(ROOT, 'hosted/served/originals'))
 const hp = checkPackage(servedPkg, OG, 'hosted package');
 checkOgLog(hp.log, authorDoc, resources, 'hosted');
 ok(hp.log[2].state.asset.aliases.includes(aliasDoc.id), 'hosted: entry 3 lists the alias, completing P3.6');
+{
+  const layout = readJSON('hosted/layout.json');
+  const versionId = aliasEntries.at(-1).versionId;
+  const exact = await resolveDIDFromLog(aliasEntries, { versionId });
+  ok(!exact.didResolutionMetadata?.error && exact.didDocument?.id === layout.alias
+    && exact.didDocumentMetadata?.versionId === versionId,
+    'hosted: exact WebVH resolution returns the alias DID and its version (T3-014)');
+  const originalCheckpoint = hp.manifest.checkpoint;
+  const originalEntry = hp.log.find((e) => e.versionId === originalCheckpoint);
+  ok(exact.didDocument?.alsoKnownAs?.includes(OG) && originalEntry?.state.id === OG
+    && originalEntry.state.asset.aliases.includes(layout.alias),
+    'hosted: separate Originals lookup binds the two verified identifiers (T3-014)');
+  const wrong = await resolveDIDFromLog(aliasEntries, { versionId: originalCheckpoint });
+  ok(!!wrong.didResolutionMetadata?.error && !wrong.didDocument,
+    'hosted: an Original checkpoint cannot substitute for a WebVH version (T3-016)');
+}
 const ex = readJSON('hosted/exchanges.json');
 const reqEntry = (k) => JSON.parse(ex.exchanges[k].request.entry);
 let head = ex.initialHead;
