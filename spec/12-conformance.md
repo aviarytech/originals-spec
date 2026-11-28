@@ -4,7 +4,7 @@ All requirements here are proposed. A conformance claim needs a named, pinned Or
 
 ### Proposed minimum test matrix
 
-The matrix has 457 rows, grouped by the section of the first rule each tests. Every row has:
+The matrix has 460 rows, grouped by the section of the first rule each tests. Every row has:
 
 - an **ID**, `T<section>-<number>`. IDs are stable: a row keeps its ID when rows are added or moved, a new row takes the next unused number in its section, and the number of a removed row is never reused. Fixtures and reports cite rows by ID. Retired IDs: T9-110, T9-137, T9-138 and T9-139 (22 November 2026, when comparison against a prior result was removed), T9-069, T9-071 and T9-072 (22 November 2026, when inscribed signer histories were removed, D22), and T9-070 and T14-027 (22 November 2026, whose rows D22 had given new content, now at T9-144 and T14-105);
 - an **actor**: a *verifier* (including a resolver or reader), a *writer* (the part of the SDK that makes entries, packages, carriers and inscriptions), a *host* (P6.7, P9.7, P14.11) or the *SDK* as a whole, including its signing display and storage;
@@ -29,8 +29,13 @@ Rows that concern only the experimental additions are in their own document, wit
 | T3-009 | verifier | The Original’s did:webvh alias moves to another host | Unanchored: handled as an alias change by an author entry (P3.6, P9.3). Anchored: a new did:webvh alias is rejected (P9.10). Author binding unaffected either way | P3.6, P9.3, P9.10 |
 | T3-010 | verifier | Exact-checkpoint resolution of a checkpoint the resolver cannot supply | Reports why; the latest checkpoint is not substituted | P3.2 |
 | T3-011 | verifier | Controller of the did:webvh alias log, not the author, changes its DID document to stop listing the `did:og` | The alias is no longer confirmed; the Original, its history and its `did:og` result are unchanged, and no other log becomes its history | P3.7, P3.6 |
-| T3-012 | verifier | Resolver given an anchored Original’s did:webvh alias, or its did:btco alias | Reads the log from that layer’s source, verifies it under this profile and returns the `did:og` with its state and report, or reports why it cannot | P3.9, P3.3 |
+| T3-012 | verifier | Originals lookup using a did:webvh or did:btco alias with valid profile evidence | Verifies that alias’s binding and returns the canonical `did:og` identifier; insufficient or invalid evidence does not return a verified binding | P3.9, P3.3 |
 | T3-013 | verifier | Evidence set whose caller names a target checkpoint that is not in it | `state` `none`; `outcome` `incomplete`; one `target-missing` diagnostic, rule `P3.2`, item the target versionId | P3.2, P7.18, P14.25 |
+| T3-014 | verifier | Hosted fixture: resolve the did:webvh at the version in its served alias log, look up its Original, then resolve that `did:og` at the fixture’s asset checkpoint | The first document has the did:webvh as its `id`; lookup gives the fixture’s `did:og`; the derived second document has the `did:og` as its `id`. The two version selections are independent | P3.2, P3.6, P3.8, P3.9 |
+| T3-015 | verifier | Bitcoin fixture with an independent method-valid did:btco document on the same sat, at a fixed method-supported version; repeat with only the Originals inscriptions | In the first case method resolution returns the sat’s own document; in the second it reports no DID document. With complete Originals evidence, lookup yields the same `did:og` in both cases | P3.5, P3.8, P3.9, P9.31, P9.34 |
+| T3-016 | verifier | Either alias, with an unavailable exact method version but enough evidence to locate the Original independently | Method resolution reports why it cannot return the requested version. It does not fall back to the alias’s latest document or to any `did:og` document | P3.9 |
+
+For T3-014, use the `hosted/` vector’s served alias log, asset log and signer evidence. For T3-015, use the `bitcoin/` vector as the Originals-only case. For the coexistence case, extend the sat fixture with a separate valid sat DID inscription and consistent chain evidence. Use a network supported by the pinned did:btco implementation for the method-resolution leg; P9.10’s profile network prefixes do not confer support on external DID resolvers. Select the sat DID version under that method separately from the Original’s asset checkpoint.
 
 #### The resource (§4)
 
@@ -516,7 +521,7 @@ Rows that concern only the experimental additions are in their own document, wit
 Each core rule and the number of rows that test it. Every core rule has at least one row. A rule number counts as covered when one row tests one of its requirements; P9.15, P9.17 and P14.13 each bundle many requirements, and their rows test each table row, body mode and limit separately.
 
 - Section 2: P2.1 (2), P2.2 (1), P2.3 (1).
-- Section 3: P3.1 (2), P3.2 (2), P3.3 (4), P3.4 (1), P3.5 (4), P3.6 (4), P3.7 (1), P3.8 (2), P3.9 (1).
+- Section 3: P3.1 (2), P3.2 (2), P3.3 (4), P3.4 (1), P3.5 (4), P3.6 (4), P3.7 (1), P3.8 (2), P3.9 (4).
 - Section 4: P4.1 (2), P4.2 (2), P4.3 (1), P4.4 (5), P4.5 (1), P4.6 (2).
 - Section 5: P5.1 (2), P5.2 (2), P5.3 (10), P5.4 (2), P5.5 (2), P5.6 (5), P5.7 (3), P5.8 (6), P5.9 (2), P5.10 (2), P5.11 (3), P5.12 (2), P5.13 (20), P5.14 (9), P5.15 (6), P5.16 (9), P5.17 (3), P5.18 (8).
 - Section 6: P6.1 (1), P6.2 (1), P6.3 (1), P6.4 (1), P6.5 (9), P6.6 (6), P6.7 (6), P6.8 (3), P6.9 (13).
